@@ -715,8 +715,8 @@
       "category": "MATH_BCD",
       "jsr_called": false,
       "table_referenced": true,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with Type A & B line counts, level-up progression, soft drop points, and max-out score logic"
     },
     {
       "name": "L9C94",
@@ -767,8 +767,8 @@
       "category": "AUDIO",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with playfield row 5 height check and allegro danger music switching"
     },
     {
       "name": "pollControllerButtons",
@@ -819,8 +819,8 @@
       "category": "AUDIO",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with track selection and demo mode mute override"
     },
     {
       "name": "gameModeState_checkForResetKeyCombo",

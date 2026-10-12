@@ -15,11 +15,11 @@
 | Metric | Status | Details |
 |:---|:---:|:---|
 | **Total Standalone Routines** | **205** | Inventory extracted from disassembly and symbol table |
-| **Verified Routines** | **5** | Mathematically and behaviorally proven against ROM/ASM |
+| **Verified Routines** | **8** | Mathematically and behaviorally proven against ROM/ASM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **200** | Pending conversion |
-| **Current Progress** | **2.44%** | `[#-------------------------------------------------] 2.44%` |
-| **Build & Test Suite** | 2 / 2 suites passing | Strict C11, zero warnings, Termux/Android portable |
+| **Remaining Routines** | **197** | Pending conversion |
+| **Current Progress** | **3.90%** | `[##------------------------------------------------] 3.90%` |
+| **Build & Test Suite** | 3 / 3 suites passing | Strict C11, zero warnings, Termux/Android portable |
 
 ---
 
@@ -28,8 +28,9 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
-| **MATH_BCD** (Score & Line Math) | 9 | 0 | 0 | 9 | 0.0% |
+| **MATH_BCD** (Score & Line Math) | 9 | 1 | 0 | 8 | **11.1%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 19 | 3 | 0 | 16 | **15.8%** |
+| **AUDIO** (Music Engine, SFX, APU) | 56 | 2 | 0 | 54 | **3.6%** |
 | **PLAYFIELD** (Grid, Collision, Lines) | 11 | 0 | 0 | 11 | 0.0% |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 0 | 0 | 4 | 0.0% |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 15 | 0 | 0 | 15 | 0.0% |
@@ -37,8 +38,7 @@
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 51 | 0 | 0 | 51 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 19 | 0 | 0 | 19 | 0.0% |
-| **AUDIO** (Music Engine, SFX, APU) | 56 | 0 | 0 | 56 | 0.0% |
-| **TOTAL** | **205** | **5** | **0** | **200** | **2.44%** |
+| **TOTAL** | **205** | **8** | **0** | **197** | **3.90%** |
 
 ---
 
@@ -58,10 +58,14 @@
    - Decompiled `incrementPieceStat` (BCD piece counters).
    - Unit tests verified with edge cases, anti-repetition rerolls, and BCD carry.
 
-3. [ ] **Batch 2 (BCD Math & Scoring)**:
-   - `addBCD` / `updateScore`.
-   - `updateLines` / `levelNumber` advancement.
-   - Drop point calculations.
+3. [x] **Batch 2 (BCD Math, Scoring, & Line Calculations)**:
+   - Decompiled `bcd_add8` and `bcd_sub8` low-level operations.
+   - Decompiled `addHoldDownPoints` (soft drop BCD accumulation).
+   - Decompiled `addLineClearPoints` (multi-line BCD multipliers & 999,999 clamp).
+   - Decompiled `updateLinesAndLevel` (Type A tens-boundary level up & Type B decrement).
+   - Decompiled `playState_updateLinesAndStatistics` (PlayState 4 complete handler).
+   - Decompiled `updateMusicSpeed` (row 5 height detection & danger allegro music).
+   - Decompiled `setMusicTrack` (track selection and demo mode mute).
 
 4. [ ] **Batch 3 (Tetrimino Geometry, Rotation & Collision)**:
    - Piece definitions and orientations (19 orientations, 7 tetrominoes).
@@ -103,4 +107,5 @@
 | Batch # | Description | Routines Added | Cumulative Verified | Tests Passing | Commit |
 |:---|:---|:---:|:---:|:---:|:---:|
 | Baseline | Initial repository configuration & routine census | 0 | 0 | N/A | `985e8df` |
-| Batch 0 & 1 | Infrastructure, NES State, RNG & Piece Selection | 5 | 5 | 2 suites / 11 test cases | Pending |
+| Batch 0 & 1 | Infrastructure, NES State, RNG & Piece Selection | 5 | 5 | 2 suites / 11 test cases | `275a177` |
+| Batch 2 | BCD Math, Scoring, Lines Progression, & Music Speed | 3 | 8 | 3 suites / 17 test cases | Pending |

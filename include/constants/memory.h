@@ -160,6 +160,13 @@ extern "C" {
 #define ADDR_STATS_BY_TYPE                  0x03F0 /* 14 bytes: 7 pieces * 2 bytes BCD */
 #define ADDR_PLAYFIELD                      0x0400 /* 200 bytes ($C8): 10 x 20 cells */
 #define ADDR_PLAYFIELD_P2                   0x0500 /* 200 bytes */
+#define ADDR_SOUND_EFFECT_SLOT0_INIT        0x06F0
+#define ADDR_SOUND_EFFECT_SLOT1_INIT        0x06F1
+#define ADDR_SOUND_EFFECT_SLOT2_INIT        0x06F2
+#define ADDR_SOUND_EFFECT_SLOT3_INIT        0x06F3
+#define ADDR_SOUND_EFFECT_SLOT4_INIT        0x06F4
+#define ADDR_MUSIC_TRACK                    0x06F5
+#define ADDR_CURRENTLY_PLAYING_MUSIC_TRACK  0x06FD
 #define ADDR_UNREFERENCED_SOUND_RNG_TMP     0x06FF /* 1 byte */
 #define ADDR_HIGH_SCORE_NAMES               0x0700 /* 48 bytes ($30): 3 chars * 8 entries * 2 types */
 #define ADDR_HIGH_SCORE_A                   0x0730 /* 12 bytes ($0C) */

@@ -11,10 +11,10 @@
 | Metric | Count |
 |:---|:---:|
 | **Total Standalone Routines** | **205** |
-| **Verified (Tested)** | **5** |
+| **Verified (Tested)** | **8** |
 | **Decompiled (Untested)** | **0** |
-| **Remaining (Missing)** | **200** |
-| **Completion Percentage** | **2.44%** |
+| **Remaining (Missing)** | **197** |
+| **Completion Percentage** | **3.90%** |
 
 ---
 
@@ -22,10 +22,10 @@
 
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **AUDIO** | 56 | 0 | 0 | 56 | 0.0% |
+| **AUDIO** | 56 | 2 | 0 | 54 | 3.6% |
 | **CORE_LOGIC** | 51 | 0 | 0 | 51 | 0.0% |
 | **GAMEPLAY_STATE** | 15 | 0 | 0 | 15 | 0.0% |
-| **MATH_BCD** | 9 | 0 | 0 | 9 | 0.0% |
+| **MATH_BCD** | 9 | 1 | 0 | 8 | 11.1% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
 | **PLAYER_INPUT** | 4 | 0 | 0 | 4 | 0.0% |
@@ -42,8 +42,8 @@
 
 | Routine Name | Address | Lines | JSR Called | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `updateMusicSpeed` | `0x9D17` | L3596–L3629 | Yes | `MISSING` |  |
-| `setMusicTrack` | `0x9E07` | L3746–L3755 | Yes | `MISSING` |  |
+| `updateMusicSpeed` | `0x9D17` | L3596–L3629 | Yes | `VERIFIED` | Verified with playfield row 5 height check and allegro danger music switching |
+| `setMusicTrack` | `0x9E07` | L3746–L3755 | Yes | `VERIFIED` | Verified with track selection and demo mode mute override |
 | `updateAudioWaitForNmiAndResetOamStaging` | `0xAA2F` | L5295–L5308 | Yes | `MISSING` |  |
 | `updateAudioAndWaitForNmi` | `0xAA45` | L5309–L5318 | Yes | `MISSING` |  |
 | `updateAudioWaitForNmiAndDisablePpuRendering` | `0xAA52` | L5319–L5322 | Yes | `MISSING` |  |
@@ -181,7 +181,7 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Table | `MISSING` |  |
 | `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | Yes | `MISSING` |  |
-| `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Table | `MISSING` |  |
+| `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Table | `VERIFIED` | Verified with Type A & B line counts, level-up progression, soft drop points, and max-out score logic |
 | `showHighScores` | `0x9FF2` | L4015–L4020 | Yes | `MISSING` |  |
 | `handleHighScoreIfNecessary` | `0xA0EE` | L4116–L4159 | Yes | `MISSING` |  |
 | `copyHighScoreNameToNextIndex` | `0xA192` | L4208–L4238 | Yes | `MISSING` |  |

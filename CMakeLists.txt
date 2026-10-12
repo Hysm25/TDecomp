@@ -24,6 +24,7 @@ include_directories(
 set(TDECOMP_CORE_SOURCES
     src/nes.c
     src/math/rng.c
+    src/math/bcd.c
 )
 
 add_library(tdecomp_core STATIC ${TDECOMP_CORE_SOURCES})
@@ -41,6 +42,7 @@ if(BUILD_TESTING)
         tests/test_main.c
         tests/test_nes.c
         tests/test_rng.c
+        tests/test_bcd.c
     )
 
     add_executable(tdecomp_tests ${TDECOMP_TEST_SOURCES})
