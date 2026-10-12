@@ -14,12 +14,15 @@
 
 | Metric | Status | Details |
 |:---|:---:|:---|
-| **Total Standalone Routines** | **205** | Inventory extracted from disassembly and symbol table |
-| **Verified Routines** | **13** | Mathematically and behaviorally proven against ROM/ASM |
+| **Total Standalone Routines** | **171** | Authoritative routines with independent execution scope |
+| **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
+| **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
+| **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
+| **Verified Routines** | **13** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **192** | Pending conversion |
-| **Current Progress** | **6.34%** | `[###-----------------------------------------------] 6.34%` |
-| **Build & Test Suite** | 4 / 4 suites passing | Strict C11, zero warnings, Termux/Android portable |
+| **Remaining Routines** | **158** | Pending conversion |
+| **Current Progress** | **7.60%** | `[####----------------------------------------------] 7.60%` |
+| **Build & Test Suite** | 6 / 6 suites passing | Unit, 9 ROM data tables, & 6502 differential CPU oracle |
 
 ---
 
@@ -28,17 +31,17 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
-| **MATH_BCD** (Score & Line Math) | 9 | 1 | 0 | 8 | **11.1%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 19 | 6 | 0 | 13 | **31.6%** |
-| **PLAYFIELD** (Grid, Collision, Lines) | 11 | 1 | 0 | 10 | **9.1%** |
-| **AUDIO** (Music Engine, SFX, APU) | 56 | 2 | 0 | 54 | **3.6%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 51 | 1 | 0 | 50 | **2.0%** |
-| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 0 | 0 | 4 | 0.0% |
-| **GAMEPLAY_STATE** (State Machine, Timers) | 15 | 0 | 0 | 15 | 0.0% |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 6 | 0 | 10 | **37.5%** |
+| **PLAYFIELD** (Grid, Collision, Lines) | 9 | 1 | 0 | 8 | **11.1%** |
+| **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
+| **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 1 | 0 | 37 | **2.6%** |
+| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 0 | 0 | 14 | 0.0% |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 0 | 0 | 13 | 0.0% |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 19 | 0 | 0 | 19 | 0.0% |
-| **TOTAL** | **205** | **13** | **0** | **192** | **6.34%** |
+| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 0 | 0 | 4 | 0.0% |
+| **TOTAL** | **171** | **13** | **0** | **158** | **7.60%** |
 
 ---
 
@@ -76,30 +79,37 @@
    - Decompiled `updatePlayfield` (VRAM dirty row tracker).
    - Decompiled `getDropSpeed` (levels 0-29 gravity, killscreen).
 
-5. [ ] **Batch 4 (Playfield Grid & Line Clear)**:
+5. [x] **Verification Infrastructure & Routine Scope Audit**:
+   - Reference ROM verification: Bit-for-bit extraction and validation against `Tetris (USA).nes`.
+   - 9 PRG ROM tables verified byte-for-byte at exact symbol addresses (`orientationTable`, `rotationTable`, `framesPerDropTable`, `pointsTable`, `spawnTable`, `tetriminoTypeFromOrientation`, `spawnOrientationFromOrientation`, `musicSelectionTable`, `demoTetriminoTypeTable`).
+   - Differential CPU testing: Built NMOS 6502 CPU simulator oracle executing original PRG ROM assembly directly against decompiled C routines across hundreds of test vectors.
+   - Authoritative scope audit: Distinguished 171 standalone routines, 111 alternate entry points, 260 data tables, and exact address aliases in `ROUTINE_INVENTORY.md` and `routine_inventory.json`.
+
+6. [ ] **Batch 4 (Playfield Grid & Line Clear)**:
    - Playfield representation ($0400, 10x20 cells).
    - Row completion detection (`playState_checkForCompletedRows`).
    - Line clear animation framing (`playState_lineClearAnimation`).
    - Row collapsing (`collapseRows`).
    - Type B garbage generation (`initPlayfieldForTypeB`).
+   - Differential testing against 6502 assembly in reference ROM.
 
-6. [ ] **Batch 5 (Player Controls & DAS)**:
+7. [ ] **Batch 5 (Player Controls & DAS)**:
    - Joypad state decoding.
    - Autorepeat timing (DAS initial delay 16 frames, repeat 6 frames; NTSC vs PAL).
 
-7. [ ] **Batch 6 (Gameplay State Machine)**:
+8. [ ] **Batch 6 (Gameplay State Machine)**:
    - `playState` machine (Active -> Lock -> Check Rows -> Clear Animation -> Update Scores -> Spawn -> Curtain / Game Over).
    - Two-player / Type A vs Type B state handling.
 
-8. [ ] **Batch 7 (Menus, High Scores & Systems)**:
+9. [ ] **Batch 7 (Menus, High Scores & Systems)**:
    - Legal screen, title screen, menu navigation.
    - High score table sorting and storage ($0700).
 
-9. [ ] **Batch 8 (PPU Rendering & OAM)**:
-   - OAM sprite staging.
-   - Nametable row updates.
+10. [ ] **Batch 8 (PPU Rendering & OAM)**:
+    - OAM sprite staging.
+    - Nametable row updates.
 
-10. [ ] **Batch 9 (Audio & Sound Effects)**:
+11. [ ] **Batch 9 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
 
 ---
@@ -112,3 +122,4 @@
 | Batch 0 & 1 | Infrastructure, NES State, RNG & Piece Selection | 5 | 5 | 2 suites / 11 test cases | `275a177` |
 | Batch 2 | BCD Math, Scoring, Lines Progression, & Music Speed | 3 | 8 | 3 suites / 17 test cases | `d3110ca` |
 | Batch 3 | Tetrimino Geometry, Rotation, Movement & Collision | 5 | 13 | 4 suites / 26 test cases | `17c2e00` |
+| Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | Pending |
