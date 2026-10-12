@@ -100,9 +100,9 @@ int test_tetrimino_subsystem(void) {
     nes.ram[ADDR_PLAYFIELD + (12 * 10 + 5)] = TILE_2;
     nes.ram[ADDR_FALL_TIMER] = 48;
     drop_tetrimino(&nes);
-    /* Cannot move to Y=12; locks at Y=11 and transitions to PLAYSTATE_CHECK_ROWS (2) */
+    /* Cannot move to Y=12; locks at Y=11 and transitions to PLAYSTATE_LOCK_TETRIMINO (2) */
     assert(nes.ram[ADDR_TETRIMINO_Y] == 11);
-    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_CHECK_ROWS);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_LOCK_TETRIMINO);
 
     /* Test 9: getDropSpeed killscreen */
     assert(getDropSpeed(0) == 48);

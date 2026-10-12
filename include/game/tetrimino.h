@@ -48,7 +48,7 @@ void shift_tetrimino(NES_State *nes);
 
 /*
  * Handles vertical drop (natural gravity timer and player Down soft drop).
- * Transitions playState to PLAYSTATE_CHECK_ROWS (2) upon touchdown.
+ * Transitions playState to PLAYSTATE_LOCK_TETRIMINO (2) upon touchdown.
  * Source address: $8914 (main.asm lines 1530-1600).
  */
 void drop_tetrimino(NES_State *nes);

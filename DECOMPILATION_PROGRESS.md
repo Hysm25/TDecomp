@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **23** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **34** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **148** | Pending conversion |
-| **Current Progress** | **13.45%** | `[#######-------------------------------------------] 13.45%` |
-| **Build & Test Suite** | 8 / 8 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
+| **Remaining Routines** | **137** | Pending conversion |
+| **Current Progress** | **19.88%** | `[##########------------------------------------------] 19.88%` |
+| **Build & Test Suite** | 9 / 9 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
 
 ---
 
@@ -33,15 +33,15 @@
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 6 | 0 | 3 | **66.7%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 7 | 0 | 9 | **43.8%** |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 10 | 0 | 6 | **62.5%** |
+| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 4 | 0 | 10 | **28.6%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 6 | 0 | 32 | **15.8%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 2 | 0 | 36 | **5.3%** |
-| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 0 | 0 | 14 | 0.0% |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 0 | 0 | 13 | 0.0% |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **23** | **0** | **148** | **13.45%** |
+| **TOTAL** | **171** | **34** | **0** | **137** | **19.88%** |
 
 ---
 
@@ -106,19 +106,34 @@
    - Decompiled `processDAS` & `dasWallCharge`: Exact DAS initial delay 16 frames (`DAS_RESET = 0x10`), 6 frames repeat interval (`DAS_DELAY = 0x0A`), wall charging to full delay.
    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across 256 edge-diff combinations, controller reads, and demo table incrementation.
 
-8. [ ] **Batch 6 (Gameplay State Machine)**:
-   - `playState` machine (Active -> Lock -> Check Rows -> Clear Animation -> Update Scores -> Spawn -> Curtain / Game Over).
-   - Two-player / Type A vs Type B state handling.
+8. [x] **Batch 6 (Player State Machine & State Dispatcher)**:
+   - Decompiled `makePlayer1Active` ($8776): Player 1 zero-page mirror copy ($0060-$007F to $0040-$005F), playfield pointer setup, button mirroring.
+   - Decompiled `makePlayer2Active` ($8792): Player 2 zero-page mirror copy ($0080-$009F to $0040-$005F), 2P playfield pointer setup, button mirroring.
+   - Decompiled `savePlayer1State` ($87AE): Active player state save, 2P pending garbage swapping.
+   - Decompiled `savePlayer2State` ($87C8): Active player state save, 2P pending garbage swapping.
+   - Decompiled `playState_unassignOrientationId` ($9E2F): Sets `currentPiece = TETRIMINO_HIDDEN` (0x13).
+   - Decompiled `playState_incrementPlayState` ($9E37): Increments `playState`.
+   - Decompiled `playState_noop` ($9E39): No-op state handler.
+   - Decompiled `playState_playerControlsActiveTetrimino` ($81CF): Composes active piece shift, rotation, and soft drop gravity.
+   - Decompiled `playState_player2ControlsActiveTetrimino` ($81F6): Composes Player 2 active piece controls.
+   - Decompiled `playState_bTypeGoalCheck` ($A3F2): Type A vs Type B line goal check, victory music, success graphic placement ($A42E).
+   - Decompiled `branchOnPlayStatePlayer1` ($81B2) & `branchOnPlayStatePlayer2` ($81D9): Authoritative 12-state dispatcher over states 0-11.
+   - Decompiled `branchOnPlayState`: Unified dispatcher branching on `activePlayer`.
+   - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across state dispatch, context switches, and handlers.
 
-9. [ ] **Batch 7 (Menus, High Scores & Systems)**:
-   - Legal screen, title screen, menu navigation.
-   - High score table sorting and storage ($0700).
+9. [ ] **Batch 7 (Piece Spawning & Gameplay Loop Integration)**:
+   - `playState_spawnNextTetrimino` ($988E): Piece spawning, spawn position (X=5, Y=0), orientation ID lookup, stat updates.
+   - Gameplay loop framing and state sequencing.
 
-10. [ ] **Batch 8 (PPU Rendering & OAM)**:
+10. [ ] **Batch 8 (Menus, High Scores & Systems)**:
+    - Legal screen, title screen, menu navigation.
+    - High score table sorting and storage ($0700).
+
+11. [ ] **Batch 9 (PPU Rendering & OAM)**:
     - OAM sprite staging.
     - Nametable row updates.
 
-11. [ ] **Batch 9 (Audio & Sound Effects)**:
+12. [ ] **Batch 10 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
 
 ---
@@ -133,4 +148,5 @@
 | Batch 3 | Tetrimino Geometry, Rotation, Movement & Collision | 5 | 13 | 4 suites / 26 test cases | `17c2e00` |
 | Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | `1c7cdc3` |
 | Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | `e62775b` |
-| Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `eb1beb6` |
+| Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `a3c6dc7` |
+| Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `306802e` |

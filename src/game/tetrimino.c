@@ -290,7 +290,7 @@ void drop_tetrimino(NES_State *nes) {
                 }
                 /* Piece locked */
                 nes->ram[ADDR_TETRIMINO_Y] = nes->ram[ADDR_ORIGINAL_Y];
-                nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_CHECK_ROWS;
+                nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_LOCK_TETRIMINO;
                 updatePlayfield(nes);
                 return;
             }
@@ -310,7 +310,7 @@ void drop_tetrimino(NES_State *nes) {
         }
         /* Piece locked */
         nes->ram[ADDR_TETRIMINO_Y] = nes->ram[ADDR_ORIGINAL_Y];
-        nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_CHECK_ROWS;
+        nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_LOCK_TETRIMINO;
         updatePlayfield(nes);
     }
 }

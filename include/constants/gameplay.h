@@ -56,6 +56,7 @@ extern "C" {
 #define ORIENT_I_HORIZ  0x12
 
 #define ORIENT_HIDDEN   0x13
+#define TETRIMINO_HIDDEN ORIENT_HIDDEN
 #define ORIENTATION_COUNT 19
 
 /* Playfield Tile IDs */
@@ -81,15 +82,20 @@ extern "C" {
 #define MODE_PLAY_ENDING_HIGH_SCORE 5
 #define MODE_DEMO                   5
 
-/* Play States within Mode 4 */
-#define PLAYSTATE_CONTROL_ACTIVE     0
-#define PLAYSTATE_LOCK_TETRIMINO     1
-#define PLAYSTATE_CHECK_ROWS         2
-#define PLAYSTATE_LINE_CLEAR_ANIM    3
-#define PLAYSTATE_UPDATE_COUNTERS    4
-#define PLAYSTATE_SPAWN_NEXT         5
-#define PLAYSTATE_CURTAIN_FALL       6
-#define PLAYSTATE_GAME_OVER          7
+/* Play States within Mode 4 (main.asm lines 474-515 switch_s_plus_2a table) */
+#define PLAYSTATE_UNASSIGN_ORIENTATION        0
+#define PLAYSTATE_CONTROL_ACTIVE              1
+#define PLAYSTATE_LOCK_TETRIMINO              2
+#define PLAYSTATE_CHECK_ROWS                  3
+#define PLAYSTATE_LINE_CLEAR_ANIM             4
+#define PLAYSTATE_UPDATE_LINES_AND_STATISTICS 5
+#define PLAYSTATE_UPDATE_COUNTERS             5  /* legacy alias */
+#define PLAYSTATE_B_TYPE_GOAL_CHECK           6
+#define PLAYSTATE_RECEIVE_GARBAGE             7
+#define PLAYSTATE_SPAWN_NEXT                  8
+#define PLAYSTATE_NOOP_9                      9
+#define PLAYSTATE_CURTAIN_FALL                10
+#define PLAYSTATE_INCREMENT_PLAY_STATE        11
 
 /* Game Types */
 #define GAMETYPE_A      0

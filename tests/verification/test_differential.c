@@ -10,8 +10,15 @@
 #include "game/tetrimino.h"
 #include "game/playfield.h"
 #include "game/input.h"
+#include "game/state.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
+#define ROM_ADDR_BRANCH_ON_PLAY_STATE_P1 0x81B2
+#define ROM_ADDR_BRANCH_ON_PLAY_STATE_P2 0x81D9
+#define ROM_ADDR_MAKE_PLAYER1_ACTIVE    0x8776
+#define ROM_ADDR_MAKE_PLAYER2_ACTIVE    0x8792
+#define ROM_ADDR_SAVE_PLAYER1_STATE     0x87AE
+#define ROM_ADDR_SAVE_PLAYER2_STATE     0x87C8
 #define ROM_ADDR_ROTATE_TETRIMINO       0x88AB
 #define ROM_ADDR_DROP_TETRIMINO         0x8914
 #define ROM_ADDR_SHIFT_TETRIMINO        0x89AE
@@ -25,6 +32,10 @@
 #define ROM_ADDR_POLL_CONTROLLER_BUTTONS 0x9D51
 #define ROM_ADDR_DEMO_BUTTONS_INDEX_INCR 0x9DE8
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
+#define ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION 0x9E2F
+#define ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE 0x9E37
+#define ROM_ADDR_PLAYSTATE_NOOP         0x9E39
+#define ROM_ADDR_PLAYSTATE_B_TYPE_GOAL_CHECK 0xA3F2
 #define ROM_ADDR_LFSR_PRNG              0xAB47
 #define ROM_ADDR_POLL_CONTROLLER_ACTUAL_READ 0xAB69
 #define ROM_ADDR_ADD_EXPANSION_PORT_INPUT 0xAB8B
@@ -521,6 +532,151 @@ int test_differential_verification(void) {
 
             assert(nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR] == nes_c.ram[ADDR_DEMO_BUTTONS_ADDR]);
             assert(nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR + 1] == nes_c.ram[ADDR_DEMO_BUTTONS_ADDR + 1]);
+        }
+    }
+
+    /* Test 13: Differential makePlayer1Active ($8776) & makePlayer2Active ($8792) */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        for (int i = 0; i < 32; i++) {
+            nes_6502.ram[ADDR_P1_BASE + i] = (uint8_t)(0x20 + i);
+            nes_c.ram[ADDR_P1_BASE + i] = (uint8_t)(0x20 + i);
+            nes_6502.ram[ADDR_P2_BASE + i] = (uint8_t)(0x60 + i);
+            nes_c.ram[ADDR_P2_BASE + i] = (uint8_t)(0x60 + i);
+        }
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_A | BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_A | BUTTON_START;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A;
+
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P2] = BUTTON_B;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P2] = BUTTON_B;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P2] = BUTTON_B | BUTTON_SELECT;
+        nes_c.ram[ADDR_HELD_BUTTONS_P2] = BUTTON_B | BUTTON_SELECT;
+
+        /* makePlayer1Active */
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MAKE_PLAYER1_ACTIVE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MAKE_PLAYER1_ACTIVE, 1000);
+        assert(ok);
+        (void)ok;
+
+        makePlayer1Active(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ACTIVE_PLAYER] == nes_c.ram[ADDR_ACTIVE_PLAYER]);
+        assert(nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] == nes_c.ram[ADDR_PLAYFIELD_ADDR + 1]);
+        assert(nes_6502.ram[ADDR_NEWLY_PRESSED_BUTTONS] == nes_c.ram[ADDR_NEWLY_PRESSED_BUTTONS]);
+        assert(nes_6502.ram[ADDR_HELD_BUTTONS] == nes_c.ram[ADDR_HELD_BUTTONS]);
+        assert(memcmp(&nes_6502.ram[ADDR_TETRIMINO_X], &nes_c.ram[ADDR_TETRIMINO_X], 32) == 0);
+
+        /* makePlayer2Active */
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MAKE_PLAYER2_ACTIVE, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MAKE_PLAYER2_ACTIVE, 1000);
+        assert(ok);
+
+        makePlayer2Active(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ACTIVE_PLAYER] == nes_c.ram[ADDR_ACTIVE_PLAYER]);
+        assert(nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] == nes_c.ram[ADDR_PLAYFIELD_ADDR + 1]);
+        assert(nes_6502.ram[ADDR_NEWLY_PRESSED_BUTTONS] == nes_c.ram[ADDR_NEWLY_PRESSED_BUTTONS]);
+        assert(nes_6502.ram[ADDR_HELD_BUTTONS] == nes_c.ram[ADDR_HELD_BUTTONS]);
+        assert(memcmp(&nes_6502.ram[ADDR_TETRIMINO_X], &nes_c.ram[ADDR_TETRIMINO_X], 32) == 0);
+
+        /* savePlayer1State */
+        nes_6502.ram[ADDR_TETRIMINO_X] = 0xAA;
+        nes_c.ram[ADDR_TETRIMINO_X] = 0xAA;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_6502.ram[ADDR_PENDING_GARBAGE] = 4;
+        nes_c.ram[ADDR_PENDING_GARBAGE] = 4;
+        nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] = 1;
+        nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE] = 1;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SAVE_PLAYER1_STATE, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SAVE_PLAYER1_STATE, 1000);
+        assert(ok);
+
+        savePlayer1State(&nes_c);
+
+        assert(nes_6502.ram[ADDR_P1_BASE] == nes_c.ram[ADDR_P1_BASE]);
+        assert(nes_6502.ram[ADDR_PENDING_GARBAGE] == nes_c.ram[ADDR_PENDING_GARBAGE]);
+        assert(nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] == nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE]);
+
+        /* savePlayer2State */
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SAVE_PLAYER2_STATE, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SAVE_PLAYER2_STATE, 1000);
+        assert(ok);
+
+        savePlayer2State(&nes_c);
+
+        assert(nes_6502.ram[ADDR_P2_BASE] == nes_c.ram[ADDR_P2_BASE]);
+        assert(nes_6502.ram[ADDR_PENDING_GARBAGE] == nes_c.ram[ADDR_PENDING_GARBAGE]);
+        assert(nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] == nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE]);
+    }
+
+    /* Test 14: Differential playState_unassignOrientationId ($9E2F) & playState_incrementPlayState ($9E37) */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_CURRENT_PIECE] = 0x05;
+        nes_c.ram[ADDR_CURRENT_PIECE] = 0x05;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION, 500);
+        assert(ok);
+        (void)ok;
+
+        playState_unassignOrientationId(&nes_c);
+
+        assert(nes_6502.ram[ADDR_CURRENT_PIECE] == nes_c.ram[ADDR_CURRENT_PIECE]);
+        assert(nes_c.ram[ADDR_CURRENT_PIECE] == TETRIMINO_HIDDEN);
+
+        nes_6502.ram[ADDR_PLAY_STATE] = 11;
+        nes_c.ram[ADDR_PLAY_STATE] = 11;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE, 500);
+        assert(ok);
+
+        playState_incrementPlayState(&nes_c);
+
+        assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+        assert(nes_c.ram[ADDR_PLAY_STATE] == 12);
+    }
+
+    /* Test 15: Differential branchOnPlayStatePlayer1 ($81B2) dispatch */
+    {
+        uint8_t test_states[] = { 0, 4, 6, 9, 11 };
+        size_t num_states = sizeof(test_states) / sizeof(test_states[0]);
+
+        for (size_t i = 0; i < num_states; i++) {
+            NES_State nes_6502 = rom_nes;
+            NES_State nes_c = rom_nes;
+
+            uint8_t st = test_states[i];
+            nes_6502.ram[ADDR_PLAY_STATE] = st;
+            nes_c.ram[ADDR_PLAY_STATE] = st;
+            nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+            nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_BRANCH_ON_PLAY_STATE_P1, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_BRANCH_ON_PLAY_STATE_P1, 1000);
+            assert(ok);
+            (void)ok;
+
+            branchOnPlayStatePlayer1(&nes_c);
+
+            assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+            assert(nes_6502.ram[ADDR_CURRENT_PIECE] == nes_c.ram[ADDR_CURRENT_PIECE]);
         }
     }
 

@@ -247,7 +247,21 @@ def main():
         "pollController_actualRead": "Verified: Serial joypad 4016/4017 strobe and 8-bit read verified with unit vectors",
         "addExpansionPortInputAsControllerInput": "Verified: Famicom expansion port input OR-mixing verified with unit vectors",
         "pollController": "Verified: DPCM glitch debouncing double-read and edge diffing differential proven against 6502 ROM",
-        "diffOldAndNewButtons": "Verified: Button edge detection (curr ^ held & curr) differential proven across 256 vector combinations"
+        "diffOldAndNewButtons": "Verified: Button edge detection (curr ^ held & curr) differential proven across 256 vector combinations",
+
+        # Batch 6 (Gameplay State Machine)
+        "makePlayer1Active": "Verified: Player 1 context mirroring, playfield pointer setup, and button copy differential proven against 6502 ROM",
+        "makePlayer2Active": "Verified: Player 2 context mirroring, second playfield pointer, and button copy differential proven against 6502 ROM",
+        "savePlayer1State": "Verified: Active player state saving and 2-player pending garbage swapping differential proven against 6502 ROM",
+        "savePlayer2State": "Verified: Active player state saving and pending garbage swapping differential proven against 6502 ROM",
+        "branchOnPlayStatePlayer1": "Verified: 12-state dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table",
+        "branchOnPlayStatePlayer2": "Verified: Player 2 state dispatcher verified with 6502 simulator",
+        "playState_playerControlsActiveTetrimino": "Verified: Shift, rotate, and drop composition verified",
+        "playState_player2ControlsActiveTetrimino": "Verified: Shift, rotate, and drop composition verified",
+        "playState_unassignOrientationId": "Verified: Hidden orientation unassign differential proven against 6502 ROM",
+        "playState_incrementPlayState": "Verified: PlayState incrementation differential proven against 6502 ROM",
+        "playState_noop": "Verified: No-operation handler verified",
+        "playState_bTypeGoalCheck": "Verified: Type A vs Type B line goal check and victory tile placement verified"
     }
 
     for r in routines:
