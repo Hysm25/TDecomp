@@ -239,7 +239,15 @@ def main():
         "playState_updateGameOverCurtain": "Verified: Game over curtain cascade filling playfield with curtain tiles verified",
         "playState_receiveGarbage": "Verified: 2-player pending garbage shifting and bottom row filling verified",
         "initPlayfieldIfTypeB": "Verified: Type B mode check and garbage playfield initialization verified",
-        "initPlayfieldForTypeB": "Verified: PRNG-based garbage generation (rows 8-19) and height clearing verified"
+        "initPlayfieldForTypeB": "Verified: PRNG-based garbage generation (rows 8-19) and height clearing verified",
+
+        # Batch 5 (Player Controls and DAS)
+        "pollControllerButtons": "Verified: Mode dispatch, Start button demo cancellation, and demo move playback verified",
+        "demoButtonsTable_indexIncr": "Verified: 16-bit demo table address pointer increment verified with 6502 simulator",
+        "pollController_actualRead": "Verified: Serial joypad 4016/4017 strobe and 8-bit read verified with unit vectors",
+        "addExpansionPortInputAsControllerInput": "Verified: Famicom expansion port input OR-mixing verified with unit vectors",
+        "pollController": "Verified: DPCM glitch debouncing double-read and edge diffing differential proven against 6502 ROM",
+        "diffOldAndNewButtons": "Verified: Button edge detection (curr ^ held & curr) differential proven across 256 vector combinations"
     }
 
     for r in routines:

@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **19** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **23** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **152** | Pending conversion |
-| **Completion Percentage** | **11.11%** | Standalone routine completion rate |
+| **Remaining Routines** | **148** | Pending conversion |
+| **Completion Percentage** | **13.45%** | Standalone routine completion rate |
 
 ---
 
@@ -27,12 +27,12 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
-| **CORE_LOGIC** | 38 | 1 | 0 | 37 | 2.6% |
+| **CORE_LOGIC** | 38 | 2 | 0 | 36 | 5.3% |
 | **GAMEPLAY_STATE** | 14 | 0 | 0 | 14 | 0.0% |
 | **MATH_BCD** | 12 | 1 | 0 | 11 | 8.3% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
-| **PLAYER_INPUT** | 4 | 0 | 0 | 4 | 0.0% |
+| **PLAYER_INPUT** | 4 | 3 | 0 | 1 | 75.0% |
 | **PLAYFIELD** | 9 | 6 | 0 | 3 | 66.7% |
 | **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
@@ -112,7 +112,7 @@
 | `endingAnimationA` | `0xA926` | L5165–L5196 | Entry / Direct | `MISSING` |  |
 | `selectEndingScreen` | `0xA96E` | L5197–L5225 | JSR | `MISSING` |  |
 | `LAA82` | `0xAA82` | L5351–L5355 | JSR | `MISSING` |  |
-| `addExpansionPortInputAsControllerInput` | `0xAB8B` | L5515–L5525 | JSR | `MISSING` |  |
+| `addExpansionPortInputAsControllerInput` | `0xAB8B` | L5515–L5525 | JSR | `VERIFIED` | Verified: Famicom expansion port input OR-mixing verified with unit vectors |
 | `memset_page` | `0xAC6A` | L5635–L5653 | JSR | `MISSING` |  |
 | `switch_s_plus_2a` | `0xAC82` | L5654–L5683 | JSR | `MISSING` |  |
 | `setMMC1Control` | `0xACA3` | L5684–L5695 | JSR | `MISSING` |  |
@@ -196,10 +196,10 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `pollControllerButtons` | `0x9D51` | L3630–L3724 | JSR | `MISSING` |  |
-| `demoButtonsTable_indexIncr` | `0x9DE8` | L3725–L3734 | JSR | `MISSING` |  |
+| `pollControllerButtons` | `0x9D51` | L3630–L3724 | JSR | `VERIFIED` | Verified: Mode dispatch, Start button demo cancellation, and demo move playback verified |
+| `demoButtonsTable_indexIncr` | `0x9DE8` | L3725–L3734 | JSR | `VERIFIED` | Verified: 16-bit demo table address pointer increment verified with 6502 simulator |
 | `gameModeState_startButtonHandling` | `0xA37F` | L4475–L4544 | Jump Table | `MISSING` |  |
-| `pollController_actualRead` | `0xAB69` | L5493–L5514 | JSR | `MISSING` |  |
+| `pollController_actualRead` | `0xAB69` | L5493–L5514 | JSR | `VERIFIED` | Verified: Serial joypad 4016/4017 strobe and 8-bit read verified with unit vectors |
 
 ### PLAYFIELD (9 Routines)
 
@@ -329,8 +329,8 @@ Total alternate entry points identified: **111**
 | `copyToPpu` | `0xAAF2` | L5417–L5423 | `bulkCopyToPpu` | Internal | `MISSING` |
 | `LAB0A` | `0xAB0A` | L5432–L5445 | `bulkCopyToPpu` | Internal | `MISSING` |
 | `copyAddrAtReturnAddressToTmp_incrReturnAddrBy2` | `0xAB21` | L5446–L5467 | `bulkCopyToPpu` | Yes | `MISSING` |
-| `pollController` | `0xAB9D` | L5526–L5540 | `addExpansionPortInputAsControllerInput` | Yes | `MISSING` |
-| `diffOldAndNewButtons` | `0xABBD` | L5541–L5553 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
+| `pollController` | `0xAB9D` | L5526–L5540 | `addExpansionPortInputAsControllerInput` | Yes | `VERIFIED` |
+| `diffOldAndNewButtons` | `0xABBD` | L5541–L5553 | `addExpansionPortInputAsControllerInput` | Internal | `VERIFIED` |
 | `LABD1` | `0xABD1` | L5556–L5567 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
 | `LABEA` | `0xABEA` | L5568–L5584 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
 | `LAC0D` | `0xAC0D` | L5585–L5594 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |

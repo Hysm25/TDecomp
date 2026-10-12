@@ -9,6 +9,7 @@
 #include "math/bcd.h"
 #include "game/tetrimino.h"
 #include "game/playfield.h"
+#include "game/input.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_ROTATE_TETRIMINO       0x88AB
@@ -21,8 +22,14 @@
 #define ROM_ADDR_CHECK_FOR_COMPLETED_ROWS 0x9A6B
 #define ROM_ADDR_UPDATE_PLAYFIELD       0x9CAF
 #define ROM_ADDR_UPDATE_MUSIC_SPEED     0x9D17
+#define ROM_ADDR_POLL_CONTROLLER_BUTTONS 0x9D51
+#define ROM_ADDR_DEMO_BUTTONS_INDEX_INCR 0x9DE8
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
 #define ROM_ADDR_LFSR_PRNG              0xAB47
+#define ROM_ADDR_POLL_CONTROLLER_ACTUAL_READ 0xAB69
+#define ROM_ADDR_ADD_EXPANSION_PORT_INPUT 0xAB8B
+#define ROM_ADDR_POLL_CONTROLLER        0xAB9D
+#define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
 #define ROM_ADDR_SOUND_RNG              0xE09E
 
 int test_differential_verification(void) {
@@ -409,6 +416,111 @@ int test_differential_verification(void) {
             assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
             assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
             assert(memcmp(&nes_6502.ram[pf_base], &nes_c.ram[pf_base], PLAYFIELD_SIZE) == 0);
+        }
+    }
+
+    /* Test 10: Differential diffOldAndNewButtons ($ABBD) */
+    {
+        uint8_t test_patterns[] = {
+            0x00, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
+            0xFF, 0x55, 0xAA, 0x12, 0x84, 0x99, 0x42
+        };
+        size_t num_patterns = sizeof(test_patterns) / sizeof(test_patterns[0]);
+
+        for (size_t i = 0; i < num_patterns; i++) {
+            for (size_t j = 0; j < num_patterns; j++) {
+                NES_State nes_6502 = rom_nes;
+                NES_State nes_c = rom_nes;
+
+                nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = test_patterns[i];
+                nes_6502.ram[ADDR_HELD_BUTTONS_P1] = test_patterns[j];
+                nes_6502.ram[ADDR_NEWLY_PRESSED_P2] = test_patterns[j];
+                nes_6502.ram[ADDR_HELD_BUTTONS_P2] = test_patterns[i];
+
+                nes_c.ram[ADDR_NEWLY_PRESSED_P1] = test_patterns[i];
+                nes_c.ram[ADDR_HELD_BUTTONS_P1] = test_patterns[j];
+                nes_c.ram[ADDR_NEWLY_PRESSED_P2] = test_patterns[j];
+                nes_c.ram[ADDR_HELD_BUTTONS_P2] = test_patterns[i];
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS, 1000);
+                assert(ok);
+                (void)ok;
+
+                diffOldAndNewButtons(&nes_c);
+
+                assert(nes_6502.ram[ADDR_NEWLY_PRESSED_P1] == nes_c.ram[ADDR_NEWLY_PRESSED_P1]);
+                assert(nes_6502.ram[ADDR_NEWLY_PRESSED_P2] == nes_c.ram[ADDR_NEWLY_PRESSED_P2]);
+                assert(nes_6502.ram[ADDR_HELD_BUTTONS_P1] == nes_c.ram[ADDR_HELD_BUTTONS_P1]);
+                assert(nes_6502.ram[ADDR_HELD_BUTTONS_P2] == nes_c.ram[ADDR_HELD_BUTTONS_P2]);
+            }
+        }
+    }
+
+    /* Test 11: Differential pollController ($AB9D) */
+    {
+        uint8_t test_inputs[] = {
+            0x00, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
+            0x81, 0x42, 0x18, 0xFF
+        };
+        size_t num_inputs = sizeof(test_inputs) / sizeof(test_inputs[0]);
+
+        for (size_t i = 0; i < num_inputs; i++) {
+            for (size_t j = 0; j < num_inputs; j++) {
+                NES_State nes_6502 = rom_nes;
+                NES_State nes_c = rom_nes;
+
+                nes_set_controller(&nes_6502, 0, test_inputs[i]);
+                nes_set_controller(&nes_6502, 1, test_inputs[j]);
+                nes_set_controller(&nes_c, 0, test_inputs[i]);
+                nes_set_controller(&nes_c, 1, test_inputs[j]);
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_POLL_CONTROLLER, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_POLL_CONTROLLER, 2000);
+                assert(ok);
+                (void)ok;
+
+                pollController(&nes_c);
+
+                assert(nes_6502.ram[ADDR_NEWLY_PRESSED_P1] == nes_c.ram[ADDR_NEWLY_PRESSED_P1]);
+                assert(nes_6502.ram[ADDR_NEWLY_PRESSED_P2] == nes_c.ram[ADDR_NEWLY_PRESSED_P2]);
+                assert(nes_6502.ram[ADDR_HELD_BUTTONS_P1] == nes_c.ram[ADDR_HELD_BUTTONS_P1]);
+                assert(nes_6502.ram[ADDR_HELD_BUTTONS_P2] == nes_c.ram[ADDR_HELD_BUTTONS_P2]);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER3] == nes_c.ram[ADDR_GENERAL_COUNTER3]);
+            }
+        }
+    }
+
+    /* Test 12: Differential demoButtonsTable_indexIncr ($9DE8) */
+    {
+        uint16_t test_addrs[] = {
+            0x0000, 0xDD00, 0xDD50, 0xDDFF, 0xDE00, 0xFFFF
+        };
+        size_t num_addrs = sizeof(test_addrs) / sizeof(test_addrs[0]);
+
+        for (size_t i = 0; i < num_addrs; i++) {
+            NES_State nes_6502 = rom_nes;
+            NES_State nes_c = rom_nes;
+
+            uint16_t addr = test_addrs[i];
+            nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR] = (uint8_t)(addr & 0xFF);
+            nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR + 1] = (uint8_t)((addr >> 8) & 0xFF);
+            nes_c.ram[ADDR_DEMO_BUTTONS_ADDR] = (uint8_t)(addr & 0xFF);
+            nes_c.ram[ADDR_DEMO_BUTTONS_ADDR + 1] = (uint8_t)((addr >> 8) & 0xFF);
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_DEMO_BUTTONS_INDEX_INCR, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_DEMO_BUTTONS_INDEX_INCR, 500);
+            assert(ok);
+            (void)ok;
+
+            demoButtonsTable_indexIncr(&nes_c);
+
+            assert(nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR] == nes_c.ram[ADDR_DEMO_BUTTONS_ADDR]);
+            assert(nes_6502.ram[ADDR_DEMO_BUTTONS_ADDR + 1] == nes_c.ram[ADDR_DEMO_BUTTONS_ADDR + 1]);
         }
     }
 

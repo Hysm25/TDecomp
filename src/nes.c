@@ -60,12 +60,13 @@ uint8_t nes_read8(const NES_State *nes, uint16_t addr) {
     /* APU / I/O registers: $4000 - $401F */
     if (addr < 0x4020) {
         if (addr == REG_JOY1) {
-            uint8_t val = nes->joy1_shift & 1;
-            /* Note: In a complete NES emulator joy1_shift would shift right */
+            uint8_t val = ((NES_State *)nes)->joy1_shift & 1;
+            ((NES_State *)nes)->joy1_shift = (uint8_t)((((NES_State *)nes)->joy1_shift >> 1) | 0x80);
             return val;
         }
         if (addr == REG_JOY2_APUFC) {
-            uint8_t val = nes->joy2_shift & 1;
+            uint8_t val = ((NES_State *)nes)->joy2_shift & 1;
+            ((NES_State *)nes)->joy2_shift = (uint8_t)((((NES_State *)nes)->joy2_shift >> 1) | 0x80);
             return val;
         }
         return 0;

@@ -121,6 +121,7 @@ extern "C" {
 #define ADDR_ENDING_CURRENT_SPRITE          0x00CC
 #define ADDR_DEMO_HELD_BUTTONS              0x00CE
 #define ADDR_DEMO_REPEATS                   0x00CF
+#define ADDR_DEMO_RECORD_FLAG               0x00D0
 #define ADDR_DEMO_BUTTONS_ADDR              0x00D1 /* 2 bytes */
 #define ADDR_DEMO_INDEX                     0x00D3
 #define ADDR_HIGH_SCORE_NAME_OFFSET_LETTER  0x00D4

@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 19,
+    "verified_routines": 23,
     "decompiled_untested": 0,
-    "missing_routines": 152,
-    "progress_percentage": 11.11
+    "missing_routines": 148,
+    "progress_percentage": 13.45
   },
   "routines": [
     {
@@ -793,8 +793,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Mode dispatch, Start button demo cancellation, and demo move playback verified"
     },
     {
       "name": "demoButtonsTable_indexIncr",
@@ -807,8 +807,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 16-bit demo table address pointer increment verified with 6502 simulator"
     },
     {
       "name": "gameMode_startDemo",
@@ -1493,8 +1493,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Serial joypad 4016/4017 strobe and 8-bit read verified with unit vectors"
     },
     {
       "name": "addExpansionPortInputAsControllerInput",
@@ -1507,8 +1507,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Famicom expansion port input OR-mixing verified with unit vectors"
     },
     {
       "name": "memset_ppu_page_and_more",
@@ -3161,8 +3161,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "addExpansionPortInputAsControllerInput",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: DPCM glitch debouncing double-read and edge diffing differential proven against 6502 ROM"
     },
     {
       "name": "diffOldAndNewButtons",
@@ -3175,8 +3175,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "addExpansionPortInputAsControllerInput",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Button edge detection (curr ^ held & curr) differential proven across 256 vector combinations"
     },
     {
       "name": "LABD1",

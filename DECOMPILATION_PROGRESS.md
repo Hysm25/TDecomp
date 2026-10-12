@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **19** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **23** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **152** | Pending conversion |
-| **Current Progress** | **11.11%** | `[######--------------------------------------------] 11.11%` |
-| **Build & Test Suite** | 7 / 7 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
+| **Remaining Routines** | **148** | Pending conversion |
+| **Current Progress** | **13.45%** | `[#######-------------------------------------------] 13.45%` |
+| **Build & Test Suite** | 8 / 8 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
 
 ---
 
@@ -31,17 +31,17 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
+| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 6 | 0 | 3 | **66.7%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 7 | 0 | 9 | **43.8%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 1 | 0 | 37 | **2.6%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 2 | 0 | 36 | **5.3%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 0 | 0 | 14 | 0.0% |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 0 | 0 | 13 | 0.0% |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 0 | 0 | 4 | 0.0% |
-| **TOTAL** | **171** | **19** | **0** | **152** | **11.11%** |
+| **TOTAL** | **171** | **23** | **0** | **148** | **13.45%** |
 
 ---
 
@@ -95,9 +95,16 @@
    - Authoritative data tables bit-exact verified against reference ROM: `multBy10Table`, `leftColumnsTable`, `rightColumnsTable`, `typeBBlankInitCountByHeightTable`, `rngTable`, `garbageLinesTable`.
    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across multiple line completion scenarios.
 
-7. [ ] **Batch 5 (Player Controls & DAS)**:
-   - Joypad state decoding.
-   - Autorepeat timing (DAS initial delay 16 frames, repeat 6 frames; NTSC vs PAL).
+7. [x] **Batch 5 (Player Controls & DAS)**:
+   - Decompiled `pollController_actualRead` ($AB69): Strobe JOY1 ($4016), serial 8-bit shift-register read of Joypad 1 & 2.
+   - Decompiled `addExpansionPortInputAsControllerInput` ($AB8B): Famicom expansion port input OR-mixing.
+   - Decompiled `diffOldAndNewButtons` ($ABBD): Button edge detection `(curr ^ held) & curr` for Player 1 & 2.
+   - Decompiled `pollController` ($AB9D): Double-reading debounce against DPCM DMA glitch, expansion port mixing, edge detection.
+   - Decompiled `pollControllerButtons` ($9D51): Mode dispatch, demo mode START button cancellation to title screen, demo move playback.
+   - Decompiled `demoButtonsTable_indexIncr` ($9DE8): 16-bit demo table address pointer increment.
+   - Decompiled `updateActivePlayerInput`: Active player input mirroring for 1P / 2P modes.
+   - Decompiled `processDAS` & `dasWallCharge`: Exact DAS initial delay 16 frames (`DAS_RESET = 0x10`), 6 frames repeat interval (`DAS_DELAY = 0x0A`), wall charging to full delay.
+   - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across 256 edge-diff combinations, controller reads, and demo table incrementation.
 
 8. [ ] **Batch 6 (Gameplay State Machine)**:
    - `playState` machine (Active -> Lock -> Check Rows -> Clear Animation -> Update Scores -> Spawn -> Curtain / Game Over).
@@ -125,4 +132,5 @@
 | Batch 2 | BCD Math, Scoring, Lines Progression, & Music Speed | 3 | 8 | 3 suites / 17 test cases | `d3110ca` |
 | Batch 3 | Tetrimino Geometry, Rotation, Movement & Collision | 5 | 13 | 4 suites / 26 test cases | `17c2e00` |
 | Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | `1c7cdc3` |
-| Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | Pending |
+| Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | `e62775b` |
+| Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `eb1beb6` |

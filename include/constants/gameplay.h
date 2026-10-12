@@ -79,6 +79,7 @@ extern "C" {
 #define MODE_LEVEL_MENU             3
 #define MODE_PLAY                   4
 #define MODE_PLAY_ENDING_HIGH_SCORE 5
+#define MODE_DEMO                   5
 
 /* Play States within Mode 4 */
 #define PLAYSTATE_CONTROL_ACTIVE     0
@@ -103,6 +104,15 @@ extern "C" {
 #define DAS_DELAY_PAL           0x08  /* 8 frames */
 #define DAS_RESET_PAL           0x0C  /* 12 frames */
 #define INITIAL_AUTOREPEAT_Y_PAL 0xB4
+
+/* Default DAS Settings (NTSC) */
+#define DAS_DELAY               DAS_DELAY_NTSC
+#define DAS_RESET               DAS_RESET_NTSC
+#define INITIAL_AUTOREPEAT_Y    INITIAL_AUTOREPEAT_Y_NTSC
+
+/* Demo Playback Constants */
+#define DEMO_BUTTONS_TABLE_ADDR_HI   0xDD
+#define DEMO_TETRIMINO_TABLE_ADDR_HI 0xDF
 
 /* Render Update Flags */
 #define RENDER_LINES            0x01
