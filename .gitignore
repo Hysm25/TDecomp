@@ -9,6 +9,9 @@ bin/
 *.dylib
 *.dll
 *.exe
+scan_includes
+scan_includes.exe
+tools/cTools/scan_includes
 
 # CMake artifacts
 CMakeFiles/

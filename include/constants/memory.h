@@ -152,8 +152,6 @@ extern "C" {
 #define ADDR_NEWLY_PRESSED_P2               0x00F6
 #define ADDR_HELD_BUTTONS_P1                0x00F7
 #define ADDR_HELD_BUTTONS_P2                0x00F8
-#define ADDR_NEWLY_PRESSED_BUTTONS_P1       ADDR_NEWLY_PRESSED_P1
-#define ADDR_NEWLY_PRESSED_BUTTONS_P2       ADDR_NEWLY_PRESSED_P2
 #define ADDR_JOY1_LOCATION                  0x00FB
 #define ADDR_PPU_SCROLL_Y                   0x00FC
 #define ADDR_PPU_SCROLL_X                   0x00FD

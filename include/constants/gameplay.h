@@ -107,7 +107,6 @@ extern "C" {
 #define PLAYSTATE_CHECK_ROWS                  3
 #define PLAYSTATE_LINE_CLEAR_ANIM             4
 #define PLAYSTATE_UPDATE_LINES_AND_STATISTICS 5
-#define PLAYSTATE_UPDATE_COUNTERS             5  /* legacy alias */
 #define PLAYSTATE_B_TYPE_GOAL_CHECK           6
 #define PLAYSTATE_RECEIVE_GARBAGE             7
 #define PLAYSTATE_SPAWN_NEXT                  8

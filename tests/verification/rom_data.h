@@ -20,6 +20,10 @@ bool load_reference_rom(NES_State *nes, const char *custom_path);
  */
 int test_rom_tables_match(const NES_State *nes);
 
+/* Internal authoritative ROM data tables verified byte-for-byte */
+extern const uint8_t demoTetriminoTypeTable[256];
+extern const uint8_t typebSuccessGraphic[31];
+
 #ifdef __cplusplus
 }
 #endif

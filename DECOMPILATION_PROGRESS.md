@@ -22,7 +22,7 @@
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
 | **Remaining Routines** | **125** | Pending conversion |
 | **Current Progress** | **26.90%** | `[#############---------------------------------------] 26.90%` |
-| **Build & Test Suite** | 10 / 10 suites passing | Unit, 19 ROM data tables, & 6502 differential CPU oracle (28 differential tests) |
+| **Build & Test Suite** | 10 / 10 suites passing | Unit, 20 ROM data tables, & 6502 differential CPU oracle (28 differential tests) |
 
 ---
 

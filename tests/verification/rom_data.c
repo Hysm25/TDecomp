@@ -29,6 +29,7 @@
 #define ADDR_ROM_TYPEB_BLANK_COUNT_TABLE    0x8876
 #define ADDR_ROM_RNG_TABLE                  0x887C
 #define ADDR_ROM_GARBAGE_LINES_TABLE        0x9B53
+#define ADDR_ROM_TYPEB_SUCCESS_GRAPHIC      0xA42E
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -158,10 +159,10 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_w;
     }
 
-    /* Test 9: demoTetriminoTypeTable (first 32 bytes at $DF00) */
-    for (int i = 0; i < 32; i++) {
+    /* Test 9: demoTetriminoTypeTable (256 bytes at $DF00) */
+    for (int i = 0; i < 256; i++) {
         uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DEMO_TETRIMINO_TABLE + i));
-        assert(rom_b != 0xFF || i > 0);
+        assert(demoTetriminoTypeTable[i] == rom_b);
         (void)rom_b;
     }
 
@@ -235,6 +236,13 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (19 ROM data tables verified bit-for-bit)\n");
+    /* Test 20: typebSuccessGraphic (31 bytes at $A42E) */
+    for (int i = 0; i < 31; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_TYPEB_SUCCESS_GRAPHIC + i));
+        assert(typebSuccessGraphic[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (20 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

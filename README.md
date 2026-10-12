@@ -22,6 +22,23 @@ A clean, verified, and modular C decompilation of original NES Tetris (USA), mat
 - `DECOMPILATION_PROGRESS.md`: Live tracking of decompilation status across all routines.
 - `ROUTINE_INVENTORY.md`: Comprehensive census of all callable routines and data tables.
 
+## Current Project Status
+- **Standalone Routines Verified:** 46 / 171 (26.90%)
+- **Test Suites:** 10 / 10 passing (unit tests across all decompiled subsystems)
+- **Authoritative Data Tables:** 20 ROM data tables verified bit-exact against reference ROM
+- **6502 Differential CPU Oracle:** 28 differential test blocks proving decompiled C routines equivalent to original 6502 PRG ROM machine code execution
+- **Subsystem Progress:**
+  - `MATH_RNG` (Pseudo-Random Generation): **100.0%** (2 / 2)
+  - `PLAYFIELD` (Grid, Line Clears, Garbage): **77.8%** (7 / 9)
+  - `PLAYER_INPUT` (DAS, Joypad, Autorepeat): **75.0%** (3 / 4)
+  - `TETRIMINO` (Geometry, Movement, Spawns): **68.8%** (11 / 16)
+  - `MENUS_UI` (Legal, Title, Menus): **46.2%** (6 / 13)
+  - `GAMEPLAY_STATE` (State Machine, Framing): **42.9%** (6 / 14)
+  - `CORE_LOGIC` (Context Switch, Dispatchers): **21.1%** (8 / 38)
+  - `MATH_BCD` (Score & Line Math): **8.3%** (1 / 12)
+
+See [DECOMPILATION_PROGRESS.md](DECOMPILATION_PROGRESS.md) for full progress details and roadmap.
+
 ## Building and Running Tests
 ### Prerequisites
 - CMake 3.16+
@@ -30,15 +47,19 @@ A clean, verified, and modular C decompilation of original NES Tetris (USA), mat
 
 ### Build
 ```bash
-mkdir -p build
-cd build
+cmake -B build
+cmake --build build
+```
+Or with traditional directory creation:
+```bash
+mkdir -p build && cd build
 cmake ..
 cmake --build .
 ```
 
 ### Run Tests
 ```bash
-ctest --output-on-failure
-# or directly execute:
-./bin/tdecomp_tests
+ctest --test-dir build --output-on-failure
+# or directly execute the test runner binary:
+./build/tdecomp_tests
 ```
