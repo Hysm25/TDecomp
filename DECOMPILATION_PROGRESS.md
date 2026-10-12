@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **34** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **42** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **137** | Pending conversion |
-| **Current Progress** | **19.88%** | `[##########------------------------------------------] 19.88%` |
-| **Build & Test Suite** | 9 / 9 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
+| **Remaining Routines** | **129** | Pending conversion |
+| **Current Progress** | **24.56%** | `[############----------------------------------------] 24.56%` |
+| **Build & Test Suite** | 10 / 10 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle (24 differential tests) |
 
 ---
 
@@ -31,17 +31,17 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
+| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
-| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 6 | 0 | 3 | **66.7%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 10 | 0 | 6 | **62.5%** |
-| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 4 | 0 | 10 | **28.6%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 6 | 0 | 32 | **15.8%** |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 11 | 0 | 5 | **68.8%** |
+| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 6 | 0 | 8 | **42.9%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 8 | 0 | 30 | **21.1%** |
+| **MENUS_UI** (Title, Menus, High Scores) | 13 | 2 | 0 | 11 | **15.4%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
-| **MENUS_UI** (Title, Menus, High Scores) | 13 | 0 | 0 | 13 | 0.0% |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **34** | **0** | **137** | **19.88%** |
+| **TOTAL** | **171** | **42** | **0** | **129** | **24.56%** |
 
 ---
 
@@ -129,15 +129,23 @@
    - Completed entire 12-state gameplay state machine (States 0-11 in Mode 4).
    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across 19 piece orientations, 2P delay mechanics, and framing routines.
 
-10. [ ] **Batch 8 (Menus, High Scores & Systems)**:
-    - Legal screen, title screen, menu navigation.
+10. [x] **Batch 8 (Legal Screen, Title Screen, Demo Transition & Game Mode Dispatcher)**:
+    - Decompiled `gameMode_legalScreen` ($8200): Screen initialization (`renderMode = 0`), OAM staging clear, sleep countdown (`sleepCounter = 0xFF`), START button skip handling, transition to Title Screen (`gameMode = 1`).
+    - Decompiled `gameMode_titleScreen` ($824F): Screen initialization (`renderMode = 0`, zero-page `$D0 = 0`, `displayNextPiece = 0`), OAM staging clear, START button press detection (triggers `SFX_MENU_SELECT` 0x02, advances to `MODE_GAME_TYPE_MENU` 2), title screen timeout detection (`frameCounter+1 == 0x05`, triggers `SFX_MENU_SELECT` 0x02, advances to `MODE_START_DEMO` 6).
+    - Decompiled `gameMode_startDemo` ($9DF6): Demo mode initialization setting `gameType = 0`, `startLevel = 0`, `gameModeState = 0`, `playState = 0`, transitioning to `MODE_DEMO` 5.
+    - Decompiled `branchOnGameMode` ($8161): Master game mode dispatcher jumping through `switch_s_plus_2a` over modes 0..6 (`MODE_LEGAL_SCREEN`, `MODE_TITLE_SCREEN`, `MODE_GAME_TYPE_MENU`, `MODE_LEVEL_MENU`, `MODE_PLAYING`, `MODE_DEMO`, `MODE_START_DEMO`).
+    - Added step-oriented execution functions `gameMode_legalScreen_step` and `gameMode_titleScreen_step` for portable host loop integration.
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across legal screen timer/skip, title screen start press, demo timeout transitions, and game mode jump table dispatch.
+
+11. [ ] **Batch 9 (Menu Navigation & High Scores)**:
+    - Game type selection menu, level selection menu.
     - High score table sorting and storage ($0700).
 
-11. [ ] **Batch 9 (PPU Rendering & OAM)**:
+12. [ ] **Batch 10 (PPU Rendering & OAM)**:
     - OAM sprite staging.
     - Nametable row updates.
 
-12. [ ] **Batch 10 (Audio & Sound Effects)**:
+13. [ ] **Batch 11 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
 
 ---
@@ -155,3 +163,4 @@
 | Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `a3c6dc7` |
 | Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `4422fa6` |
 | Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `b5ef45f` |
+| Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `9955f8e` |

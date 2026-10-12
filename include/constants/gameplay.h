@@ -87,6 +87,12 @@ extern "C" {
 #define MODE_PLAY                   4
 #define MODE_PLAY_ENDING_HIGH_SCORE 5
 #define MODE_DEMO                   5
+#define MODE_START_DEMO             6
+
+/* Screen Timing & Menu Constants */
+#define LEGAL_SLEEP_TIME            0xFF
+#define TITLE_SCREEN_TIMEOUT_HI     0x05
+#define SFX_MENU_SELECT             0x02
 
 /* Play States within Mode 4 (main.asm lines 474-515 switch_s_plus_2a table) */
 #define PLAYSTATE_UNASSIGN_ORIENTATION        0

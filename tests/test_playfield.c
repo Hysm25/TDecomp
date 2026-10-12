@@ -9,9 +9,15 @@
 #include "constants/gameplay.h"
 #include "constants/memory.h"
 
+static void init_empty_playfield(NES_State *nes) {
+    nes_write16(nes, ADDR_PLAYFIELD_ADDR, ADDR_PLAYFIELD);
+    memset(&nes->ram[ADDR_PLAYFIELD], TILE_EMPTY, PLAYFIELD_SIZE);
+}
+
 static void test_playfield_lock_valid(void) {
     NES_State nes;
     nes_init(&nes);
+    init_empty_playfield(&nes);
 
     /* Setup T-Down piece (orientation 2) at (4, 5) */
     nes.ram[ADDR_TETRIMINO_X] = 4;
@@ -59,6 +65,7 @@ static void test_playfield_lock_invalid_game_over(void) {
 static void test_playfield_checkForCompletedRows_single(void) {
     NES_State nes;
     nes_init(&nes);
+    init_empty_playfield(&nes);
 
     /* Fill row 18 completely with TILE_1 */
     uint16_t pf_base = ADDR_PLAYFIELD;
@@ -97,6 +104,7 @@ static void test_playfield_checkForCompletedRows_single(void) {
 static void test_playfield_checkForCompletedRows_tetris(void) {
     NES_State nes;
     nes_init(&nes);
+    init_empty_playfield(&nes);
 
     /* Fill rows 16, 17, 18, 19 completely */
     uint16_t pf_base = ADDR_PLAYFIELD;
@@ -127,6 +135,7 @@ static void test_playfield_checkForCompletedRows_tetris(void) {
 static void test_playfield_checkForCompletedRows_zero_lines(void) {
     NES_State nes;
     nes_init(&nes);
+    init_empty_playfield(&nes);
 
     nes.ram[ADDR_TETRIMINO_Y] = 10;
     nes.ram[ADDR_VRAM_ROW] = 0x20;
@@ -182,6 +191,7 @@ static void test_playfield_game_over_curtain(void) {
 static void test_playfield_receive_garbage(void) {
     NES_State nes;
     nes_init(&nes);
+    init_empty_playfield(&nes);
 
     nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
     nes.ram[ADDR_PENDING_GARBAGE] = 3;

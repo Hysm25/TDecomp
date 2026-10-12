@@ -267,7 +267,13 @@ def main():
         "playState_spawnNextTetrimino": "Verified: Piece spawning, orientation table mapping, 2P delay counter, and stats update differential proven against 6502 ROM",
         "noop_disabledVramRowIncr": "Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM",
         "gameModeState_vblankThenRunState2": "Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM",
-        "gameModeState_updateCountersAndNonPlayerState": "Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM"
+        "gameModeState_updateCountersAndNonPlayerState": "Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM",
+
+        # Batch 8 (Menus and Screen Modes)
+        "gameMode_legalScreen": "Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM",
+        "gameMode_titleScreen": "Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM",
+        "gameMode_startDemo": "Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM",
+        "branchOnGameMode": "Verified: Master game mode 0..6 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table"
     }
 
     for r in routines:

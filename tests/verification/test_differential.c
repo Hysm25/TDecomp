@@ -11,10 +11,15 @@
 #include "game/playfield.h"
 #include "game/input.h"
 #include "game/state.h"
+#include "game/menu.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
+#define ROM_ADDR_BRANCH_ON_GAME_MODE    0x8161
 #define ROM_ADDR_BRANCH_ON_PLAY_STATE_P1 0x81B2
 #define ROM_ADDR_BRANCH_ON_PLAY_STATE_P2 0x81D9
+#define ROM_ADDR_LEGAL_SCREEN           0x8200
+#define ROM_ADDR_TITLE_SCREEN           0x824F
+#define ROM_ADDR_TITLE_TIMEOUT_CHECK    0x8296
 #define ROM_ADDR_MAKE_PLAYER1_ACTIVE    0x8776
 #define ROM_ADDR_MAKE_PLAYER2_ACTIVE    0x8792
 #define ROM_ADDR_SAVE_PLAYER1_STATE     0x87AE
@@ -34,6 +39,7 @@
 #define ROM_ADDR_UPDATE_MUSIC_SPEED     0x9D17
 #define ROM_ADDR_POLL_CONTROLLER_BUTTONS 0x9D51
 #define ROM_ADDR_DEMO_BUTTONS_INDEX_INCR 0x9DE8
+#define ROM_ADDR_START_DEMO             0x9DF6
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
 #define ROM_ADDR_GAME_MODE_STATE_VBLANK_THEN_RUN_STATE_2 0x9E27
 #define ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION 0x9E2F
@@ -170,7 +176,8 @@ int test_differential_verification(void) {
                     nes_write16(&nes_6502, ADDR_PLAYFIELD_ADDR, ADDR_PLAYFIELD);
                     nes_write16(&nes_c, ADDR_PLAYFIELD_ADDR, ADDR_PLAYFIELD);
 
-                    for (int i = 0; i < PLAYFIELD_SIZE; i++) {
+                    /* Real NES Tetris initializes the entire 256-byte playfield page with memset_page */
+                    for (int i = 0; i < 0x100; i++) {
                         nes_6502.ram[ADDR_PLAYFIELD + i] = TILE_EMPTY;
                         nes_c.ram[ADDR_PLAYFIELD + i] = TILE_EMPTY;
                     }
@@ -311,6 +318,9 @@ int test_differential_verification(void) {
             nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
             nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
 
+            memset(&nes_6502.ram[pf_base], TILE_EMPTY, 0x100);
+            memset(&nes_c.ram[pf_base], TILE_EMPTY, 0x100);
+
             /* Fill row 18 with TILE_1 ($7B) and row 17 col 3 with TILE_2 ($7C) */
             for (int col = 0; col < 10; col++) {
                 nes_6502.ram[pf_base + 18 * 10 + col] = TILE_1;
@@ -357,6 +367,9 @@ int test_differential_verification(void) {
             nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
             nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
             nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+
+            memset(&nes_6502.ram[pf_base], TILE_EMPTY, 0x100);
+            memset(&nes_c.ram[pf_base], TILE_EMPTY, 0x100);
 
             for (int r = 16; r < 20; r++) {
                 for (int c = 0; c < 10; c++) {
@@ -405,6 +418,9 @@ int test_differential_verification(void) {
             nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
             nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
             nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+
+            memset(&nes_6502.ram[pf_base], TILE_EMPTY, 0x100);
+            memset(&nes_c.ram[pf_base], TILE_EMPTY, 0x100);
 
             nes_6502.ram[ADDR_TETRIMINO_Y] = 10;
             nes_c.ram[ADDR_TETRIMINO_Y] = 10;
@@ -956,6 +972,105 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_CURRENT_PIECE] == nes_c.ram[ADDR_CURRENT_PIECE]);
         assert(nes_6502.ram[ADDR_TETRIMINO_X] == nes_c.ram[ADDR_TETRIMINO_X]);
         assert(nes_6502.ram[ADDR_TETRIMINO_Y] == nes_c.ram[ADDR_TETRIMINO_Y]);
+    }
+
+    /* Test 21: Differential gameMode_legalScreen ($8200) */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_LEGAL_SCREEN;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_LEGAL_SCREEN;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEGAL_SCREEN, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEGAL_SCREEN, 300000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_legalScreen(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_RENDER_MODE] == nes_c.ram[ADDR_RENDER_MODE]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_TITLE_SCREEN);
+    }
+
+    /* Test 22: Differential gameMode_titleScreen ($824F) with START button */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_TITLE_SCREEN, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_TITLE_SCREEN, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_titleScreen(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_6502.ram[ADDR_RENDER_MODE] == nes_c.ram[ADDR_RENDER_MODE]);
+        assert(nes_6502.ram[ADDR_DEMO_RECORD_FLAG] == nes_c.ram[ADDR_DEMO_RECORD_FLAG]);
+        assert(nes_6502.ram[ADDR_DISPLAY_NEXT_PIECE] == nes_c.ram[ADDR_DISPLAY_NEXT_PIECE]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+    }
+
+    /* Test 23: Differential gameMode_titleScreen ($824F) with timeout */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = 0;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER + 1] = 5;
+        nes_c.ram[ADDR_FRAME_COUNTER + 1] = 5;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_TITLE_TIMEOUT_CHECK, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_TITLE_TIMEOUT_CHECK, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_titleScreen(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_START_DEMO);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+    }
+
+    /* Test 24: Differential branchOnGameMode ($8161) dispatch */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_TITLE_SCREEN;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_BRANCH_ON_GAME_MODE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_BRANCH_ON_GAME_MODE, 50000);
+        assert(ok);
+        (void)ok;
+
+        branchOnGameMode(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

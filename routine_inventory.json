@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 38,
+    "verified_routines": 42,
     "decompiled_untested": 0,
-    "missing_routines": 133,
-    "progress_percentage": 22.22
+    "missing_routines": 129,
+    "progress_percentage": 24.56
   },
   "routines": [
     {
@@ -93,8 +93,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master game mode 0..6 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table"
     },
     {
       "name": "gameModeState_updatePlayer1",
@@ -205,8 +205,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM"
     },
     {
       "name": "gameMode_titleScreen",
@@ -219,8 +219,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM"
     },
     {
       "name": "render_mode_legal_and_title_screens",
@@ -821,8 +821,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM"
     },
     {
       "name": "setMusicTrack",

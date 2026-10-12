@@ -1,6 +1,15 @@
 #include "cpu6502.h"
+#include "constants/memory.h"
 
 static inline uint8_t mem_read(CPU6502 *cpu, uint16_t addr) {
+    if (addr == ADDR_VERTICAL_BLANK_INTERVAL) {
+        if (cpu->nes->ram[ADDR_VERTICAL_BLANK_INTERVAL] == 0) {
+            if (cpu->nes->ram[ADDR_SLEEP_COUNTER] > 0) {
+                cpu->nes->ram[ADDR_SLEEP_COUNTER]--;
+            }
+            return 1;
+        }
+    }
     return nes_read8(cpu->nes, addr);
 }
 

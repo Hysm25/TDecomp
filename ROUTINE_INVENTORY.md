@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **38** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **42** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **133** | Pending conversion |
-| **Completion Percentage** | **22.22%** | Standalone routine completion rate |
+| **Remaining Routines** | **129** | Pending conversion |
+| **Completion Percentage** | **24.56%** | Standalone routine completion rate |
 
 ---
 
@@ -27,11 +27,11 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
-| **CORE_LOGIC** | 38 | 6 | 0 | 32 | 15.8% |
+| **CORE_LOGIC** | 38 | 8 | 0 | 30 | 21.1% |
 | **GAMEPLAY_STATE** | 14 | 6 | 0 | 8 | 42.9% |
 | **MATH_BCD** | 12 | 1 | 0 | 11 | 8.3% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
-| **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
+| **MENUS_UI** | 13 | 2 | 0 | 11 | 15.4% |
 | **PLAYER_INPUT** | 4 | 3 | 0 | 1 | 75.0% |
 | **PLAYFIELD** | 9 | 7 | 0 | 2 | 77.8% |
 | **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
@@ -92,13 +92,13 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `branchOnGameMode` | `0x8161` | L432–L441 | JSR | `MISSING` |  |
+| `branchOnGameMode` | `0x8161` | L432–L441 | JSR | `VERIFIED` | Verified: Master game mode 0..6 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table |
 | `makePlayer1Active` | `0x8776` | L1269–L1287 | JSR | `VERIFIED` | Verified: Player 1 context mirroring, playfield pointer setup, and button copy differential proven against 6502 ROM |
 | `makePlayer2Active` | `0x8792` | L1288–L1306 | JSR | `VERIFIED` | Verified: Player 2 context mirroring, second playfield pointer, and button copy differential proven against 6502 ROM |
 | `savePlayer1State` | `0x87AE` | L1307–L1324 | JSR | `VERIFIED` | Verified: Active player state saving and 2-player pending garbage swapping differential proven against 6502 ROM |
 | `savePlayer2State` | `0x87C8` | L1325–L1338 | JSR | `VERIFIED` | Verified: Active player state saving and pending garbage swapping differential proven against 6502 ROM |
 | `isPositionValid` | `0x948B` | L2392–L2456 | JSR | `VERIFIED` | Verified: Boundary box, floor, and mino collision detection verified |
-| `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Jump Table | `MISSING` |  |
+| `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Jump Table | `VERIFIED` | Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM |
 | `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `MISSING` |  |
 | `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `MISSING` |  |
 | `add100Points` | `0x9F62` | L3945–L3956 | JSR | `MISSING` |  |
@@ -178,8 +178,8 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `gameMode_legalScreen` | `0x8200` | L516–L558 | Jump Table | `MISSING` |  |
-| `gameMode_titleScreen` | `0x824F` | L559–L635 | Jump Table | `MISSING` |  |
+| `gameMode_legalScreen` | `0x8200` | L516–L558 | Jump Table | `VERIFIED` | Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM |
+| `gameMode_titleScreen` | `0x824F` | L559–L635 | Jump Table | `VERIFIED` | Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM |
 | `render_mode_legal_and_title_screens` | `0x82B1` | L636–L656 | Jump Table | `MISSING` |  |
 | `gameMode_gameTypeMenu` | `0x82D1` | L657–L682 | Jump Table | `MISSING` |  |
 | `gameMode_levelMenu` | `0x83D7` | L799–L844 | Jump Table | `MISSING` |  |

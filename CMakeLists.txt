@@ -29,6 +29,7 @@ set(TDECOMP_CORE_SOURCES
     src/game/playfield.c
     src/game/input.c
     src/game/state.c
+    src/game/menu.c
 )
 
 add_library(tdecomp_core STATIC ${TDECOMP_CORE_SOURCES})
@@ -51,6 +52,7 @@ if(BUILD_TESTING)
         tests/test_playfield.c
         tests/test_input.c
         tests/test_state.c
+        tests/test_menu.c
         tests/verification/cpu6502.c
         tests/verification/rom_data.c
         tests/verification/test_differential.c
