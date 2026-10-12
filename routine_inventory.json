@@ -403,8 +403,8 @@
       "category": "TETRIMINO",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with Button A clockwise, Button B counter-clockwise, and wall kick/collision revert tests"
     },
     {
       "name": "drop_tetrimino",
@@ -416,8 +416,8 @@
       "category": "TETRIMINO",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with natural gravity, touchdown row lock, soft drop acceleration, and killscreen speeds"
     },
     {
       "name": "shift_tetrimino",
@@ -429,8 +429,8 @@
       "category": "TETRIMINO",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with horizontal left/right shift, DAS timing, and down-hold suppression"
     },
     {
       "name": "stageSpriteForCurrentPiece",
@@ -494,8 +494,8 @@
       "category": "CORE_LOGIC",
       "jsr_called": true,
       "table_referenced": true,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with center board, wall bounds, floor bounds, and placed mino collision tests"
     },
     {
       "name": "render_mode_play_and_demo",
@@ -741,8 +741,8 @@
       "category": "PLAYFIELD",
       "jsr_called": true,
       "table_referenced": false,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified with VRAM dirty row marking"
     },
     {
       "name": "gameModeState_handleGameOver",

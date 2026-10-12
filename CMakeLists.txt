@@ -25,6 +25,7 @@ set(TDECOMP_CORE_SOURCES
     src/nes.c
     src/math/rng.c
     src/math/bcd.c
+    src/game/tetrimino.c
 )
 
 add_library(tdecomp_core STATIC ${TDECOMP_CORE_SOURCES})
@@ -43,6 +44,7 @@ if(BUILD_TESTING)
         tests/test_nes.c
         tests/test_rng.c
         tests/test_bcd.c
+        tests/test_tetrimino.c
     )
 
     add_executable(tdecomp_tests ${TDECOMP_TEST_SOURCES})

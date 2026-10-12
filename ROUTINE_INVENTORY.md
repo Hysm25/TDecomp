@@ -11,10 +11,10 @@
 | Metric | Count |
 |:---|:---:|
 | **Total Standalone Routines** | **205** |
-| **Verified (Tested)** | **8** |
+| **Verified (Tested)** | **13** |
 | **Decompiled (Untested)** | **0** |
-| **Remaining (Missing)** | **197** |
-| **Completion Percentage** | **3.90%** |
+| **Remaining (Missing)** | **192** |
+| **Completion Percentage** | **6.34%** |
 
 ---
 
@@ -23,16 +23,16 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 56 | 2 | 0 | 54 | 3.6% |
-| **CORE_LOGIC** | 51 | 0 | 0 | 51 | 0.0% |
+| **CORE_LOGIC** | 51 | 1 | 0 | 50 | 2.0% |
 | **GAMEPLAY_STATE** | 15 | 0 | 0 | 15 | 0.0% |
 | **MATH_BCD** | 9 | 1 | 0 | 8 | 11.1% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
 | **PLAYER_INPUT** | 4 | 0 | 0 | 4 | 0.0% |
-| **PLAYFIELD** | 11 | 0 | 0 | 11 | 0.0% |
+| **PLAYFIELD** | 11 | 1 | 0 | 10 | 9.1% |
 | **RENDER** | 19 | 0 | 0 | 19 | 0.0% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
-| **TETRIMINO** | 19 | 3 | 0 | 16 | 15.8% |
+| **TETRIMINO** | 19 | 6 | 0 | 13 | 31.6% |
 
 ---
 
@@ -111,7 +111,7 @@
 | `savePlayer2State` | `0x87C8` | L1325–L1338 | Yes | `MISSING` |  |
 | `endTypeBInit` | `0x8875` | L1433–L1435 | Entry | `MISSING` |  |
 | `L8B9D` | `0x8B9D` | L1802–L1831 | Entry | `MISSING` |  |
-| `isPositionValid` | `0x948B` | L2392–L2456 | Yes | `MISSING` |  |
+| `isPositionValid` | `0x948B` | L2392–L2456 | Yes | `VERIFIED` | Verified with center board, wall bounds, floor bounds, and placed mino collision tests |
 | `L9996` | `0x9996` | L3055–L3061 | Entry | `MISSING` |  |
 | `L9C94` | `0x9C94` | L3516–L3528 | Entry | `MISSING` |  |
 | `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Table | `MISSING` |  |
@@ -234,7 +234,7 @@
 | `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Table | `MISSING` |  |
 | `playState_checkForCompletedRows` | `0x9A6B` | L3188–L3279 | Table | `MISSING` |  |
 | `playState_receiveGarbage` | `0x9B03` | L3280–L3326 | Table | `MISSING` |  |
-| `updatePlayfield` | `0x9CAF` | L3532–L3544 | Yes | `MISSING` |  |
+| `updatePlayfield` | `0x9CAF` | L3532–L3544 | Yes | `VERIFIED` | Verified with VRAM dirty row marking |
 | `soundEffectSlot0_gameOverCurtainInit` | `0xE2F8` | L6267–L6271 | Table | `MISSING` |  |
 | `soundEffectSlot1_lineClearingInit` | `0xE42E` | L6450–L6454 | Table | `MISSING` |  |
 | `soundEffectSlot1_lineClearingPlaying` | `0xE43B` | L6458–L6461 | Table | `MISSING` |  |
@@ -280,9 +280,9 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `playState_playerControlsActiveTetrimino` | `0x81CF` | L489–L494 | Table | `MISSING` |  |
 | `playState_player2ControlsActiveTetrimino` | `0x81F6` | L510–L515 | Table | `MISSING` |  |
-| `rotate_tetrimino` | `0x88AB` | L1465–L1502 | Yes | `MISSING` |  |
-| `drop_tetrimino` | `0x8914` | L1530–L1600 | Yes | `MISSING` |  |
-| `shift_tetrimino` | `0x89AE` | L1616–L1667 | Yes | `MISSING` |  |
+| `rotate_tetrimino` | `0x88AB` | L1465–L1502 | Yes | `VERIFIED` | Verified with Button A clockwise, Button B counter-clockwise, and wall kick/collision revert tests |
+| `drop_tetrimino` | `0x8914` | L1530–L1600 | Yes | `VERIFIED` | Verified with natural gravity, touchdown row lock, soft drop acceleration, and killscreen speeds |
+| `shift_tetrimino` | `0x89AE` | L1616–L1667 | Yes | `VERIFIED` | Verified with horizontal left/right shift, DAS timing, and down-hold suppression |
 | `stageSpriteForCurrentPiece` | `0x8A0A` | L1668–L1758 | Yes | `MISSING` |  |
 | `stageSpriteForNextPiece` | `0x8BCE` | L1832–L1846 | Yes | `MISSING` |  |
 | `playState_spawnNextTetrimino` | `0x988E` | L2896–L2947 | Table | `MISSING` |  |
