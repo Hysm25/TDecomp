@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 13,
+    "verified_routines": 19,
     "decompiled_untested": 0,
-    "missing_routines": 158,
-    "progress_percentage": 7.6
+    "missing_routines": 152,
+    "progress_percentage": 11.11
   },
   "routines": [
     {
@@ -415,8 +415,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B mode check and garbage playfield initialization verified"
     },
     {
       "name": "gameModeState_updateCountersAndNonPlayerState",
@@ -444,7 +444,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with Button A clockwise, Button B counter-clockwise, and wall kick/collision revert tests"
+      "notes": "Verified: A/B button rotation and wall reverting behavior verified"
     },
     {
       "name": "drop_tetrimino",
@@ -458,7 +458,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with natural gravity, touchdown row lock, soft drop acceleration, and killscreen speeds"
+      "notes": "Verified: Natural gravity, soft drop acceleration, and floor lock verified"
     },
     {
       "name": "shift_tetrimino",
@@ -472,7 +472,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with horizontal left/right shift, DAS timing, and down-hold suppression"
+      "notes": "Verified: Horizontal shifting with DAS auto-repeat verified"
     },
     {
       "name": "stageSpriteForCurrentPiece",
@@ -528,7 +528,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with center board, wall bounds, floor bounds, and placed mino collision tests"
+      "notes": "Verified: Boundary box, floor, and mino collision detection verified"
     },
     {
       "name": "render_mode_play_and_demo",
@@ -583,8 +583,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 5-step center-out line clearing animation framing verified"
     },
     {
       "name": "updatePaletteForLevel",
@@ -640,7 +640,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with demo table streams and gameplay mode branching"
+      "notes": "Verified: Gameplay vs demo mode piece selection differential proven"
     },
     {
       "name": "pickRandomTetrimino",
@@ -654,7 +654,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with spawn count, anti-repetition reroll, and modulo-7 tests"
+      "notes": "Verified: 7-bag modulo & reroll logic verified with 6502 CPU simulator"
     },
     {
       "name": "incrementPieceStat",
@@ -668,7 +668,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with 2-byte BCD decimal adjust (+6) and digit carry"
+      "notes": "Verified: BCD piece statistic increments verified with CPU simulator"
     },
     {
       "name": "playState_lockTetrimino",
@@ -681,8 +681,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Locking 4 minos into playfield and invalid-position game over sequence verified"
     },
     {
       "name": "playState_updateGameOverCurtain",
@@ -695,8 +695,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Game over curtain cascade filling playfield with curtain tiles verified"
     },
     {
       "name": "playState_checkForCompletedRows",
@@ -709,8 +709,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Row completion detection, collapsing, and garbage calculation differential proven against 6502 ROM"
     },
     {
       "name": "playState_receiveGarbage",
@@ -723,8 +723,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 2-player pending garbage shifting and bottom row filling verified"
     },
     {
       "name": "playState_updateLinesAndStatistics",
@@ -738,7 +738,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with Type A & B line counts, level-up progression, soft drop points, and max-out score logic"
+      "notes": "Verified: PlayState 5 scoring, line counts, and stat update proven"
     },
     {
       "name": "updatePlayfield",
@@ -752,7 +752,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with VRAM dirty row marking"
+      "notes": "Verified: VRAM row dirty flag tracking verified"
     },
     {
       "name": "gameModeState_handleGameOver",
@@ -780,7 +780,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with playfield row 5 height check and allegro danger music switching"
+      "notes": "Verified: Playfield row 5 height check and danger allegro switching differential proven"
     },
     {
       "name": "pollControllerButtons",
@@ -836,7 +836,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with track selection and demo mode mute override"
+      "notes": "Verified: Track selection and demo mute override differential proven"
     },
     {
       "name": "gameModeState_checkForResetKeyCombo",
@@ -1466,7 +1466,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with LFSR bit rotation tests and seed manipulation"
+      "notes": "Verified: 6502 LFSR algorithm proven equivalent via CPU simulator & unit vectors"
     },
     {
       "name": "copyOamStagingToOam",
@@ -1690,7 +1690,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified with audio RNG seed and tmp storage checks"
+      "notes": "Verified: Audio LFSR variant proven equivalent via differential testing"
     },
     {
       "name": "advanceAudioSlotFrame",

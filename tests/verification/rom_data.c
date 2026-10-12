@@ -6,6 +6,7 @@
 #include "game/tetrimino.h"
 #include "math/rng.h"
 #include "math/bcd.h"
+#include "game/playfield.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_MUSIC_SELECTION_TABLE      0x85D2
@@ -17,6 +18,12 @@
 #define ADDR_ROM_SPAWN_ORIENT_TABLE         0x9956
 #define ADDR_ROM_POINTS_TABLE               0x9CA5
 #define ADDR_ROM_DEMO_TETRIMINO_TABLE       0xDF00
+#define ADDR_ROM_MULT_BY_10_TABLE           0x96D6
+#define ADDR_ROM_LEFT_COLUMNS_TABLE         0x97FE
+#define ADDR_ROM_RIGHT_COLUMNS_TABLE        0x9803
+#define ADDR_ROM_TYPEB_BLANK_COUNT_TABLE    0x8876
+#define ADDR_ROM_RNG_TABLE                  0x887C
+#define ADDR_ROM_GARBAGE_LINES_TABLE        0x9B53
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -153,6 +160,48 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (9 ROM data tables verified bit-for-bit)\n");
+    /* Test 10: multBy10Table (20 bytes at $96D6) */
+    for (int i = 0; i < 20; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MULT_BY_10_TABLE + i));
+        assert(multBy10Table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 11: leftColumnsTable (5 bytes at $97FE) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LEFT_COLUMNS_TABLE + i));
+        assert(leftColumnsTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 12: rightColumnsTable (5 bytes at $9803) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_RIGHT_COLUMNS_TABLE + i));
+        assert(rightColumnsTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 13: typeBBlankInitCountByHeightTable (6 bytes at $8876) */
+    for (int i = 0; i < 6; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_TYPEB_BLANK_COUNT_TABLE + i));
+        assert(typeBBlankInitCountByHeightTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 14: rngTable (8 bytes at $887C) */
+    for (int i = 0; i < 8; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_RNG_TABLE + i));
+        assert(rngTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 15: garbageLinesTable (5 bytes at $9B53) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_GARBAGE_LINES_TABLE + i));
+        assert(garbageLinesTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (15 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

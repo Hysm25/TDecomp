@@ -62,8 +62,10 @@ extern "C" {
 #define TILE_1          0x7B
 #define TILE_2          0x7C
 #define TILE_3          0x7D
+#define TILE_GARBAGE    0x78  /* Garbage block tile used in 2-player mode */
+#define TILE_CURTAIN    0x4F  /* Curtain tile used in game over sequence */
 #define TILE_EMPTY      0xEF  /* Blank tile used for empty squares */
-#define TILE_HIDDEN     0xFF  /* Blank tile used to hide minos */
+#define TILE_HIDDEN     0xFF  /* Blank tile used to hide minos / garbage hole */
 
 /* Playfield Dimensions */
 #define PLAYFIELD_WIDTH   10

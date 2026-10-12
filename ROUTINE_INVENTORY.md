@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **13** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **19** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **158** | Pending conversion |
-| **Completion Percentage** | **7.60%** | Standalone routine completion rate |
+| **Remaining Routines** | **152** | Pending conversion |
+| **Completion Percentage** | **11.11%** | Standalone routine completion rate |
 
 ---
 
@@ -33,10 +33,10 @@
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
 | **PLAYER_INPUT** | 4 | 0 | 0 | 4 | 0.0% |
-| **PLAYFIELD** | 9 | 1 | 0 | 8 | 11.1% |
+| **PLAYFIELD** | 9 | 6 | 0 | 3 | 66.7% |
 | **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
-| **TETRIMINO** | 16 | 6 | 0 | 10 | 37.5% |
+| **TETRIMINO** | 16 | 7 | 0 | 9 | 43.8% |
 
 ---
 
@@ -46,8 +46,8 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `updateMusicSpeed` | `0x9D17` | L3596–L3629 | JSR | `VERIFIED` | Verified with playfield row 5 height check and allegro danger music switching |
-| `setMusicTrack` | `0x9E07` | L3746–L3755 | JSR | `VERIFIED` | Verified with track selection and demo mode mute override |
+| `updateMusicSpeed` | `0x9D17` | L3596–L3629 | JSR | `VERIFIED` | Verified: Playfield row 5 height check and danger allegro switching differential proven |
+| `setMusicTrack` | `0x9E07` | L3746–L3755 | JSR | `VERIFIED` | Verified: Track selection and demo mute override differential proven |
 | `updateAudioWaitForNmiAndResetOamStaging` | `0xAA2F` | L5295–L5308 | JSR | `MISSING` |  |
 | `updateAudioAndWaitForNmi` | `0xAA45` | L5309–L5318 | JSR | `MISSING` |  |
 | `updateAudioWaitForNmiAndDisablePpuRendering` | `0xAA52` | L5319–L5322 | JSR | `MISSING` |  |
@@ -97,7 +97,7 @@
 | `makePlayer2Active` | `0x8792` | L1288–L1306 | JSR | `MISSING` |  |
 | `savePlayer1State` | `0x87AE` | L1307–L1324 | JSR | `MISSING` |  |
 | `savePlayer2State` | `0x87C8` | L1325–L1338 | JSR | `MISSING` |  |
-| `isPositionValid` | `0x948B` | L2392–L2456 | JSR | `VERIFIED` | Verified with center board, wall bounds, floor bounds, and placed mino collision tests |
+| `isPositionValid` | `0x948B` | L2392–L2456 | JSR | `VERIFIED` | Verified: Boundary box, floor, and mino collision detection verified |
 | `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Jump Table | `MISSING` |  |
 | `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `MISSING` |  |
 | `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `MISSING` |  |
@@ -156,7 +156,7 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `MISSING` |  |
 | `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `MISSING` |  |
-| `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Jump Table | `VERIFIED` | Verified with Type A & B line counts, level-up progression, soft drop points, and max-out score logic |
+| `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Jump Table | `VERIFIED` | Verified: PlayState 5 scoring, line counts, and stat update proven |
 | `showHighScores` | `0x9FF2` | L4015–L4020 | JSR | `MISSING` |  |
 | `showHighScores_real` | `0x9FFB` | L4021–L4092 | Entry / Direct | `MISSING` |  |
 | `showHighScores_ret` | `0xA085` | L4093–L4094 | Entry / Direct | `MISSING` |  |
@@ -171,8 +171,8 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `generateNextPseudorandomNumber` | `0xAB47` | L5468–L5485 | JSR | `VERIFIED` | Verified with LFSR bit rotation tests and seed manipulation |
-| `unreferenced_soundRng` | `0xE09E` | L5963–L5978 | Entry / Direct | `VERIFIED` | Verified with audio RNG seed and tmp storage checks |
+| `generateNextPseudorandomNumber` | `0xAB47` | L5468–L5485 | JSR | `VERIFIED` | Verified: 6502 LFSR algorithm proven equivalent via CPU simulator & unit vectors |
+| `unreferenced_soundRng` | `0xE09E` | L5963–L5978 | Entry / Direct | `VERIFIED` | Verified: Audio LFSR variant proven equivalent via differential testing |
 
 ### MENUS_UI (13 Routines)
 
@@ -205,14 +205,14 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `initPlayfieldIfTypeB` | `0x87DC` | L1339–L1343 | JSR | `MISSING` |  |
+| `initPlayfieldIfTypeB` | `0x87DC` | L1339–L1343 | JSR | `VERIFIED` | Verified: Type B mode check and garbage playfield initialization verified |
 | `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `MISSING` |  |
-| `updateLineClearingAnimation` | `0x977F` | L2757–L2827 | JSR | `MISSING` |  |
+| `updateLineClearingAnimation` | `0x977F` | L2757–L2827 | JSR | `VERIFIED` | Verified: 5-step center-out line clearing animation framing verified |
 | `noop_disabledVramRowIncr` | `0x9874` | L2878–L2895 | JSR | `MISSING` |  |
-| `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Jump Table | `MISSING` |  |
-| `playState_checkForCompletedRows` | `0x9A6B` | L3188–L3279 | Jump Table | `MISSING` |  |
-| `playState_receiveGarbage` | `0x9B03` | L3280–L3326 | Jump Table | `MISSING` |  |
-| `updatePlayfield` | `0x9CAF` | L3532–L3544 | JSR | `VERIFIED` | Verified with VRAM dirty row marking |
+| `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Jump Table | `VERIFIED` | Verified: Game over curtain cascade filling playfield with curtain tiles verified |
+| `playState_checkForCompletedRows` | `0x9A6B` | L3188–L3279 | Jump Table | `VERIFIED` | Verified: Row completion detection, collapsing, and garbage calculation differential proven against 6502 ROM |
+| `playState_receiveGarbage` | `0x9B03` | L3280–L3326 | Jump Table | `VERIFIED` | Verified: 2-player pending garbage shifting and bottom row filling verified |
+| `updatePlayfield` | `0x9CAF` | L3532–L3544 | JSR | `VERIFIED` | Verified: VRAM row dirty flag tracking verified |
 | `soundEffectSlot1_lineClearingPlaying` | `0xE43B` | L6458–L6461 | Jump Table | `MISSING` |  |
 
 ### RENDER (16 Routines)
@@ -253,16 +253,16 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `playState_playerControlsActiveTetrimino` | `0x81CF` | L489–L494 | Jump Table | `MISSING` |  |
 | `playState_player2ControlsActiveTetrimino` | `0x81F6` | L510–L515 | Jump Table | `MISSING` |  |
-| `rotate_tetrimino` | `0x88AB` | L1465–L1502 | JSR | `VERIFIED` | Verified with Button A clockwise, Button B counter-clockwise, and wall kick/collision revert tests |
-| `drop_tetrimino` | `0x8914` | L1530–L1600 | JSR | `VERIFIED` | Verified with natural gravity, touchdown row lock, soft drop acceleration, and killscreen speeds |
-| `shift_tetrimino` | `0x89AE` | L1616–L1667 | JSR | `VERIFIED` | Verified with horizontal left/right shift, DAS timing, and down-hold suppression |
+| `rotate_tetrimino` | `0x88AB` | L1465–L1502 | JSR | `VERIFIED` | Verified: A/B button rotation and wall reverting behavior verified |
+| `drop_tetrimino` | `0x8914` | L1530–L1600 | JSR | `VERIFIED` | Verified: Natural gravity, soft drop acceleration, and floor lock verified |
+| `shift_tetrimino` | `0x89AE` | L1616–L1667 | JSR | `VERIFIED` | Verified: Horizontal shifting with DAS auto-repeat verified |
 | `stageSpriteForCurrentPiece` | `0x8A0A` | L1668–L1758 | JSR | `MISSING` |  |
 | `stageSpriteForNextPiece` | `0x8BCE` | L1832–L1846 | JSR | `MISSING` |  |
 | `playState_spawnNextTetrimino` | `0x988E` | L2896–L2947 | Jump Table | `MISSING` |  |
-| `chooseNextTetrimino` | `0x98EB` | L2948–L2963 | JSR | `VERIFIED` | Verified with demo table streams and gameplay mode branching |
-| `pickRandomTetrimino` | `0x9903` | L2964–L2992 | Entry / Direct | `VERIFIED` | Verified with spawn count, anti-repetition reroll, and modulo-7 tests |
-| `incrementPieceStat` | `0x9969` | L3030–L3054 | JSR | `VERIFIED` | Verified with 2-byte BCD decimal adjust (+6) and digit carry |
-| `playState_lockTetrimino` | `0x99A2` | L3062–L3129 | Jump Table | `MISSING` |  |
+| `chooseNextTetrimino` | `0x98EB` | L2948–L2963 | JSR | `VERIFIED` | Verified: Gameplay vs demo mode piece selection differential proven |
+| `pickRandomTetrimino` | `0x9903` | L2964–L2992 | Entry / Direct | `VERIFIED` | Verified: 7-bag modulo & reroll logic verified with 6502 CPU simulator |
+| `incrementPieceStat` | `0x9969` | L3030–L3054 | JSR | `VERIFIED` | Verified: BCD piece statistic increments verified with CPU simulator |
+| `playState_lockTetrimino` | `0x99A2` | L3062–L3129 | Jump Table | `VERIFIED` | Verified: Locking 4 minos into playfield and invalid-position game over sequence verified |
 | `playState_unassignOrientationId` | `0x9E2F` | L3777–L3784 | Jump Table | `MISSING` |  |
 | `soundEffectSlot1_lockTetriminoInit` | `0xE384` | L6350–L6356 | Jump Table | `MISSING` |  |
 | `soundEffectSlot1_shiftTetriminoInit` | `0xE390` | L6357–L6363 | Jump Table | `MISSING` |  |

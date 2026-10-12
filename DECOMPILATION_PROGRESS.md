@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **13** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **19** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **158** | Pending conversion |
-| **Current Progress** | **7.60%** | `[####----------------------------------------------] 7.60%` |
-| **Build & Test Suite** | 6 / 6 suites passing | Unit, 9 ROM data tables, & 6502 differential CPU oracle |
+| **Remaining Routines** | **152** | Pending conversion |
+| **Current Progress** | **11.11%** | `[######--------------------------------------------] 11.11%` |
+| **Build & Test Suite** | 7 / 7 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle |
 
 ---
 
@@ -31,8 +31,8 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 6 | 0 | 10 | **37.5%** |
-| **PLAYFIELD** (Grid, Collision, Lines) | 9 | 1 | 0 | 8 | **11.1%** |
+| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 6 | 0 | 3 | **66.7%** |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 7 | 0 | 9 | **43.8%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 1 | 0 | 37 | **2.6%** |
@@ -41,7 +41,7 @@
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 0 | 0 | 4 | 0.0% |
-| **TOTAL** | **171** | **13** | **0** | **158** | **7.60%** |
+| **TOTAL** | **171** | **19** | **0** | **152** | **11.11%** |
 
 ---
 
@@ -81,17 +81,19 @@
 
 5. [x] **Verification Infrastructure & Routine Scope Audit**:
    - Reference ROM verification: Bit-for-bit extraction and validation against `Tetris (USA).nes`.
-   - 9 PRG ROM tables verified byte-for-byte at exact symbol addresses (`orientationTable`, `rotationTable`, `framesPerDropTable`, `pointsTable`, `spawnTable`, `tetriminoTypeFromOrientation`, `spawnOrientationFromOrientation`, `musicSelectionTable`, `demoTetriminoTypeTable`).
+   - 15 PRG ROM tables verified byte-for-byte at exact symbol addresses.
    - Differential CPU testing: Built NMOS 6502 CPU simulator oracle executing original PRG ROM assembly directly against decompiled C routines across hundreds of test vectors.
    - Authoritative scope audit: Distinguished 171 standalone routines, 111 alternate entry points, 260 data tables, and exact address aliases in `ROUTINE_INVENTORY.md` and `routine_inventory.json`.
 
-6. [ ] **Batch 4 (Playfield Grid & Line Clear)**:
-   - Playfield representation ($0400, 10x20 cells).
-   - Row completion detection (`playState_checkForCompletedRows`).
-   - Line clear animation framing (`playState_lineClearAnimation`).
-   - Row collapsing (`collapseRows`).
-   - Type B garbage generation (`initPlayfieldForTypeB`).
-   - Differential testing against 6502 assembly in reference ROM.
+6. [x] **Batch 4 (Playfield Grid, Line Completion, Animation Framing, & Type B Garbage)**:
+   - Decompiled `playState_lockTetrimino` ($99A2): 4-mino placement and invalid position game-over sequence.
+   - Decompiled `playState_checkForCompletedRows` ($9A6B): 4-row candidate scan, downward row collapse, top row clearing, and garbage line accumulation.
+   - Decompiled `updateLineClearingAnimation` ($977F): 5-step center-out line clearing framing every 4 frames.
+   - Decompiled `playState_updateGameOverCurtain` ($9A11): Cascade curtain row fill with `TILE_CURTAIN` ($4F).
+   - Decompiled `playState_receiveGarbage` ($9B03): 2-player pending garbage row upward shift and hole insertion.
+   - Decompiled `initPlayfieldIfTypeB` ($87DC) & `initPlayfieldForTypeB` ($87E3): PRNG garbage generation (rows 8-19), blank cell guarantee, and startHeight clearing.
+   - Authoritative data tables bit-exact verified against reference ROM: `multBy10Table`, `leftColumnsTable`, `rightColumnsTable`, `typeBBlankInitCountByHeightTable`, `rngTable`, `garbageLinesTable`.
+   - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across multiple line completion scenarios.
 
 7. [ ] **Batch 5 (Player Controls & DAS)**:
    - Joypad state decoding.
@@ -122,4 +124,5 @@
 | Batch 0 & 1 | Infrastructure, NES State, RNG & Piece Selection | 5 | 5 | 2 suites / 11 test cases | `275a177` |
 | Batch 2 | BCD Math, Scoring, Lines Progression, & Music Speed | 3 | 8 | 3 suites / 17 test cases | `d3110ca` |
 | Batch 3 | Tetrimino Geometry, Rotation, Movement & Collision | 5 | 13 | 4 suites / 26 test cases | `17c2e00` |
-| Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | Pending |
+| Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | `1c7cdc3` |
+| Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | Pending |

@@ -8,6 +8,7 @@
 #include "math/rng.h"
 #include "math/bcd.h"
 #include "game/tetrimino.h"
+#include "game/playfield.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_ROTATE_TETRIMINO       0x88AB
@@ -17,6 +18,7 @@
 #define ROM_ADDR_CHOOSE_NEXT_TETRIMINO  0x98EB
 #define ROM_ADDR_PICK_RANDOM_TETRIMINO  0x9903
 #define ROM_ADDR_INCREMENT_PIECE_STAT   0x9969
+#define ROM_ADDR_CHECK_FOR_COMPLETED_ROWS 0x9A6B
 #define ROM_ADDR_UPDATE_PLAYFIELD       0x9CAF
 #define ROM_ADDR_UPDATE_MUSIC_SPEED     0x9D17
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
@@ -271,6 +273,142 @@ int test_differential_verification(void) {
                 setMusicTrack(&nes_c, track);
                 assert(nes_6502.ram[ADDR_MUSIC_TRACK] == nes_c.ram[ADDR_MUSIC_TRACK]);
             }
+        }
+    }
+
+    /* Test 8: Differential playState_checkForCompletedRows */
+    {
+        /* Scenario A: Single row completion */
+        {
+            NES_State nes_6502 = rom_nes;
+            NES_State nes_c = rom_nes;
+
+            uint16_t pf_base = ADDR_PLAYFIELD;
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+
+            /* Fill row 18 with TILE_1 ($7B) and row 17 col 3 with TILE_2 ($7C) */
+            for (int col = 0; col < 10; col++) {
+                nes_6502.ram[pf_base + 18 * 10 + col] = TILE_1;
+                nes_c.ram[pf_base + 18 * 10 + col] = TILE_1;
+            }
+            nes_6502.ram[pf_base + 17 * 10 + 3] = TILE_2;
+            nes_c.ram[pf_base + 17 * 10 + 3] = TILE_2;
+
+            nes_6502.ram[ADDR_TETRIMINO_Y] = 19;
+            nes_c.ram[ADDR_TETRIMINO_Y] = 19;
+            nes_6502.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_c.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_6502.ram[ADDR_LINE_INDEX] = 0;
+            nes_c.ram[ADDR_LINE_INDEX] = 0;
+            nes_6502.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_c.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_6502.ram[ADDR_PLAY_STATE] = 3;
+            nes_c.ram[ADDR_PLAY_STATE] = 3;
+
+            /* Execute 4 scan iterations */
+            for (int step = 0; step < 4; step++) {
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 5000);
+                assert(ok);
+                (void)ok;
+
+                playState_checkForCompletedRows(&nes_c);
+            }
+
+            assert(nes_6502.ram[ADDR_COMPLETED_LINES] == nes_c.ram[ADDR_COMPLETED_LINES]);
+            assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+            assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+            assert(memcmp(&nes_6502.ram[pf_base], &nes_c.ram[pf_base], PLAYFIELD_SIZE) == 0);
+        }
+
+        /* Scenario B: Tetris 4-row completion */
+        {
+            NES_State nes_6502 = rom_nes;
+            NES_State nes_c = rom_nes;
+
+            uint16_t pf_base = ADDR_PLAYFIELD;
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+
+            for (int r = 16; r < 20; r++) {
+                for (int c = 0; c < 10; c++) {
+                    nes_6502.ram[pf_base + r * 10 + c] = TILE_3;
+                    nes_c.ram[pf_base + r * 10 + c] = TILE_3;
+                }
+            }
+
+            nes_6502.ram[ADDR_TETRIMINO_Y] = 18;
+            nes_c.ram[ADDR_TETRIMINO_Y] = 18;
+            nes_6502.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_c.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_6502.ram[ADDR_LINE_INDEX] = 0;
+            nes_c.ram[ADDR_LINE_INDEX] = 0;
+            nes_6502.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_c.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] = 0;
+            nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE] = 0;
+            nes_6502.ram[ADDR_PLAY_STATE] = 3;
+            nes_c.ram[ADDR_PLAY_STATE] = 3;
+
+            for (int step = 0; step < 4; step++) {
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 5000);
+                assert(ok);
+                (void)ok;
+
+                playState_checkForCompletedRows(&nes_c);
+            }
+
+            assert(nes_6502.ram[ADDR_COMPLETED_LINES] == nes_c.ram[ADDR_COMPLETED_LINES]);
+            assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+            assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+            assert(nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] == nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE]);
+            assert(memcmp(&nes_6502.ram[pf_base], &nes_c.ram[pf_base], PLAYFIELD_SIZE) == 0);
+        }
+
+        /* Scenario C: Zero rows complete */
+        {
+            NES_State nes_6502 = rom_nes;
+            NES_State nes_c = rom_nes;
+
+            uint16_t pf_base = ADDR_PLAYFIELD;
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_6502.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR] = LOW_BYTE(pf_base);
+            nes_c.ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(pf_base);
+
+            nes_6502.ram[ADDR_TETRIMINO_Y] = 10;
+            nes_c.ram[ADDR_TETRIMINO_Y] = 10;
+            nes_6502.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_c.ram[ADDR_VRAM_ROW] = 0x20;
+            nes_6502.ram[ADDR_LINE_INDEX] = 0;
+            nes_c.ram[ADDR_LINE_INDEX] = 0;
+            nes_6502.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_c.ram[ADDR_COMPLETED_LINES] = 0;
+            nes_6502.ram[ADDR_PLAY_STATE] = 3;
+            nes_c.ram[ADDR_PLAY_STATE] = 3;
+
+            for (int step = 0; step < 4; step++) {
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHECK_FOR_COMPLETED_ROWS, 5000);
+                assert(ok);
+                (void)ok;
+
+                playState_checkForCompletedRows(&nes_c);
+            }
+
+            assert(nes_6502.ram[ADDR_COMPLETED_LINES] == nes_c.ram[ADDR_COMPLETED_LINES]);
+            assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+            assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+            assert(memcmp(&nes_6502.ram[pf_base], &nes_c.ram[pf_base], PLAYFIELD_SIZE) == 0);
         }
     }
 

@@ -26,6 +26,7 @@ set(TDECOMP_CORE_SOURCES
     src/math/rng.c
     src/math/bcd.c
     src/game/tetrimino.c
+    src/game/playfield.c
 )
 
 add_library(tdecomp_core STATIC ${TDECOMP_CORE_SOURCES})
@@ -45,6 +46,7 @@ if(BUILD_TESTING)
         tests/test_rng.c
         tests/test_bcd.c
         tests/test_tetrimino.c
+        tests/test_playfield.c
         tests/verification/cpu6502.c
         tests/verification/rom_data.c
         tests/verification/test_differential.c
