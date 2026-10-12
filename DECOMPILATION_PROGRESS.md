@@ -22,7 +22,7 @@
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
 | **Remaining Routines** | **125** | Pending conversion |
 | **Current Progress** | **26.90%** | `[#############---------------------------------------] 26.90%` |
-| **Build & Test Suite** | 10 / 10 suites passing | Unit, 19 ROM data tables, & 6502 differential CPU oracle (29 differential tests) |
+| **Build & Test Suite** | 10 / 10 suites passing | Unit, 19 ROM data tables, & 6502 differential CPU oracle (28 differential tests) |
 
 ---
 
@@ -143,7 +143,7 @@
     - Decompiled `gameMode_levelMenu_processPlayer1Navigation` ($8436): Active player mapping (`activePlayer = 0`), delegation to navigation handler, START button detection with `A + START` Level+10 cheat code advancing to `MODE_PLAY` (4), BUTTON_B detection retreating to `MODE_GAME_TYPE_MENU` (2), random garbage hole column generation [0..9] via PRNG for Player 1 & 2.
     - Decompiled `gameMode_levelMenu_handleLevelHeightNavigation` ($84AE): D-pad grid navigation for starting level (0..9) and starting height (0..5), Button A toggle between level and height selection in Type B, and 2-player sprite cursor coordinate offset calculations.
     - Authoritative data tables bit-exact verified against reference ROM: `levelToSpriteYOffset` ($85B2), `levelToSpriteXOffset` ($85BC), `heightToPpuHighAddr` ($85C6), `heightToPpuLowAddr` ($85CC).
-    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across game type loop START/B, level menu navigation, P1 navigation transitions, and cheat code mechanics (Tests 25–29).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across game type loop START/B, level menu navigation, P1 navigation transitions, and cheat code mechanics (Tests 24–28).
 
 12. [ ] **Batch 10 (High Score Operations & Tables)**:
     - High score table sorting, name entry, and RAM storage ($0700).
@@ -168,6 +168,6 @@
 | Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | `e62775b` |
 | Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `a3c6dc7` |
 | Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `4422fa6` |
-| Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `b5ef45f` |
-| Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `9955f8e` |
-| Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 29 6502 diff | `04d2cf1` |
+| Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `6b57386` |
+| Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `42c06e2` |
+| Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 28 6502 diff | `3d19246` |

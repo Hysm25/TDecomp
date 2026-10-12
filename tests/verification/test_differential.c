@@ -16,7 +16,6 @@
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_BRANCH_ON_GAME_MODE    0x8161
 #define ROM_ADDR_BRANCH_ON_PLAY_STATE_P1 0x81B2
-#define ROM_ADDR_BRANCH_ON_PLAY_STATE_P2 0x81D9
 #define ROM_ADDR_LEGAL_SCREEN           0x8200
 #define ROM_ADDR_TITLE_SCREEN           0x824F
 #define ROM_ADDR_TITLE_TIMEOUT_CHECK    0x8296
@@ -27,31 +26,19 @@
 #define ROM_ADDR_MAKE_PLAYER2_ACTIVE    0x8792
 #define ROM_ADDR_SAVE_PLAYER1_STATE     0x87AE
 #define ROM_ADDR_SAVE_PLAYER2_STATE     0x87C8
-#define ROM_ADDR_ROTATE_TETRIMINO       0x88AB
 #define ROM_ADDR_UPDATE_COUNTERS_AND_NON_PLAYER_STATE 0x8884
-#define ROM_ADDR_DROP_TETRIMINO         0x8914
-#define ROM_ADDR_SHIFT_TETRIMINO        0x89AE
 #define ROM_ADDR_IS_POSITION_VALID      0x948B
-#define ROM_ADDR_NOOP_DISABLED_VRAM_ROW_INCR 0x9874
 #define ROM_ADDR_SPAWN_NEXT_TETRIMINO   0x988E
-#define ROM_ADDR_CHOOSE_NEXT_TETRIMINO  0x98EB
-#define ROM_ADDR_PICK_RANDOM_TETRIMINO  0x9903
 #define ROM_ADDR_INCREMENT_PIECE_STAT   0x9969
 #define ROM_ADDR_CHECK_FOR_COMPLETED_ROWS 0x9A6B
 #define ROM_ADDR_UPDATE_PLAYFIELD       0x9CAF
 #define ROM_ADDR_UPDATE_MUSIC_SPEED     0x9D17
-#define ROM_ADDR_POLL_CONTROLLER_BUTTONS 0x9D51
 #define ROM_ADDR_DEMO_BUTTONS_INDEX_INCR 0x9DE8
-#define ROM_ADDR_START_DEMO             0x9DF6
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
 #define ROM_ADDR_GAME_MODE_STATE_VBLANK_THEN_RUN_STATE_2 0x9E27
 #define ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION 0x9E2F
 #define ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE 0x9E37
-#define ROM_ADDR_PLAYSTATE_NOOP         0x9E39
-#define ROM_ADDR_PLAYSTATE_B_TYPE_GOAL_CHECK 0xA3F2
 #define ROM_ADDR_LFSR_PRNG              0xAB47
-#define ROM_ADDR_POLL_CONTROLLER_ACTUAL_READ 0xAB69
-#define ROM_ADDR_ADD_EXPANSION_PORT_INPUT 0xAB8B
 #define ROM_ADDR_POLL_CONTROLLER        0xAB9D
 #define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
 #define ROM_ADDR_SOUND_RNG              0xE09E
@@ -453,7 +440,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 10: Differential diffOldAndNewButtons ($ABBD) */
+    /* Test 9: Differential diffOldAndNewButtons ($ABBD) */
     {
         uint8_t test_patterns[] = {
             0x00, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
@@ -492,7 +479,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 11: Differential pollController ($AB9D) */
+    /* Test 10: Differential pollController ($AB9D) */
     {
         uint8_t test_inputs[] = {
             0x00, 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01,
@@ -528,7 +515,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 12: Differential demoButtonsTable_indexIncr ($9DE8) */
+    /* Test 11: Differential demoButtonsTable_indexIncr ($9DE8) */
     {
         uint16_t test_addrs[] = {
             0x0000, 0xDD00, 0xDD50, 0xDDFF, 0xDE00, 0xFFFF
@@ -558,7 +545,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 13: Differential makePlayer1Active ($8776) & makePlayer2Active ($8792) */
+    /* Test 12: Differential makePlayer1Active ($8776) & makePlayer2Active ($8792) */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -642,7 +629,7 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_PENDING_GARBAGE_INACTIVE] == nes_c.ram[ADDR_PENDING_GARBAGE_INACTIVE]);
     }
 
-    /* Test 14: Differential playState_unassignOrientationId ($9E2F) & playState_incrementPlayState ($9E37) */
+    /* Test 13: Differential playState_unassignOrientationId ($9E2F) & playState_incrementPlayState ($9E37) */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -675,7 +662,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_PLAY_STATE] == 12);
     }
 
-    /* Test 15: Differential branchOnPlayStatePlayer1 ($81B2) dispatch */
+    /* Test 14: Differential branchOnPlayStatePlayer1 ($81B2) dispatch */
     {
         uint8_t test_states[] = { 0, 4, 6, 9, 11 };
         size_t num_states = sizeof(test_states) / sizeof(test_states[0]);
@@ -703,7 +690,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 16: Differential playState_spawnNextTetrimino ($988E) 1P mode across 19 orientations */
+    /* Test 15: Differential playState_spawnNextTetrimino ($988E) 1P mode across 19 orientations */
     {
         for (uint8_t orient = 0; orient < ORIENTATION_COUNT; orient++) {
             NES_State nes_6502 = rom_nes;
@@ -749,7 +736,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 17: Differential playState_spawnNextTetrimino ($988E) 2P mode delay mechanics */
+    /* Test 16: Differential playState_spawnNextTetrimino ($988E) 2P mode delay mechanics */
     {
         /* Subcase A: Frame 0 triggers 2P delay */
         {
@@ -886,7 +873,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 18: Differential noop_disabledVramRowIncr ($9874) & gameModeState_vblankThenRunState2 ($9E27) */
+    /* Test 17: Differential noop_disabledVramRowIncr ($9874) & gameModeState_vblankThenRunState2 ($9E27) */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -906,7 +893,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 2);
     }
 
-    /* Test 19: Differential gameModeState_updateCountersAndNonPlayerState ($8884) */
+    /* Test 18: Differential gameModeState_updateCountersAndNonPlayerState ($8884) */
     {
         uint8_t select_presses[] = { 0, BUTTON_SELECT };
         uint8_t delay_inits[] = { 0, 10 };
@@ -949,7 +936,7 @@ int test_differential_verification(void) {
         }
     }
 
-    /* Test 20: Differential branchOnPlayStatePlayer1 ($81B2) State 8 dispatch */
+    /* Test 19: Differential branchOnPlayStatePlayer1 ($81B2) State 8 dispatch */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -977,7 +964,7 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_TETRIMINO_Y] == nes_c.ram[ADDR_TETRIMINO_Y]);
     }
 
-    /* Test 21: Differential gameMode_legalScreen ($8200) */
+    /* Test 20: Differential gameMode_legalScreen ($8200) */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1000,7 +987,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_GAME_MODE] == MODE_TITLE_SCREEN);
     }
 
-    /* Test 22: Differential gameMode_titleScreen ($824F) with START button */
+    /* Test 21: Differential gameMode_titleScreen ($824F) with START button */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1027,7 +1014,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
 
-    /* Test 23: Differential gameMode_titleScreen ($824F) with timeout */
+    /* Test 22: Differential gameMode_titleScreen ($824F) with timeout */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1053,7 +1040,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
 
-    /* Test 24: Differential branchOnGameMode ($8161) dispatch */
+    /* Test 23: Differential branchOnGameMode ($8161) dispatch */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1076,7 +1063,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
     }
 
-    /* Test 25: Differential gameMode_gameTypeMenu ($830B) on START press */
+    /* Test 24: Differential gameMode_gameTypeMenu ($830B) on START press */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1100,7 +1087,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
 
-    /* Test 26: Differential gameMode_gameTypeMenu ($830B) on B press */
+    /* Test 25: Differential gameMode_gameTypeMenu ($830B) on B press */
     {
         NES_State nes_6502 = rom_nes;
         NES_State nes_c = rom_nes;
@@ -1128,7 +1115,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
 
-    /* Test 27: Differential gameMode_levelMenu_handleLevelHeightNavigation ($84AE) */
+    /* Test 26: Differential gameMode_levelMenu_handleLevelHeightNavigation ($84AE) */
     {
         /* Right press in Level Selection */
         NES_State nes_6502 = rom_nes;
@@ -1215,7 +1202,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] == 1);
     }
 
-    /* Test 28: Differential gameMode_levelMenu_processPlayer1Navigation ($8436) */
+    /* Test 27: Differential gameMode_levelMenu_processPlayer1Navigation ($8436) */
     {
         /* Normal START press */
         NES_State nes_6502 = rom_nes;
@@ -1307,7 +1294,7 @@ int test_differential_verification(void) {
         assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
     }
 
-    /* Test 29: Differential branchOnGameMode ($8161) dispatch for modes 2 and 3 */
+    /* Test 28: Differential branchOnGameMode ($8161) dispatch for modes 2 and 3 */
     {
         /* Mode 2 dispatch */
         NES_State nes_c = rom_nes;
