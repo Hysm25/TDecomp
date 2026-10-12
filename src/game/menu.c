@@ -1,4 +1,5 @@
 #include "game/menu.h"
+#include "game/highscore.h"
 #include "constants/memory.h"
 #include "constants/gameplay.h"
 #include "math/bcd.h"
@@ -395,6 +396,7 @@ void gameMode_levelMenu(NES_State *nes) {
     if (!nes) return;
 
     nes->ram[ADDR_RENDER_MODE] = 1;
+    showHighScores(nes);
     nes->ram[ADDR_ORIGINAL_Y] = 0;
     nes->ram[ADDR_DROP_SPEED] = 0;
 

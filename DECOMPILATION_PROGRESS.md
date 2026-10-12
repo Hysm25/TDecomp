@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **46** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **56** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **125** | Pending conversion |
-| **Current Progress** | **26.90%** | `[#############---------------------------------------] 26.90%` |
-| **Build & Test Suite** | 10 / 10 suites passing | Unit, 20 ROM data tables, & 6502 differential CPU oracle (28 differential tests) |
+| **Remaining Routines** | **115** | Pending conversion |
+| **Current Progress** | **32.75%** | `[################------------------------------------] 32.75%` |
+| **Build & Test Suite** | 11 / 11 suites passing | Unit, 28 ROM data tables, & 6502 differential CPU oracle (33 differential tests) |
 
 ---
 
@@ -31,17 +31,17 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
+| **MATH_BCD** (Score & Line Math) | 12 | 10 | 0 | 2 | **83.3%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 11 | 0 | 5 | **68.8%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 6 | 0 | 7 | **46.2%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 6 | 0 | 8 | **42.9%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 8 | 0 | 30 | **21.1%** |
-| **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 1 | 0 | 15 | **6.25%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **46** | **0** | **125** | **26.90%** |
+| **TOTAL** | **171** | **56** | **0** | **115** | **32.75%** |
 
 ---
 
@@ -145,8 +145,18 @@
     - Authoritative data tables bit-exact verified against reference ROM: `levelToSpriteYOffset` ($85B2), `levelToSpriteXOffset` ($85BC), `heightToPpuHighAddr` ($85C6), `heightToPpuLowAddr` ($85CC).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across game type loop START/B, level menu navigation, P1 navigation transitions, and cheat code mechanics (Tests 24–28).
 
-12. [ ] **Batch 10 (High Score Operations & Tables)**:
-    - High score table sorting, name entry, and RAM storage ($0700).
+12. [x] **Batch 10 (High Score Operations & Tables)**:
+    - Decompiled `initHighScoreTable` ($8095): Cold boot initialization copying default names, scores, and levels into RAM $0700-$074F until $FF, setting `initMagic` ($0750) to `{ $12, $34, $56, $78, $9A }`.
+    - Decompiled `twoDigsToPPU` ($9712): Splits 8-bit value into high/low BCD digits, writes to PPUDATA ($2007), and preserves value in `generalCounter`.
+    - Decompiled `showHighScores` ($9FF2), `showHighScores_real` ($9FFB), `showHighScores_ret` ($A085): 1P vs 2P high score nametable display dispatcher, formatting 3 entries with 6-char names, 6-digit BCD scores, and 2-digit BCD levels.
+    - Decompiled `handleHighScoreIfNecessary` ($A0EE): High score table qualification and tie-breaking comparison (preferring player on ties) across entries 0..2 (Type A) or 4..6 (Type B).
+    - Decompiled `adjustHighScores` ($A134): Multi-entry downward shift (entries 1->2, 0->1), 6-char name clearing for player input, score/level insertion, and transition to name entry screen.
+    - Decompiled `copyHighScoreNameToNextIndex` ($A192): Backward 6-character name copy to next entry slot with Type B offset ($18) adjustment.
+    - Decompiled `copyHighScoreScoreToNextIndex` ($A1C1): 3-byte BCD score copy to next entry slot with Type B offset ($0C) adjustment.
+    - Decompiled `copyHighScoreLevelToNextIndex` ($A1E0): 1-byte level copy to next entry slot with Type B offset ($04) adjustment.
+    - Decompiled `highScoreEntryScreen` ($A201) & `highScoreEntryScreen_step`: Interactive name entry screen with cursor horizontal navigation, 44-character alphabet cycling with wrap, and START confirmation.
+    - Authoritative data tables bit-exact verified against reference ROM: `highScorePpuAddrTable` ($A086), `highScoreCharToTile` ($A08C), `byteToBcdTable` ($A0BC), `highScoreIndexToHighScoreNamesOffset` ($A1F1), `highScoreIndexToHighScoreScoresOffset` ($A1F9), `highScorePosToY` ($A33B), `highScoreNamePosToX` ($A33E), `defaultHighScoresTable` ($AD67).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `twoDigsToPPU`, `copyHighScoreNameToNextIndex`, `copyHighScoreScoreToNextIndex`, `copyHighScoreLevelToNextIndex`, and `handleHighScoreIfNecessary` non-qualifying traversal (Tests 29–33).
 
 13. [ ] **Batch 11 (PPU Rendering & OAM)**:
     - OAM sprite staging and nametable row updates.
@@ -171,3 +181,4 @@
 | Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `6b57386` |
 | Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `42c06e2` |
 | Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 28 6502 diff | `3d19246` |
+| Batch 10 | High Score Operations, Tables, Sorting & Name Entry Screen | 10 | 56 | 11 suites / 28 ROM tables + 33 6502 diff | `4719dc1` |

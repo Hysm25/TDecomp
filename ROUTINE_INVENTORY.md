@@ -157,15 +157,15 @@
 | `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `MISSING` |  |
 | `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `MISSING` |  |
 | `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Jump Table | `VERIFIED` | Verified: PlayState 5 scoring, line counts, and stat update proven |
-| `showHighScores` | `0x9FF2` | L4015–L4020 | JSR | `MISSING` |  |
-| `showHighScores_real` | `0x9FFB` | L4021–L4092 | Entry / Direct | `MISSING` |  |
-| `showHighScores_ret` | `0xA085` | L4093–L4094 | Entry / Direct | `MISSING` |  |
-| `handleHighScoreIfNecessary` | `0xA0EE` | L4116–L4159 | JSR | `MISSING` |  |
-| `adjustHighScores` | `0xA134` | L4160–L4207 | Entry / Direct | `MISSING` |  |
-| `copyHighScoreNameToNextIndex` | `0xA192` | L4208–L4238 | JSR | `MISSING` |  |
-| `copyHighScoreScoreToNextIndex` | `0xA1C1` | L4239–L4258 | JSR | `MISSING` |  |
-| `copyHighScoreLevelToNextIndex` | `0xA1E0` | L4259–L4271 | JSR | `MISSING` |  |
-| `highScoreEntryScreen` | `0xA201` | L4276–L4438 | Entry / Direct | `MISSING` |  |
+| `showHighScores` | `0x9FF2` | L4015–L4020 | JSR | `VERIFIED` | Verified: 1P vs 2P high score nametable display dispatcher differential proven |
+| `showHighScores_real` | `0x9FFB` | L4021–L4092 | Entry / Direct | `VERIFIED` | Verified: 3-entry names, 6-digit BCD scores, and 2-digit BCD levels PPU display verified |
+| `showHighScores_ret` | `0xA085` | L4093–L4094 | Entry / Direct | `VERIFIED` | Verified: High score return stub verified |
+| `handleHighScoreIfNecessary` | `0xA0EE` | L4116–L4159 | JSR | `VERIFIED` | Verified: Score comparison, tie breaking, and slot selection differential proven against 6502 ROM |
+| `adjustHighScores` | `0xA134` | L4160–L4207 | Entry / Direct | `VERIFIED` | Verified: Multi-entry shifting, name clearing, score/level insertion, and entry transition verified |
+| `copyHighScoreNameToNextIndex` | `0xA192` | L4208–L4238 | JSR | `VERIFIED` | Verified: 6-character name shift for Type A/B differential proven against 6502 ROM |
+| `copyHighScoreScoreToNextIndex` | `0xA1C1` | L4239–L4258 | JSR | `VERIFIED` | Verified: 3-byte BCD score shift for Type A/B differential proven against 6502 ROM |
+| `copyHighScoreLevelToNextIndex` | `0xA1E0` | L4259–L4271 | JSR | `VERIFIED` | Verified: 1-byte level shift for Type A/B differential proven against 6502 ROM |
+| `highScoreEntryScreen` | `0xA201` | L4276–L4438 | Entry / Direct | `VERIFIED` | Verified: Interactive name entry, cursor navigation, alphabet modulo 44 cycling, and START confirmation verified |
 
 ### MATH_RNG (2 Routines)
 
@@ -222,7 +222,7 @@
 | `render` | `0x804B` | L290–L296 | JSR | `MISSING` |  |
 | `loadSpriteIntoOamStaging` | `0x8C27` | L1861–L1903 | JSR | `MISSING` |  |
 | `render_mode_play_and_demo` | `0x94EE` | L2457–L2671 | Jump Table | `MISSING` |  |
-| `twoDigsToPPU` | `0x9712` | L2691–L2703 | JSR | `MISSING` |  |
+| `twoDigsToPPU` | `0x9712` | L2691–L2703 | JSR | `VERIFIED` | Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM |
 | `updatePaletteForLevel` | `0x9808` | L2833–L2870 | JSR | `MISSING` |  |
 | `render_mode_ending_animation` | `0x9F95` | L3975–L4009 | Jump Table | `MISSING` |  |
 | `render_mode_congratulations_screen` | `0xA344` | L4443–L4474 | Jump Table | `MISSING` |  |

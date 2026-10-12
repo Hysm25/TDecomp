@@ -555,8 +555,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM"
     },
     {
       "name": "copyPlayfieldRowToVRAM",
@@ -961,8 +961,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 1P vs 2P high score nametable display dispatcher differential proven"
     },
     {
       "name": "showHighScores_real",
@@ -975,8 +975,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 3-entry names, 6-digit BCD scores, and 2-digit BCD levels PPU display verified"
     },
     {
       "name": "showHighScores_ret",
@@ -989,8 +989,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: High score return stub verified"
     },
     {
       "name": "handleHighScoreIfNecessary",
@@ -1003,8 +1003,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Score comparison, tie breaking, and slot selection differential proven against 6502 ROM"
     },
     {
       "name": "adjustHighScores",
@@ -1017,8 +1017,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Multi-entry shifting, name clearing, score/level insertion, and entry transition verified"
     },
     {
       "name": "copyHighScoreNameToNextIndex",
@@ -1031,8 +1031,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 6-character name shift for Type A/B differential proven against 6502 ROM"
     },
     {
       "name": "copyHighScoreScoreToNextIndex",
@@ -1045,8 +1045,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 3-byte BCD score shift for Type A/B differential proven against 6502 ROM"
     },
     {
       "name": "copyHighScoreLevelToNextIndex",
@@ -1059,8 +1059,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 1-byte level shift for Type A/B differential proven against 6502 ROM"
     },
     {
       "name": "highScoreEntryScreen",
@@ -1073,8 +1073,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Interactive name entry, cursor navigation, alphabet modulo 44 cycling, and START confirmation verified"
     },
     {
       "name": "render_mode_congratulations_screen",

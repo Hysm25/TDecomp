@@ -8,6 +8,7 @@
 #include "math/bcd.h"
 #include "game/playfield.h"
 #include "game/menu.h"
+#include "game/highscore.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_LEVEL_TO_SPRITE_Y_OFFSET   0x85B2
@@ -29,7 +30,15 @@
 #define ADDR_ROM_TYPEB_BLANK_COUNT_TABLE    0x8876
 #define ADDR_ROM_RNG_TABLE                  0x887C
 #define ADDR_ROM_GARBAGE_LINES_TABLE        0x9B53
+#define ADDR_ROM_HIGH_SCORE_PPU_ADDR_TABLE  0xA086
+#define ADDR_ROM_HIGH_SCORE_CHAR_TO_TILE    0xA08C
+#define ADDR_ROM_BYTE_TO_BCD_TABLE          0xA0BC
+#define ADDR_ROM_HIGH_SCORE_NAMES_OFFSET    0xA1F1
+#define ADDR_ROM_HIGH_SCORE_SCORES_OFFSET   0xA1F9
+#define ADDR_ROM_HIGH_SCORE_POS_TO_Y        0xA33B
+#define ADDR_ROM_HIGH_SCORE_NAME_POS_TO_X   0xA33E
 #define ADDR_ROM_TYPEB_SUCCESS_GRAPHIC      0xA42E
+#define ADDR_ROM_DEFAULT_HIGH_SCORES_TABLE  0xAD67
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -243,6 +252,62 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (20 ROM data tables verified bit-for-bit)\n");
+    /* Test 21: highScorePpuAddrTable (6 bytes at $A086) */
+    for (int i = 0; i < 6; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_PPU_ADDR_TABLE + i));
+        assert(highScorePpuAddrTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 22: highScoreCharToTile (44 bytes at $A08C) */
+    for (int i = 0; i < 44; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_CHAR_TO_TILE + i));
+        assert(highScoreCharToTile[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 23: byteToBcdTable (50 bytes at $A0BC) */
+    for (int i = 0; i < 50; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_BYTE_TO_BCD_TABLE + i));
+        assert(byteToBcdTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 24: highScoreIndexToHighScoreNamesOffset (8 bytes at $A1F1) */
+    for (int i = 0; i < 8; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_NAMES_OFFSET + i));
+        assert(highScoreIndexToHighScoreNamesOffset[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 25: highScoreIndexToHighScoreScoresOffset (8 bytes at $A1F9) */
+    for (int i = 0; i < 8; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_SCORES_OFFSET + i));
+        assert(highScoreIndexToHighScoreScoresOffset[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 26: highScorePosToY (3 bytes at $A33B) */
+    for (int i = 0; i < 3; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_POS_TO_Y + i));
+        assert(highScorePosToY[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 27: highScoreNamePosToX (6 bytes at $A33E) */
+    for (int i = 0; i < 6; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HIGH_SCORE_NAME_POS_TO_X + i));
+        assert(highScoreNamePosToX[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 28: defaultHighScoresTable (81 bytes at $AD67) */
+    for (int i = 0; i < 81; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DEFAULT_HIGH_SCORES_TABLE + i));
+        assert(defaultHighScoresTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (28 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

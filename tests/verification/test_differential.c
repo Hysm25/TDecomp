@@ -12,6 +12,7 @@
 #include "game/input.h"
 #include "game/state.h"
 #include "game/menu.h"
+#include "game/highscore.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_BRANCH_ON_GAME_MODE    0x8161
@@ -28,6 +29,7 @@
 #define ROM_ADDR_SAVE_PLAYER2_STATE     0x87C8
 #define ROM_ADDR_UPDATE_COUNTERS_AND_NON_PLAYER_STATE 0x8884
 #define ROM_ADDR_IS_POSITION_VALID      0x948B
+#define ROM_ADDR_TWO_DIGS_TO_PPU        0x9712
 #define ROM_ADDR_SPAWN_NEXT_TETRIMINO   0x988E
 #define ROM_ADDR_INCREMENT_PIECE_STAT   0x9969
 #define ROM_ADDR_CHECK_FOR_COMPLETED_ROWS 0x9A6B
@@ -38,6 +40,10 @@
 #define ROM_ADDR_GAME_MODE_STATE_VBLANK_THEN_RUN_STATE_2 0x9E27
 #define ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION 0x9E2F
 #define ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE 0x9E37
+#define ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY 0xA0EE
+#define ROM_ADDR_COPY_HIGH_SCORE_NAME   0xA192
+#define ROM_ADDR_COPY_HIGH_SCORE_SCORE  0xA1C1
+#define ROM_ADDR_COPY_HIGH_SCORE_LEVEL  0xA1E0
 #define ROM_ADDR_LFSR_PRNG              0xAB47
 #define ROM_ADDR_POLL_CONTROLLER        0xAB9D
 #define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
@@ -1313,6 +1319,155 @@ int test_differential_verification(void) {
         branchOnGameMode(&nes_c);
         assert(nes_c.ram[ADDR_GAME_MODE] == MODE_PLAY);
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+    }
+
+    /* Test 29: Differential twoDigsToPPU ($9712) */
+    {
+        uint8_t test_vals[] = { 0x00, 0x12, 0x34, 0x90, 0x59, 0x88, 0x07 };
+        size_t count = sizeof(test_vals) / sizeof(test_vals[0]);
+
+        for (size_t i = 0; i < count; i++) {
+            uint8_t val = test_vals[i];
+
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_TWO_DIGS_TO_PPU, val, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_TWO_DIGS_TO_PPU, 100);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            twoDigsToPPU(&nes_c, val);
+
+            assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+            assert(cpu.a == (val & 0x0F));
+        }
+    }
+
+    /* Test 30: Differential copyHighScoreNameToNextIndex ($A192) */
+    {
+        uint8_t game_types[] = { 0, 1 };
+        uint8_t start_bytes[] = { 0x00, 0x06 };
+
+        for (int gt = 0; gt < 2; gt++) {
+            for (int sb = 0; sb < 2; sb++) {
+                uint8_t gtype = game_types[gt];
+                uint8_t start_byte = start_bytes[sb];
+
+                NES_State nes_6502 = rom_nes;
+                initHighScoreTable(&nes_6502);
+                nes_6502.ram[ADDR_GAME_TYPE] = gtype;
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_COPY_HIGH_SCORE_NAME, start_byte, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_HIGH_SCORE_NAME, 500);
+                assert(ok);
+
+                NES_State nes_c = rom_nes;
+                initHighScoreTable(&nes_c);
+                nes_c.ram[ADDR_GAME_TYPE] = gtype;
+
+                copyHighScoreNameToNextIndex(&nes_c, start_byte);
+
+                assert(memcmp(&nes_6502.ram[ADDR_HIGH_SCORE_NAMES], &nes_c.ram[ADDR_HIGH_SCORE_NAMES], 48) == 0);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER3] == nes_c.ram[ADDR_GENERAL_COUNTER3]);
+            }
+        }
+    }
+
+    /* Test 31: Differential copyHighScoreScoreToNextIndex ($A1C1) */
+    {
+        uint8_t game_types[] = { 0, 1 };
+        uint8_t start_bytes[] = { 0x00, 0x03 };
+
+        for (int gt = 0; gt < 2; gt++) {
+            for (int sb = 0; sb < 2; sb++) {
+                uint8_t gtype = game_types[gt];
+                uint8_t start_byte = start_bytes[sb];
+
+                NES_State nes_6502 = rom_nes;
+                initHighScoreTable(&nes_6502);
+                nes_6502.ram[ADDR_GAME_TYPE] = gtype;
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_COPY_HIGH_SCORE_SCORE, start_byte, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_HIGH_SCORE_SCORE, 500);
+                assert(ok);
+
+                NES_State nes_c = rom_nes;
+                initHighScoreTable(&nes_c);
+                nes_c.ram[ADDR_GAME_TYPE] = gtype;
+
+                copyHighScoreScoreToNextIndex(&nes_c, start_byte);
+
+                assert(memcmp(&nes_6502.ram[ADDR_HIGH_SCORE_A], &nes_c.ram[ADDR_HIGH_SCORE_A], 24) == 0);
+            }
+        }
+    }
+
+    /* Test 32: Differential copyHighScoreLevelToNextIndex ($A1E0) */
+    {
+        uint8_t game_types[] = { 0, 1 };
+        uint8_t start_bytes[] = { 0x00, 0x01 };
+
+        for (int gt = 0; gt < 2; gt++) {
+            for (int sb = 0; sb < 2; sb++) {
+                uint8_t gtype = game_types[gt];
+                uint8_t start_byte = start_bytes[sb];
+
+                NES_State nes_6502 = rom_nes;
+                initHighScoreTable(&nes_6502);
+                nes_6502.ram[ADDR_GAME_TYPE] = gtype;
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_COPY_HIGH_SCORE_LEVEL, start_byte, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_HIGH_SCORE_LEVEL, 500);
+                assert(ok);
+
+                NES_State nes_c = rom_nes;
+                initHighScoreTable(&nes_c);
+                nes_c.ram[ADDR_GAME_TYPE] = gtype;
+
+                copyHighScoreLevelToNextIndex(&nes_c, start_byte);
+
+                assert(memcmp(&nes_6502.ram[ADDR_HIGH_SCORE_LEVELS], &nes_c.ram[ADDR_HIGH_SCORE_LEVELS], 8) == 0);
+            }
+        }
+    }
+
+    /* Test 33: Differential handleHighScoreIfNecessary ($A0EE) - Non-qualifying traversal */
+    {
+        uint8_t game_types[] = { 0, 1 };
+
+        for (int gt = 0; gt < 2; gt++) {
+            uint8_t gtype = game_types[gt];
+
+            NES_State nes_6502 = rom_nes;
+            initHighScoreTable(&nes_6502);
+            nes_6502.ram[ADDR_GAME_TYPE] = gtype;
+            nes_6502.ram[ADDR_P1_SCORE] = 0x00;
+            nes_6502.ram[ADDR_P1_SCORE + 1] = 0x00;
+            nes_6502.ram[ADDR_P1_SCORE + 2] = 0x00;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 2000);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            initHighScoreTable(&nes_c);
+            nes_c.ram[ADDR_GAME_TYPE] = gtype;
+            nes_c.ram[ADDR_P1_SCORE] = 0x00;
+            nes_c.ram[ADDR_P1_SCORE + 1] = 0x00;
+            nes_c.ram[ADDR_P1_SCORE + 2] = 0x00;
+
+            handleHighScoreIfNecessary(&nes_c);
+
+            assert(nes_6502.ram[ADDR_HIGH_SCORE_RAW_POS] == nes_c.ram[ADDR_HIGH_SCORE_RAW_POS]);
+            assert(nes_c.ram[ADDR_HIGH_SCORE_RAW_POS] == (gtype == 0 ? 3 : 7));
+            assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+        }
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");
