@@ -1,0 +1,44 @@
+# Build artifacts
+build/
+bin/
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# CMake artifacts
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+
+# ROMs and binary assets (strictly do not commit copyrighted ROM files)
+*.nes
+*.nes.dbg
+*.nes.lbl
+*.chr
+
+# Test outputs
+test_out/
+*.log
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Agent and AI scratch directories
+.agents/
+.gemini/
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo

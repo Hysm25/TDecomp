@@ -1,0 +1,3 @@
+[submodule "TetrisNESDisasm"]
+	path = TetrisNESDisasm
+	url = https://github.com/CelestialAmber/TetrisNESDisasm.git
