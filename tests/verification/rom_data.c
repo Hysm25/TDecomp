@@ -7,8 +7,13 @@
 #include "math/rng.h"
 #include "math/bcd.h"
 #include "game/playfield.h"
+#include "game/menu.h"
 
 /* Addresses from tetris.lbl */
+#define ADDR_ROM_LEVEL_TO_SPRITE_Y_OFFSET   0x85B2
+#define ADDR_ROM_LEVEL_TO_SPRITE_X_OFFSET   0x85BC
+#define ADDR_ROM_HEIGHT_TO_PPU_HIGH_ADDR    0x85C6
+#define ADDR_ROM_HEIGHT_TO_PPU_LOW_ADDR     0x85CC
 #define ADDR_ROM_MUSIC_SELECTION_TABLE      0x85D2
 #define ADDR_ROM_ROTATION_TABLE             0x88EE
 #define ADDR_ROM_FRAMES_PER_DROP_TABLE      0x898E
@@ -202,6 +207,34 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (15 ROM data tables verified bit-for-bit)\n");
+    /* Test 16: levelToSpriteYOffset (10 bytes at $85B2) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LEVEL_TO_SPRITE_Y_OFFSET + i));
+        assert(levelToSpriteYOffset[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 17: levelToSpriteXOffset (10 bytes at $85BC) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LEVEL_TO_SPRITE_X_OFFSET + i));
+        assert(levelToSpriteXOffset[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 18: heightToPpuHighAddr (6 bytes at $85C6) */
+    for (int i = 0; i < 6; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HEIGHT_TO_PPU_HIGH_ADDR + i));
+        assert(heightToPpuHighAddr[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 19: heightToPpuLowAddr (6 bytes at $85CC) */
+    for (int i = 0; i < 6; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_HEIGHT_TO_PPU_LOW_ADDR + i));
+        assert(heightToPpuLowAddr[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (19 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

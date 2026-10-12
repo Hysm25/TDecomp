@@ -273,7 +273,13 @@ def main():
         "gameMode_legalScreen": "Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM",
         "gameMode_titleScreen": "Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM",
         "gameMode_startDemo": "Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM",
-        "branchOnGameMode": "Verified: Master game mode 0..6 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table"
+        "branchOnGameMode": "Verified: Master game mode 0..6 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table",
+
+        # Batch 9 (Menu Navigation)
+        "gameMode_gameTypeMenu": "Verified: Game type A/B toggle, music 0..3 selection, START/B transitions differential proven against 6502 ROM loop",
+        "gameMode_levelMenu": "Verified: Level menu setup, startLevel >= 10 normalization modulo 10 verified",
+        "gameMode_levelMenu_processPlayer1Navigation": "Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM",
+        "gameMode_levelMenu_handleLevelHeightNavigation": "Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM"
     }
 
     for r in routines:

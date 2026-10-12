@@ -49,6 +49,58 @@ void gameMode_legalScreen_step(NES_State *nes);
  */
 void gameMode_titleScreen_step(NES_State *nes);
 
+/*
+ * Authoritative Menu Navigation Tables (PRG ROM addresses $85B2..$85D1)
+ */
+extern const uint8_t levelToSpriteYOffset[10];
+extern const uint8_t levelToSpriteXOffset[10];
+extern const uint8_t heightToPpuHighAddr[6];
+extern const uint8_t heightToPpuLowAddr[6];
+
+/*
+ * Game Type & Music Selection Menu (Mode 2):
+ * Allows player 1 to toggle Game Type (Type A vs Type B) and Music Type (0..3).
+ * START advances to MODE_LEVEL_MENU (3).
+ * BUTTON_B retreats to MODE_TITLE_SCREEN (1).
+ * Source address: $82D1 (main.asm lines 657-797).
+ */
+void gameMode_gameTypeMenu(NES_State *nes);
+
+/*
+ * Frame-based step helper for Game Type Menu (Mode 2).
+ */
+void gameMode_gameTypeMenu_step(NES_State *nes);
+
+/*
+ * Level & Height Selection Menu (Mode 3):
+ * Allows player 1 to select starting level (0..9) and starting height (0..5 in Type B).
+ * START advances to MODE_PLAY (4), supporting the A+START level+10 cheat code.
+ * BUTTON_B retreats to MODE_GAME_TYPE_MENU (2).
+ * Source address: $83D7 (main.asm lines 799-918).
+ */
+void gameMode_levelMenu(NES_State *nes);
+
+/*
+ * Process Player 1 Navigation in Level Menu:
+ * Handles active player state mapping, calling navigation handler,
+ * checking START / B button edge transitions, and garbage hole generation.
+ * Source address: $8436 (main.asm lines 845-918).
+ */
+void gameMode_levelMenu_processPlayer1Navigation(NES_State *nes);
+
+/*
+ * Handle Level and Height Navigation:
+ * Processes D-pad inputs for level and height adjustment, Button A toggling in Type B,
+ * and stages cursor sprite coordinates in zero-page variables.
+ * Source address: $84AE (main.asm lines 920-1064).
+ */
+void gameMode_levelMenu_handleLevelHeightNavigation(NES_State *nes);
+
+/*
+ * Frame-based step helper for Level Menu (Mode 3).
+ */
+void gameMode_levelMenu_step(NES_State *nes);
+
 #ifdef __cplusplus
 }
 #endif

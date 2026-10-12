@@ -92,7 +92,13 @@ extern "C" {
 /* Screen Timing & Menu Constants */
 #define LEGAL_SLEEP_TIME            0xFF
 #define TITLE_SCREEN_TIMEOUT_HI     0x05
+#define SFX_MENU_MOVE               0x01
 #define SFX_MENU_SELECT             0x02
+#define MENU_CURSOR_MASK_NTSC       0x03
+#define MENU_CURSOR_MASK_PAL        0x01
+#define MENU_CURSOR_MASK            MENU_CURSOR_MASK_NTSC
+#define LEVEL_MAX                   9
+#define HEIGHT_MAX                  5
 
 /* Play States within Mode 4 (main.asm lines 474-515 switch_s_plus_2a table) */
 #define PLAYSTATE_UNASSIGN_ORIENTATION        0

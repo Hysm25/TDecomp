@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **42** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **46** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **129** | Pending conversion |
-| **Completion Percentage** | **24.56%** | Standalone routine completion rate |
+| **Remaining Routines** | **125** | Pending conversion |
+| **Completion Percentage** | **26.90%** | Standalone routine completion rate |
 
 ---
 
@@ -31,7 +31,7 @@
 | **GAMEPLAY_STATE** | 14 | 6 | 0 | 8 | 42.9% |
 | **MATH_BCD** | 12 | 1 | 0 | 11 | 8.3% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
-| **MENUS_UI** | 13 | 2 | 0 | 11 | 15.4% |
+| **MENUS_UI** | 13 | 6 | 0 | 7 | 46.2% |
 | **PLAYER_INPUT** | 4 | 3 | 0 | 1 | 75.0% |
 | **PLAYFIELD** | 9 | 7 | 0 | 2 | 77.8% |
 | **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
@@ -181,10 +181,10 @@
 | `gameMode_legalScreen` | `0x8200` | L516–L558 | Jump Table | `VERIFIED` | Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM |
 | `gameMode_titleScreen` | `0x824F` | L559–L635 | Jump Table | `VERIFIED` | Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM |
 | `render_mode_legal_and_title_screens` | `0x82B1` | L636–L656 | Jump Table | `MISSING` |  |
-| `gameMode_gameTypeMenu` | `0x82D1` | L657–L682 | Jump Table | `MISSING` |  |
-| `gameMode_levelMenu` | `0x83D7` | L799–L844 | Jump Table | `MISSING` |  |
-| `gameMode_levelMenu_processPlayer1Navigation` | `0x8436` | L845–L919 | Entry / Direct | `MISSING` |  |
-| `gameMode_levelMenu_handleLevelHeightNavigation` | `0x84AE` | L920–L1065 | JSR | `MISSING` |  |
+| `gameMode_gameTypeMenu` | `0x82D1` | L657–L682 | Jump Table | `VERIFIED` | Verified: Game type A/B toggle, music 0..3 selection, START/B transitions differential proven against 6502 ROM loop |
+| `gameMode_levelMenu` | `0x83D7` | L799–L844 | Jump Table | `VERIFIED` | Verified: Level menu setup, startLevel >= 10 normalization modulo 10 verified |
+| `gameMode_levelMenu_processPlayer1Navigation` | `0x8436` | L845–L919 | Entry / Direct | `VERIFIED` | Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM |
+| `gameMode_levelMenu_handleLevelHeightNavigation` | `0x84AE` | L920–L1065 | JSR | `VERIFIED` | Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM |
 | `render_mode_menu_screens` | `0x85DA` | L1078–L1091 | Jump Table | `MISSING` |  |
 | `soundEffectSlot1_menuOptionSelectPlaying_ret` | `0xE3B2` | L6377–L6379 | Entry / Direct | `MISSING` |  |
 | `soundEffectSlot1_menuOptionSelectPlaying` | `0xE3B3` | L6380–L6391 | Jump Table | `MISSING` |  |

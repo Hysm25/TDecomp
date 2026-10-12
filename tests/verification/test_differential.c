@@ -20,6 +20,9 @@
 #define ROM_ADDR_LEGAL_SCREEN           0x8200
 #define ROM_ADDR_TITLE_SCREEN           0x824F
 #define ROM_ADDR_TITLE_TIMEOUT_CHECK    0x8296
+#define ROM_ADDR_GAME_TYPE_MENU_LOOP    0x830B
+#define ROM_ADDR_LEVEL_MENU_PROCESS_P1  0x8436
+#define ROM_ADDR_LEVEL_MENU_HANDLE_NAV  0x84AE
 #define ROM_ADDR_MAKE_PLAYER1_ACTIVE    0x8776
 #define ROM_ADDR_MAKE_PLAYER2_ACTIVE    0x8792
 #define ROM_ADDR_SAVE_PLAYER1_STATE     0x87AE
@@ -1071,6 +1074,258 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
         assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
         assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
+    }
+
+    /* Test 25: Differential gameMode_gameTypeMenu ($830B) on START press */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_GAME_TYPE_MENU;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_GAME_TYPE_MENU;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_TYPE_MENU_LOOP, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_TYPE_MENU_LOOP, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_gameTypeMenu_step(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_LEVEL_MENU);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+    }
+
+    /* Test 26: Differential gameMode_gameTypeMenu ($830B) on B press */
+    {
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_GAME_TYPE_MENU;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_GAME_TYPE_MENU;
+        nes_6502.ram[ADDR_FRAME_COUNTER + 1] = 5;
+        nes_c.ram[ADDR_FRAME_COUNTER + 1] = 5;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_B;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_B;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_TYPE_MENU_LOOP, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_TYPE_MENU_LOOP, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_gameTypeMenu_step(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_6502.ram[ADDR_FRAME_COUNTER + 1] == nes_c.ram[ADDR_FRAME_COUNTER + 1]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_TITLE_SCREEN);
+        assert(nes_c.ram[ADDR_FRAME_COUNTER + 1] == 0);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+    }
+
+    /* Test 27: Differential gameMode_levelMenu_handleLevelHeightNavigation ($84AE) */
+    {
+        /* Right press in Level Selection */
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_6502.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_6502.ram[ADDR_START_LEVEL] = 2;
+        nes_c.ram[ADDR_START_LEVEL] = 2;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_RIGHT;
+        nes_c.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_RIGHT;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_levelMenu_handleLevelHeightNavigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_START_LEVEL] == nes_c.ram[ADDR_START_LEVEL]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_6502.ram[ADDR_SPRITE_Y_OFFSET] == nes_c.ram[ADDR_SPRITE_Y_OFFSET]);
+        assert(nes_6502.ram[ADDR_SPRITE_X_OFFSET] == nes_c.ram[ADDR_SPRITE_X_OFFSET]);
+        assert(nes_c.ram[ADDR_START_LEVEL] == 3);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_MOVE);
+
+        /* Down press in Level Selection (+5) */
+        nes_6502 = rom_nes;
+        nes_c = rom_nes;
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_6502.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_6502.ram[ADDR_START_LEVEL] = 3;
+        nes_c.ram[ADDR_START_LEVEL] = 3;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_DOWN;
+        nes_c.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_DOWN;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 50000);
+        assert(ok);
+
+        gameMode_levelMenu_handleLevelHeightNavigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_START_LEVEL] == nes_c.ram[ADDR_START_LEVEL]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_6502.ram[ADDR_SPRITE_Y_OFFSET] == nes_c.ram[ADDR_SPRITE_Y_OFFSET]);
+        assert(nes_6502.ram[ADDR_SPRITE_X_OFFSET] == nes_c.ram[ADDR_SPRITE_X_OFFSET]);
+        assert(nes_c.ram[ADDR_START_LEVEL] == 8);
+
+        /* Button A in Type B toggles selectingLevelOrHeight */
+        nes_6502 = rom_nes;
+        nes_c = rom_nes;
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_B;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_B;
+        nes_6502.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] = 0;
+        nes_6502.ram[ADDR_START_LEVEL] = 0;
+        nes_c.ram[ADDR_START_LEVEL] = 0;
+        nes_6502.ram[ADDR_START_HEIGHT] = 0;
+        nes_c.ram[ADDR_START_HEIGHT] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_A;
+        nes_c.ram[ADDR_NEWLY_PRESSED_BUTTONS] = BUTTON_A;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_HANDLE_NAV, 50000);
+        assert(ok);
+
+        gameMode_levelMenu_handleLevelHeightNavigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] == nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_SELECTING_LEVEL_OR_HEIGHT] == 1);
+    }
+
+    /* Test 28: Differential gameMode_levelMenu_processPlayer1Navigation ($8436) */
+    {
+        /* Normal START press */
+        NES_State nes_6502 = rom_nes;
+        NES_State nes_c = rom_nes;
+
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_6502.ram[ADDR_P1_START_LEVEL] = 5;
+        nes_c.ram[ADDR_P1_START_LEVEL] = 5;
+        nes_6502.ram[ADDR_P1_START_HEIGHT] = 0;
+        nes_c.ram[ADDR_P1_START_HEIGHT] = 0;
+        nes_6502.ram[ADDR_ORIGINAL_Y] = 0;
+        nes_c.ram[ADDR_ORIGINAL_Y] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_START;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 50000);
+        assert(ok);
+        (void)ok;
+
+        gameMode_levelMenu_processPlayer1Navigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_P1_START_LEVEL] == nes_c.ram[ADDR_P1_START_LEVEL]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_PLAY);
+        assert(nes_c.ram[ADDR_P1_START_LEVEL] == 5);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
+
+        /* A + START cheat code (+10 level) */
+        nes_6502 = rom_nes;
+        nes_c = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_6502.ram[ADDR_P1_START_LEVEL] = 9;
+        nes_c.ram[ADDR_P1_START_LEVEL] = 9;
+        nes_6502.ram[ADDR_P1_START_HEIGHT] = 0;
+        nes_c.ram[ADDR_P1_START_HEIGHT] = 0;
+        nes_6502.ram[ADDR_ORIGINAL_Y] = 0;
+        nes_c.ram[ADDR_ORIGINAL_Y] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_START;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_START;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 50000);
+        assert(ok);
+
+        gameMode_levelMenu_processPlayer1Navigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_P1_START_LEVEL] == nes_c.ram[ADDR_P1_START_LEVEL]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_PLAY);
+        assert(nes_c.ram[ADDR_P1_START_LEVEL] == 19);
+
+        /* BUTTON_B press retreats to Game Type Menu */
+        nes_6502 = rom_nes;
+        nes_c = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_6502.ram[ADDR_P1_START_LEVEL] = 0;
+        nes_c.ram[ADDR_P1_START_LEVEL] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 1;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_B;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_B;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LEVEL_MENU_PROCESS_P1, 50000);
+        assert(ok);
+
+        gameMode_levelMenu_processPlayer1Navigation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_GAME_TYPE_MENU);
+    }
+
+    /* Test 29: Differential branchOnGameMode ($8161) dispatch for modes 2 and 3 */
+    {
+        /* Mode 2 dispatch */
+        NES_State nes_c = rom_nes;
+
+        nes_c.ram[ADDR_GAME_MODE] = MODE_GAME_TYPE_MENU;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+
+        branchOnGameMode(&nes_c);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_LEVEL_MENU);
+
+        /* Mode 3 dispatch */
+        nes_c.ram[ADDR_GAME_MODE] = MODE_LEVEL_MENU;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_START;
+
+        branchOnGameMode(&nes_c);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_PLAY);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

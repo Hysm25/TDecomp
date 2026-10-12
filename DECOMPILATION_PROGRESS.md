@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **42** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **46** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **129** | Pending conversion |
-| **Current Progress** | **24.56%** | `[############----------------------------------------] 24.56%` |
-| **Build & Test Suite** | 10 / 10 suites passing | Unit, 15 ROM data tables, & 6502 differential CPU oracle (24 differential tests) |
+| **Remaining Routines** | **125** | Pending conversion |
+| **Current Progress** | **26.90%** | `[#############---------------------------------------] 26.90%` |
+| **Build & Test Suite** | 10 / 10 suites passing | Unit, 19 ROM data tables, & 6502 differential CPU oracle (29 differential tests) |
 
 ---
 
@@ -34,14 +34,14 @@
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 11 | 0 | 5 | **68.8%** |
+| **MENUS_UI** (Title, Menus, High Scores) | 13 | 6 | 0 | 7 | **46.2%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 6 | 0 | 8 | **42.9%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 8 | 0 | 30 | **21.1%** |
-| **MENUS_UI** (Title, Menus, High Scores) | 13 | 2 | 0 | 11 | **15.4%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 1 | 0 | 11 | **8.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **42** | **0** | **129** | **24.56%** |
+| **TOTAL** | **171** | **46** | **0** | **125** | **26.90%** |
 
 ---
 
@@ -137,15 +137,21 @@
     - Added step-oriented execution functions `gameMode_legalScreen_step` and `gameMode_titleScreen_step` for portable host loop integration.
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across legal screen timer/skip, title screen start press, demo timeout transitions, and game mode jump table dispatch.
 
-11. [ ] **Batch 9 (Menu Navigation & High Scores)**:
-    - Game type selection menu, level selection menu.
-    - High score table sorting and storage ($0700).
+11. [x] **Batch 9 (Menu Navigation: Game Type Menu & Level Menu)**:
+    - Decompiled `gameMode_gameTypeMenu` ($82D1): Game type A/B toggle, music selection (0..3) with `setMusicTrack`, cursor staging and flicker, START advances to `MODE_LEVEL_MENU` (3), BUTTON_B retreats to `MODE_TITLE_SCREEN` (1) with `frameCounter+1 = 0`.
+    - Decompiled `gameMode_levelMenu` ($83D7): Mode 3 initialization (`renderMode = 1`, `originalY = 0`, `dropSpeed = 0`), `player1_startLevel >= 10` normalization modulo 10 loop, delegating to P1 navigation handler.
+    - Decompiled `gameMode_levelMenu_processPlayer1Navigation` ($8436): Active player mapping (`activePlayer = 0`), delegation to navigation handler, START button detection with `A + START` Level+10 cheat code advancing to `MODE_PLAY` (4), BUTTON_B detection retreating to `MODE_GAME_TYPE_MENU` (2), random garbage hole column generation [0..9] via PRNG for Player 1 & 2.
+    - Decompiled `gameMode_levelMenu_handleLevelHeightNavigation` ($84AE): D-pad grid navigation for starting level (0..9) and starting height (0..5), Button A toggle between level and height selection in Type B, and 2-player sprite cursor coordinate offset calculations.
+    - Authoritative data tables bit-exact verified against reference ROM: `levelToSpriteYOffset` ($85B2), `levelToSpriteXOffset` ($85BC), `heightToPpuHighAddr` ($85C6), `heightToPpuLowAddr` ($85CC).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across game type loop START/B, level menu navigation, P1 navigation transitions, and cheat code mechanics (Tests 25–29).
 
-12. [ ] **Batch 10 (PPU Rendering & OAM)**:
-    - OAM sprite staging.
-    - Nametable row updates.
+12. [ ] **Batch 10 (High Score Operations & Tables)**:
+    - High score table sorting, name entry, and RAM storage ($0700).
 
-13. [ ] **Batch 11 (Audio & Sound Effects)**:
+13. [ ] **Batch 11 (PPU Rendering & OAM)**:
+    - OAM sprite staging and nametable row updates.
+
+14. [ ] **Batch 12 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
 
 ---
@@ -164,3 +170,4 @@
 | Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `4422fa6` |
 | Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `b5ef45f` |
 | Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `9955f8e` |
+| Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 29 6502 diff | `04d2cf1` |

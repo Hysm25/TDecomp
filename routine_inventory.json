@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 42,
+    "verified_routines": 46,
     "decompiled_untested": 0,
-    "missing_routines": 129,
-    "progress_percentage": 24.56
+    "missing_routines": 125,
+    "progress_percentage": 26.9
   },
   "routines": [
     {
@@ -247,8 +247,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Game type A/B toggle, music 0..3 selection, START/B transitions differential proven against 6502 ROM loop"
     },
     {
       "name": "gameMode_levelMenu",
@@ -261,8 +261,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Level menu setup, startLevel >= 10 normalization modulo 10 verified"
     },
     {
       "name": "gameMode_levelMenu_processPlayer1Navigation",
@@ -275,8 +275,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM"
     },
     {
       "name": "gameMode_levelMenu_handleLevelHeightNavigation",
@@ -289,8 +289,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM"
     },
     {
       "name": "render_mode_menu_screens",
