@@ -191,4 +191,5 @@ void incrementPieceStat(NES_State *nes, uint8_t orientation) {
 
     nes->ram[ADDR_STATS_BY_TYPE + offset] = counter;
     nes->ram[ADDR_GENERAL_COUNTER] = counter;
+    nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] |= RENDER_STATS;
 }

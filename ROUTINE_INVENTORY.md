@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **34** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **38** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **137** | Pending conversion |
-| **Completion Percentage** | **19.88%** | Standalone routine completion rate |
+| **Remaining Routines** | **133** | Pending conversion |
+| **Completion Percentage** | **22.22%** | Standalone routine completion rate |
 
 ---
 
@@ -28,15 +28,15 @@
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
 | **CORE_LOGIC** | 38 | 6 | 0 | 32 | 15.8% |
-| **GAMEPLAY_STATE** | 14 | 4 | 0 | 10 | 28.6% |
+| **GAMEPLAY_STATE** | 14 | 6 | 0 | 8 | 42.9% |
 | **MATH_BCD** | 12 | 1 | 0 | 11 | 8.3% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 0 | 0 | 13 | 0.0% |
 | **PLAYER_INPUT** | 4 | 3 | 0 | 1 | 75.0% |
-| **PLAYFIELD** | 9 | 6 | 0 | 3 | 66.7% |
+| **PLAYFIELD** | 9 | 7 | 0 | 2 | 77.8% |
 | **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
-| **TETRIMINO** | 16 | 10 | 0 | 6 | 62.5% |
+| **TETRIMINO** | 16 | 11 | 0 | 5 | 68.8% |
 
 ---
 
@@ -142,10 +142,10 @@
 | `gameModeState_initGameBackground` | `0x85F0` | L1092–L1167 | Jump Table | `MISSING` |  |
 | `gameModeState_initGameBackground_finish` | `0x8693` | L1168–L1182 | Entry / Direct | `MISSING` |  |
 | `gameModeState_initGameState` | `0x86DC` | L1190–L1268 | Jump Table | `MISSING` |  |
-| `gameModeState_updateCountersAndNonPlayerState` | `0x8884` | L1441–L1464 | Jump Table | `MISSING` |  |
+| `gameModeState_updateCountersAndNonPlayerState` | `0x8884` | L1441–L1464 | Jump Table | `VERIFIED` | Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM |
 | `gameModeState_handleGameOver` | `0x9CBF` | L3545–L3595 | Jump Table | `MISSING` |  |
 | `gameModeState_checkForResetKeyCombo` | `0x9E16` | L3756–L3770 | Jump Table | `MISSING` |  |
-| `gameModeState_vblankThenRunState2` | `0x9E27` | L3771–L3776 | Jump Table | `MISSING` |  |
+| `gameModeState_vblankThenRunState2` | `0x9E27` | L3771–L3776 | Jump Table | `VERIFIED` | Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM |
 | `playState_incrementPlayState` | `0x9E37` | L3785–L3786 | Jump Table | `VERIFIED` | Verified: PlayState incrementation differential proven against 6502 ROM |
 | `playState_bTypeGoalCheck` | `0xA3F2` | L4545–L4584 | Jump Table | `VERIFIED` | Verified: Type A vs Type B line goal check and victory tile placement verified |
 | `playState_bTypeGoalCheck_ret` | `0xA42B` | L4585–L4588 | Entry / Direct | `MISSING` |  |
@@ -208,7 +208,7 @@
 | `initPlayfieldIfTypeB` | `0x87DC` | L1339–L1343 | JSR | `VERIFIED` | Verified: Type B mode check and garbage playfield initialization verified |
 | `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `MISSING` |  |
 | `updateLineClearingAnimation` | `0x977F` | L2757–L2827 | JSR | `VERIFIED` | Verified: 5-step center-out line clearing animation framing verified |
-| `noop_disabledVramRowIncr` | `0x9874` | L2878–L2895 | JSR | `MISSING` |  |
+| `noop_disabledVramRowIncr` | `0x9874` | L2878–L2895 | JSR | `VERIFIED` | Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM |
 | `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Jump Table | `VERIFIED` | Verified: Game over curtain cascade filling playfield with curtain tiles verified |
 | `playState_checkForCompletedRows` | `0x9A6B` | L3188–L3279 | Jump Table | `VERIFIED` | Verified: Row completion detection, collapsing, and garbage calculation differential proven against 6502 ROM |
 | `playState_receiveGarbage` | `0x9B03` | L3280–L3326 | Jump Table | `VERIFIED` | Verified: 2-player pending garbage shifting and bottom row filling verified |
@@ -258,7 +258,7 @@
 | `shift_tetrimino` | `0x89AE` | L1616–L1667 | JSR | `VERIFIED` | Verified: Horizontal shifting with DAS auto-repeat verified |
 | `stageSpriteForCurrentPiece` | `0x8A0A` | L1668–L1758 | JSR | `MISSING` |  |
 | `stageSpriteForNextPiece` | `0x8BCE` | L1832–L1846 | JSR | `MISSING` |  |
-| `playState_spawnNextTetrimino` | `0x988E` | L2896–L2947 | Jump Table | `MISSING` |  |
+| `playState_spawnNextTetrimino` | `0x988E` | L2896–L2947 | Jump Table | `VERIFIED` | Verified: Piece spawning, orientation table mapping, 2P delay counter, and stats update differential proven against 6502 ROM |
 | `chooseNextTetrimino` | `0x98EB` | L2948–L2963 | JSR | `VERIFIED` | Verified: Gameplay vs demo mode piece selection differential proven |
 | `pickRandomTetrimino` | `0x9903` | L2964–L2992 | Entry / Direct | `VERIFIED` | Verified: 7-bag modulo & reroll logic verified with 6502 CPU simulator |
 | `incrementPieceStat` | `0x9969` | L3030–L3054 | JSR | `VERIFIED` | Verified: BCD piece statistic increments verified with CPU simulator |

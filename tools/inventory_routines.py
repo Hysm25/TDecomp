@@ -261,7 +261,13 @@ def main():
         "playState_unassignOrientationId": "Verified: Hidden orientation unassign differential proven against 6502 ROM",
         "playState_incrementPlayState": "Verified: PlayState incrementation differential proven against 6502 ROM",
         "playState_noop": "Verified: No-operation handler verified",
-        "playState_bTypeGoalCheck": "Verified: Type A vs Type B line goal check and victory tile placement verified"
+        "playState_bTypeGoalCheck": "Verified: Type A vs Type B line goal check and victory tile placement verified",
+
+        # Batch 7 (Piece Spawning & Gameplay Framing)
+        "playState_spawnNextTetrimino": "Verified: Piece spawning, orientation table mapping, 2P delay counter, and stats update differential proven against 6502 ROM",
+        "noop_disabledVramRowIncr": "Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM",
+        "gameModeState_vblankThenRunState2": "Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM",
+        "gameModeState_updateCountersAndNonPlayerState": "Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM"
     }
 
     for r in routines:

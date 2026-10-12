@@ -75,10 +75,31 @@ void playState_player2ControlsActiveTetrimino(NES_State *nes);
 void playState_bTypeGoalCheck(NES_State *nes);
 
 /*
- * Placeholder / stub for playState_spawnNextTetrimino ($988E).
- * Full piece spawning and stats update deferred to Batch 7.
+ * Spawns the next tetromino, resets fall/autorepeat counters, and selects next piece.
+ * Handles 2-player piece spawn delay (28 frames) and updates piece statistics.
+ * Source address: $988E (main.asm lines 2896-2947).
  */
 void playState_spawnNextTetrimino(NES_State *nes);
+
+/*
+ * Unused / disabled VRAM row increment routine (single RTS).
+ * Source address: $9874 (main.asm lines 2878-2895).
+ */
+void noop_disabledVramRowIncr(NES_State *nes);
+
+/*
+ * Transitions gameModeState to 2 and calls noop_disabledVramRowIncr.
+ * Source address: $9E27 (main.asm lines 3771-3776).
+ */
+void gameModeState_vblankThenRunState2(NES_State *nes);
+
+/*
+ * Master gameplay framing counter update: resets OAM staging length,
+ * advances player fall timers, increments 2P piece delay counter,
+ * handles SELECT toggle for displayNextPiece, and increments gameModeState.
+ * Source address: $8884 (main.asm lines 1441-1464).
+ */
+void gameModeState_updateCountersAndNonPlayerState(NES_State *nes);
 
 /*
  * Dispatches the current playState (0 - 11) for Player 1.

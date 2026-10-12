@@ -3,6 +3,7 @@
 #include "game/playfield.h"
 #include "game/input.h"
 #include "math/bcd.h"
+#include "math/rng.h"
 #include <string.h>
 
 /* Type B Success Graphic placed into playfield upon achieving line goal ($A42E) */
@@ -167,12 +168,154 @@ void playState_bTypeGoalCheck(NES_State *nes) {
 }
 
 /*
- * Placeholder / stub for playState_spawnNextTetrimino ($988E).
- * Full piece spawning and stats update deferred to Batch 7.
+ * Unused / disabled VRAM row increment routine (single RTS).
+ * Source address: $9874 (main.asm lines 2878-2895).
+ */
+void noop_disabledVramRowIncr(NES_State *nes) {
+    (void)nes;
+}
+
+/*
+ * Spawns the next tetromino, resets fall/autorepeat counters, and selects next piece.
+ * Handles 2-player piece spawn delay (28 frames) and updates piece statistics.
+ * Source address: $988E (main.asm lines 2896-2947).
  */
 void playState_spawnNextTetrimino(NES_State *nes) {
     if (!nes) return;
-    /* Deferred to Batch 7 */
+
+    /*
+     * VRAM row guard:
+     * lda vramRow
+     * cmp #$20
+     * bmi @ret
+     * If vramRow < 0x20 (signed branch bmi), return early to let VRAM copy complete.
+     */
+    uint8_t vram_row = nes->ram[ADDR_VRAM_ROW];
+    if ((uint8_t)(vram_row - VRAM_ROW_COMPLETE) & 0x80) {
+        return;
+    }
+
+    /*
+     * Check number of players:
+     * lda numberOfPlayers
+     * cmp #$01
+     * beq @spawnPiece
+     */
+    uint8_t num_players = nes->ram[ADDR_NUMBER_OF_PLAYERS];
+    if (num_players != 1) {
+        uint8_t delay_counter = nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER];
+        if (delay_counter == 0) {
+            /* Start 2-player piece delay */
+            nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER]++;
+            nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_PLAYER] = nes->ram[ADDR_ACTIVE_PLAYER];
+            nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_PIECE] = chooseNextTetrimino(nes);
+            return;
+        }
+
+        /*
+         * Delay in progress:
+         * lda twoPlayerPieceDelayPlayer
+         * cmp activePlayer
+         * bne @ret
+         * lda twoPlayerPieceDelayCounter
+         * cmp #$1C
+         * bne @ret
+         */
+        if (nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_PLAYER] != nes->ram[ADDR_ACTIVE_PLAYER]) {
+            return;
+        }
+        if (delay_counter != TWO_PLAYER_PIECE_DELAY_FRAMES) {
+            return;
+        }
+    }
+
+    /*
+     * @spawnPiece:
+     * lda #$00
+     * sta twoPlayerPieceDelayCounter
+     * sta fallTimer
+     * sta tetriminoY
+     * lda #$01
+     * sta playState
+     * lda #$05
+     * sta tetriminoX
+     * ldx nextPiece
+     * lda spawnOrientationFromOrientation,x
+     * sta currentPiece
+     * jsr incrementPieceStat
+     */
+    nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = 0;
+    nes->ram[ADDR_FALL_TIMER] = 0;
+    nes->ram[ADDR_TETRIMINO_Y] = TETRIMINO_SPAWN_Y;
+    nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_CONTROL_ACTIVE;
+    nes->ram[ADDR_TETRIMINO_X] = TETRIMINO_SPAWN_X;
+
+    uint8_t next_piece = nes->ram[ADDR_NEXT_PIECE];
+    uint8_t current_piece = (next_piece < ORIENTATION_COUNT)
+        ? spawnOrientationFromOrientation[next_piece]
+        : ORIENT_T_DOWN;
+    nes->ram[ADDR_CURRENT_PIECE] = current_piece;
+
+    incrementPieceStat(nes, current_piece);
+
+    /*
+     * lda numberOfPlayers
+     * cmp #$01
+     * beq @onePlayerPieceSelection
+     * lda twoPlayerPieceDelayPiece
+     * sta nextPiece
+     * jmp @resetDownHold
+     * @onePlayerPieceSelection:
+     * jsr chooseNextTetrimino
+     * sta nextPiece
+     * @resetDownHold:
+     * lda #$00
+     * sta autorepeatY
+     * @ret: rts
+     */
+    if (num_players == 1) {
+        nes->ram[ADDR_NEXT_PIECE] = chooseNextTetrimino(nes);
+    } else {
+        nes->ram[ADDR_NEXT_PIECE] = nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_PIECE];
+    }
+
+    nes->ram[ADDR_AUTOREPEAT_Y] = 0;
+}
+
+/*
+ * Transitions gameModeState to 2 and calls noop_disabledVramRowIncr.
+ * Source address: $9E27 (main.asm lines 3771-3776).
+ */
+void gameModeState_vblankThenRunState2(NES_State *nes) {
+    if (!nes) return;
+    nes->ram[ADDR_GAME_MODE_STATE] = 0x02;
+    noop_disabledVramRowIncr(nes);
+}
+
+/*
+ * Master gameplay framing counter update: resets OAM staging length,
+ * advances player fall timers, increments 2P piece delay counter,
+ * handles SELECT toggle for displayNextPiece, and increments gameModeState.
+ * Source address: $8884 (main.asm lines 1441-1464).
+ */
+void gameModeState_updateCountersAndNonPlayerState(NES_State *nes) {
+    if (!nes) return;
+
+    /* Original assembly switches CHR banks; in portable C, reset OAM staging length */
+    nes->ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+    nes->ram[ADDR_P1_FALL_TIMER]++;
+    nes->ram[ADDR_P2_FALL_TIMER]++;
+
+    if (nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] != 0) {
+        nes->ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER]++;
+    }
+
+    if (nes->ram[ADDR_NEWLY_PRESSED_P1] & BUTTON_SELECT) {
+        nes->ram[ADDR_DISPLAY_NEXT_PIECE] ^= 0x01;
+    }
+
+    nes->ram[ADDR_GAME_MODE_STATE]++;
 }
 
 /*

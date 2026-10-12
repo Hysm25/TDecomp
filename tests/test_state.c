@@ -5,6 +5,7 @@
 #include "game/state.h"
 #include "game/tetrimino.h"
 #include "game/playfield.h"
+#include "math/rng.h"
 #include "constants/gameplay.h"
 #include "constants/memory.h"
 
@@ -187,12 +188,170 @@ static void test_branch_on_playstate_dispatch(void) {
     printf("  [PASS] test_branch_on_playstate_dispatch\n");
 }
 
+static void test_playstate_spawn_next_tetrimino(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* Test 1: VRAM wait guard prevents spawn if vramRow < 0x20 */
+    nes.ram[ADDR_VRAM_ROW] = 0x05;
+    nes.ram[ADDR_PLAY_STATE] = PLAYSTATE_SPAWN_NEXT;
+    playState_spawnNextTetrimino(&nes);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_SPAWN_NEXT);
+
+    nes.ram[ADDR_VRAM_ROW] = 0x1F;
+    playState_spawnNextTetrimino(&nes);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_SPAWN_NEXT);
+
+    /* Test 2: 1-Player mode successful spawn */
+    nes.ram[ADDR_VRAM_ROW] = VRAM_ROW_COMPLETE;
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_NEXT_PIECE] = ORIENT_T_DOWN;
+    nes.ram[ADDR_PLAY_STATE] = PLAYSTATE_SPAWN_NEXT;
+    nes.ram[ADDR_AUTOREPEAT_Y] = 0x50;
+
+    playState_spawnNextTetrimino(&nes);
+
+    assert(nes.ram[ADDR_TETRIMINO_X] == TETRIMINO_SPAWN_X);
+    assert(nes.ram[ADDR_TETRIMINO_Y] == TETRIMINO_SPAWN_Y);
+    assert(nes.ram[ADDR_FALL_TIMER] == 0);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_CONTROL_ACTIVE);
+    assert(nes.ram[ADDR_CURRENT_PIECE] == ORIENT_T_DOWN);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 0);
+    assert(nes.ram[ADDR_AUTOREPEAT_Y] == 0);
+    assert((nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_STATS) != 0);
+    assert(nes.ram[ADDR_STATS_BY_TYPE + PIECE_T * 2] == 0x01);
+
+    /* Test 3: Orientation mapping for all 19 orientations */
+    for (uint8_t orient = 0; orient < ORIENTATION_COUNT; orient++) {
+        nes_init(&nes);
+        nes.ram[ADDR_VRAM_ROW] = VRAM_ROW_COMPLETE;
+        nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes.ram[ADDR_NEXT_PIECE] = orient;
+        nes.ram[ADDR_PLAY_STATE] = PLAYSTATE_SPAWN_NEXT;
+
+        playState_spawnNextTetrimino(&nes);
+
+        assert(nes.ram[ADDR_CURRENT_PIECE] == spawnOrientationFromOrientation[orient]);
+        assert(nes.ram[ADDR_TETRIMINO_X] == TETRIMINO_SPAWN_X);
+        assert(nes.ram[ADDR_TETRIMINO_Y] == TETRIMINO_SPAWN_Y);
+        assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_CONTROL_ACTIVE);
+    }
+
+    /* Test 4: 2-Player mode delay mechanics */
+    nes_init(&nes);
+    nes.ram[ADDR_VRAM_ROW] = VRAM_ROW_COMPLETE;
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+    nes.ram[ADDR_ACTIVE_PLAYER] = 1;
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = 0;
+    nes.ram[ADDR_PLAY_STATE] = PLAYSTATE_SPAWN_NEXT;
+
+    /* First frame (delayCounter == 0): triggers delay */
+    playState_spawnNextTetrimino(&nes);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 1);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_PLAYER] == 1);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_SPAWN_NEXT);
+
+    /* Intermediate frame (delayCounter == 10): still waiting */
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = 10;
+    playState_spawnNextTetrimino(&nes);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_SPAWN_NEXT);
+
+    /* Inactive player frame (delayPlayer != activePlayer): still waiting */
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = TWO_PLAYER_PIECE_DELAY_FRAMES;
+    nes.ram[ADDR_ACTIVE_PLAYER] = 2; /* Player 2 active while Player 1 is delaying */
+    playState_spawnNextTetrimino(&nes);
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_SPAWN_NEXT);
+
+    /* Delay finished (delayCounter == $1C and delayPlayer == activePlayer): spawns */
+    nes.ram[ADDR_ACTIVE_PLAYER] = 1;
+    nes.ram[ADDR_NEXT_PIECE] = ORIENT_Z_HORIZ;
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_PIECE] = ORIENT_L_DOWN;
+
+    playState_spawnNextTetrimino(&nes);
+
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_CONTROL_ACTIVE);
+    assert(nes.ram[ADDR_TETRIMINO_X] == TETRIMINO_SPAWN_X);
+    assert(nes.ram[ADDR_TETRIMINO_Y] == TETRIMINO_SPAWN_Y);
+    assert(nes.ram[ADDR_CURRENT_PIECE] == ORIENT_Z_HORIZ);
+    assert(nes.ram[ADDR_NEXT_PIECE] == ORIENT_L_DOWN);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 0);
+
+    /* Test 5: Dispatcher integration via branchOnPlayState */
+    nes_init(&nes);
+    nes.ram[ADDR_VRAM_ROW] = VRAM_ROW_COMPLETE;
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_ACTIVE_PLAYER] = 1;
+    nes.ram[ADDR_NEXT_PIECE] = ORIENT_O_FIXED;
+    nes.ram[ADDR_PLAY_STATE] = PLAYSTATE_SPAWN_NEXT;
+
+    branchOnPlayState(&nes);
+
+    assert(nes.ram[ADDR_PLAY_STATE] == PLAYSTATE_CONTROL_ACTIVE);
+    assert(nes.ram[ADDR_CURRENT_PIECE] == ORIENT_O_FIXED);
+
+    printf("  [PASS] test_playstate_spawn_next_tetrimino\n");
+}
+
+static void test_gamemode_framing(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* Test 1: noop_disabledVramRowIncr does not corrupt state */
+    nes.ram[ADDR_GAME_MODE_STATE] = 5;
+    noop_disabledVramRowIncr(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 5);
+
+    /* Test 2: gameModeState_vblankThenRunState2 sets gameModeState = 2 */
+    gameModeState_vblankThenRunState2(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 2);
+
+    /* Test 3: gameModeState_updateCountersAndNonPlayerState framing step */
+    nes.ram[ADDR_OAM_STAGING_LENGTH] = 40;
+    nes.ram[ADDR_P1_FALL_TIMER] = 12;
+    nes.ram[ADDR_P2_FALL_TIMER] = 30;
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = 0;
+    nes.ram[ADDR_DISPLAY_NEXT_PIECE] = 0;
+    nes.ram[ADDR_NEWLY_PRESSED_P1] = 0;
+    nes.ram[ADDR_GAME_MODE_STATE] = 2;
+
+    gameModeState_updateCountersAndNonPlayerState(&nes);
+
+    assert(nes.ram[ADDR_OAM_STAGING_LENGTH] == 0);
+    assert(nes.ram[ADDR_P1_FALL_TIMER] == 13);
+    assert(nes.ram[ADDR_P2_FALL_TIMER] == 31);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 0);
+    assert(nes.ram[ADDR_DISPLAY_NEXT_PIECE] == 0);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 3);
+
+    /* Step with active 2P delay counter and SELECT pressed */
+    nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] = 15;
+    nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_SELECT;
+
+    gameModeState_updateCountersAndNonPlayerState(&nes);
+
+    assert(nes.ram[ADDR_P1_FALL_TIMER] == 14);
+    assert(nes.ram[ADDR_P2_FALL_TIMER] == 32);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 16);
+    assert(nes.ram[ADDR_DISPLAY_NEXT_PIECE] == 1);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 4);
+
+    /* Press SELECT again: toggles displayNextPiece back to 0 */
+    gameModeState_updateCountersAndNonPlayerState(&nes);
+    assert(nes.ram[ADDR_DISPLAY_NEXT_PIECE] == 0);
+    assert(nes.ram[ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER] == 17);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 5);
+
+    printf("  [PASS] test_gamemode_framing\n");
+}
+
 int test_state_subsystem(void) {
     printf("[RUN] Running Gameplay State Machine tests...\n");
     test_player_context_switching();
     test_playstate_basic_handlers();
     test_playstate_b_type_goal_check();
     test_branch_on_playstate_dispatch();
+    test_playstate_spawn_next_tetrimino();
+    test_gamemode_framing();
     printf("[PASS] All Gameplay State Machine unit tests passed successfully!\n");
     return 0;
 }

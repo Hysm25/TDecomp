@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 34,
+    "verified_routines": 38,
     "decompiled_untested": 0,
-    "missing_routines": 137,
-    "progress_percentage": 19.88
+    "missing_routines": 133,
+    "progress_percentage": 22.22
   },
   "routines": [
     {
@@ -429,8 +429,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM"
     },
     {
       "name": "rotate_tetrimino",
@@ -611,8 +611,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM"
     },
     {
       "name": "playState_spawnNextTetrimino",
@@ -625,8 +625,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Piece spawning, orientation table mapping, 2P delay counter, and stats update differential proven against 6502 ROM"
     },
     {
       "name": "chooseNextTetrimino",
@@ -863,8 +863,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM"
     },
     {
       "name": "playState_unassignOrientationId",

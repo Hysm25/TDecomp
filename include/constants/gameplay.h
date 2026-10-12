@@ -59,6 +59,12 @@ extern "C" {
 #define TETRIMINO_HIDDEN ORIENT_HIDDEN
 #define ORIENTATION_COUNT 19
 
+/* Piece Spawning Constants */
+#define TETRIMINO_SPAWN_X             5
+#define TETRIMINO_SPAWN_Y             0
+#define VRAM_ROW_COMPLETE             0x20
+#define TWO_PLAYER_PIECE_DELAY_FRAMES 0x1C
+
 /* Playfield Tile IDs */
 #define TILE_1          0x7B
 #define TILE_2          0x7C

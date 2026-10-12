@@ -121,9 +121,13 @@
    - Decompiled `branchOnPlayState`: Unified dispatcher branching on `activePlayer`.
    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across state dispatch, context switches, and handlers.
 
-9. [ ] **Batch 7 (Piece Spawning & Gameplay Loop Integration)**:
-   - `playState_spawnNextTetrimino` ($988E): Piece spawning, spawn position (X=5, Y=0), orientation ID lookup, stat updates.
-   - Gameplay loop framing and state sequencing.
+9. [x] **Batch 7 (Piece Spawning & Gameplay Framing)**:
+   - Decompiled `playState_spawnNextTetrimino` ($988E): VRAM copy guard ($0049 < $20), 2-player piece delay counter ($00A4 == $1C) and player matching ($00A5 == $00B7), spawn coordinates (X=5, Y=0), orientation ID lookup from `spawnOrientationFromOrientation`, piece stat incrementation with BCD adjust and render flag update (`RENDER_STATS`), 1P vs 2P next piece selection, down hold reset (`autorepeatY = 0`).
+   - Decompiled `noop_disabledVramRowIncr` ($9874): Disabled VRAM row incrementation no-op routine.
+   - Decompiled `gameModeState_vblankThenRunState2` ($9E27): GameModeState 2 transition and no-op subroutine call.
+   - Decompiled `gameModeState_updateCountersAndNonPlayerState` ($8884): OAM staging reset, player 1 & 2 fall timer progression, 2-player piece delay counter advancement, and SELECT button toggle for preview piece display (`displayNextPiece`).
+   - Completed entire 12-state gameplay state machine (States 0-11 in Mode 4).
+   - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across 19 piece orientations, 2P delay mechanics, and framing routines.
 
 10. [ ] **Batch 8 (Menus, High Scores & Systems)**:
     - Legal screen, title screen, menu navigation.
@@ -149,4 +153,5 @@
 | Verification Infra | 6502 Differential CPU Oracle, ROM Tables & Routine Audit | 0 (Infra) | 13 | 6 suites / all ROM differential | `1c7cdc3` |
 | Batch 4 | Playfield Grid, Line Completion, Animation & Type B Garbage | 6 | 19 | 7 suites / 15 ROM tables + 6502 diff | `e62775b` |
 | Batch 5 | Player Controls, Edge Detection, Demo Playback & DAS Timing | 4 (+2 alt) | 23 | 8 suites / 15 ROM tables + 6502 diff | `a3c6dc7` |
-| Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `306802e` |
+| Batch 6 | Player State Machine, Context Switch & State Dispatcher | 11 (+1 alt) | 34 | 9 suites / 15 ROM tables + 6502 diff | `4422fa6` |
+| Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `b5ef45f` |

@@ -90,6 +90,9 @@ extern "C" {
 #define ADDR_SPRITE_Y_OFFSET                0x00A1
 #define ADDR_SPRITE_INDEX_OAM               0x00A2
 #define ADDR_OUT_OF_DATE_RENDER_FLAGS       0x00A3
+#define ADDR_TWO_PLAYER_PIECE_DELAY_COUNTER 0x00A4
+#define ADDR_TWO_PLAYER_PIECE_DELAY_PLAYER  0x00A5
+#define ADDR_TWO_PLAYER_PIECE_DELAY_PIECE   0x00A6
 #define ADDR_GAME_MODE_STATE                0x00A7
 #define ADDR_GENERAL_COUNTER                0x00A8
 #define ADDR_GENERAL_COUNTER2               0x00A9
@@ -149,6 +152,8 @@ extern "C" {
 #define ADDR_NEWLY_PRESSED_P2               0x00F6
 #define ADDR_HELD_BUTTONS_P1                0x00F7
 #define ADDR_HELD_BUTTONS_P2                0x00F8
+#define ADDR_NEWLY_PRESSED_BUTTONS_P1       ADDR_NEWLY_PRESSED_P1
+#define ADDR_NEWLY_PRESSED_BUTTONS_P2       ADDR_NEWLY_PRESSED_P2
 #define ADDR_JOY1_LOCATION                  0x00FB
 #define ADDR_PPU_SCROLL_Y                   0x00FC
 #define ADDR_PPU_SCROLL_X                   0x00FD
