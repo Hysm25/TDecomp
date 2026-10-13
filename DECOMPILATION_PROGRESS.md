@@ -297,4 +297,4 @@
 | C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
 | C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `73dd826` |
 | C-to-6502 Integration 3 | Third C-to-6502 analysis: gameplay RNG (optimized 54B C, 32B hybrid audit; in-place blocked by 23B slot, 0 code shifting preserved) | 1 (Analysis & Target C) | 171 | 15 suites + calling convention & LFSR diff (92 diff tests) | `ebbd7b0` |
-| Bank-Level C Feasibility | High Score subsystem audit ($A0EE-$A200, 275B): in-place blocked (636B, 2.31x), relocatable slack build verified in experimental ROM & 6502 sim | 1 (Subsystem Cluster) | 171 | 15 suites + 92 diff tests + bank ROM build | pending |
+| Bank-Level C Feasibility | High Score subsystem audit ($A0EE-$A200, 275B): in-place blocked (636B, 2.31x), relocatable slack build verified in experimental ROM & 6502 sim | 1 (Subsystem Cluster) | 171 | 15 suites + 92 diff tests + bank ROM build | `5cb9ef7` |
