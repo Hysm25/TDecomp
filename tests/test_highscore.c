@@ -347,7 +347,32 @@ int test_highscore_subsystem(void) {
         showHighScores(&nes);
         assert(nes.ram[ADDR_GENERAL_COUNTER2] == 7);
     }
-    printf("  [PASS] test_show_high_scores_display\n");
+    /* Test 10: render_mode_congratulations_screen */
+    {
+        NES_State nes;
+        nes_init(&nes);
+
+        /* Flag not set: no-op */
+        nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = 0;
+        render_mode_congratulations_screen(&nes);
+        assert(nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] == 0);
+
+        /* Flag set: writes to PPU, clears flags, resets scroll */
+        nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = RENDER_HIGH_SCORE_LETTER;
+        nes.ram[ADDR_HIGH_SCORE_RAW_POS] = 0;
+        nes.ram[ADDR_HIGH_SCORE_NAME_OFFSET_LETTER] = 2;
+        nes.ram[ADDR_HIGH_SCORE_CURRENT_LETTER] = 1; /* 'A' */
+        nes.ram[ADDR_PPU_SCROLL_X] = 0x10;
+        nes.ram[ADDR_PPU_SCROLL_Y] = 0x20;
+
+        render_mode_congratulations_screen(&nes);
+
+        assert(nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] == 0);
+        assert(nes.ram[ADDR_PPU_SCROLL_X] == 0);
+        assert(nes.ram[ADDR_PPU_SCROLL_Y] == 0);
+        assert(nes.ram[ADDR_GENERAL_COUNTER] == 0x89);
+    }
+    printf("  [PASS] test_render_mode_congratulations_screen\n");
 
     printf("--- All High Score Subsystem Tests Passed ---\n");
     return failures;

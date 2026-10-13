@@ -1087,8 +1087,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: High score name entry letter tile render to nametable and scroll reset differential proven against 6502 ROM"
     },
     {
       "name": "gameModeState_startButtonHandling",

@@ -225,7 +225,7 @@
 | `twoDigsToPPU` | `0x9712` | L2691–L2703 | JSR | `VERIFIED` | Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM |
 | `updatePaletteForLevel` | `0x9808` | L2833–L2870 | JSR | `MISSING` |  |
 | `render_mode_ending_animation` | `0x9F95` | L3975–L4009 | Jump Table | `MISSING` |  |
-| `render_mode_congratulations_screen` | `0xA344` | L4443–L4474 | Jump Table | `MISSING` |  |
+| `render_mode_congratulations_screen` | `0xA344` | L4443–L4474 | Jump Table | `VERIFIED` | Verified: High score name entry letter tile render to nametable and scroll reset differential proven against 6502 ROM |
 | `ending_typeBConcertPatchToPpuForHeight` | `0xA4B1` | L4664–L4712 | JSR | `MISSING` |  |
 | `patchToPpu` | `0xA507` | L4713–L4733 | JSR | `MISSING` |  |
 | `render_ending` | `0xA527` | L4734–L4738 | JSR | `MISSING` |  |

@@ -467,3 +467,37 @@ void highScoreEntryScreen(NES_State *nes) {
 
     highScoreEntryScreen_step(nes);
 }
+
+/*
+ * Renders the updated high score letter to PPU nametable during VBlank (renderMode 2).
+ * Writes the tile at the cursor PPU address, resets PPU scroll to (0, 0),
+ * and clears outOfDateRenderFlags.
+ * Source address: $A344 (main.asm lines 4443-4473).
+ */
+void render_mode_congratulations_screen(NES_State *nes) {
+    if (!nes) return;
+
+    if (!(nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_HIGH_SCORE_LETTER)) {
+        return;
+    }
+
+    uint8_t pos = nes->ram[ADDR_HIGH_SCORE_RAW_POS] & 0x03;
+    uint8_t addr_hi = highScorePpuAddrTable[pos * 2];
+    uint8_t addr_lo_base = highScorePpuAddrTable[pos * 2 + 1];
+    nes->ram[ADDR_GENERAL_COUNTER] = addr_lo_base;
+    uint8_t addr_lo = (uint8_t)(addr_lo_base + nes->ram[ADDR_HIGH_SCORE_NAME_OFFSET_LETTER]);
+
+    nes_write8(nes, REG_PPUADDR, addr_hi);
+    nes_write8(nes, REG_PPUADDR, addr_lo);
+
+    uint8_t currentLetter = nes->ram[ADDR_HIGH_SCORE_CURRENT_LETTER];
+    uint8_t tile = (currentLetter < sizeof(highScoreCharToTile)) ? highScoreCharToTile[currentLetter] : 0xFF;
+    nes_write8(nes, REG_PPUDATA, tile);
+
+    nes->ram[ADDR_PPU_SCROLL_X] = 0;
+    nes_write8(nes, REG_PPUSCROLL, 0);
+    nes->ram[ADDR_PPU_SCROLL_Y] = 0;
+    nes_write8(nes, REG_PPUSCROLL, 0);
+
+    nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = 0;
+}

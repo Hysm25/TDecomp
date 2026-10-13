@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **56** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **57** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **115** | Pending conversion |
-| **Current Progress** | **32.75%** | `[################------------------------------------] 32.75%` |
-| **Build & Test Suite** | 11 / 11 suites passing | Unit, 28 ROM data tables, & 6502 differential CPU oracle (33 differential tests) |
+| **Remaining Routines** | **114** | Pending conversion |
+| **Current Progress** | **33.33%** | `[#################-----------------------------------] 33.33%` |
+| **Build & Test Suite** | 11 / 11 suites passing | Unit, 28 ROM data tables, & 6502 differential CPU oracle (34 differential tests) |
 
 ---
 
@@ -38,10 +38,10 @@
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 6 | 0 | 7 | **46.2%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 6 | 0 | 8 | **42.9%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 8 | 0 | 30 | **21.1%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 1 | 0 | 15 | **6.25%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 2 | 0 | 14 | **12.5%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **56** | **0** | **115** | **32.75%** |
+| **TOTAL** | **171** | **57** | **0** | **114** | **33.33%** |
 
 ---
 
@@ -155,8 +155,9 @@
     - Decompiled `copyHighScoreScoreToNextIndex` ($A1C1): 3-byte BCD score copy to next entry slot with Type B offset ($0C) adjustment.
     - Decompiled `copyHighScoreLevelToNextIndex` ($A1E0): 1-byte level copy to next entry slot with Type B offset ($04) adjustment.
     - Decompiled `highScoreEntryScreen` ($A201) & `highScoreEntryScreen_step`: Interactive name entry screen with cursor horizontal navigation, 44-character alphabet cycling with wrap, and START confirmation.
+    - Decompiled `render_mode_congratulations_screen` ($A344): High score letter tile rendering to PPU nametable during VBlank (renderMode 2) and PPU scroll reset.
     - Authoritative data tables bit-exact verified against reference ROM: `highScorePpuAddrTable` ($A086), `highScoreCharToTile` ($A08C), `byteToBcdTable` ($A0BC), `highScoreIndexToHighScoreNamesOffset` ($A1F1), `highScoreIndexToHighScoreScoresOffset` ($A1F9), `highScorePosToY` ($A33B), `highScoreNamePosToX` ($A33E), `defaultHighScoresTable` ($AD67).
-    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `twoDigsToPPU`, `copyHighScoreNameToNextIndex`, `copyHighScoreScoreToNextIndex`, `copyHighScoreLevelToNextIndex`, and `handleHighScoreIfNecessary` non-qualifying traversal (Tests 29–33).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `twoDigsToPPU`, `copyHighScoreNameToNextIndex`, `copyHighScoreScoreToNextIndex`, `copyHighScoreLevelToNextIndex`, `handleHighScoreIfNecessary` non-qualifying traversal, and `render_mode_congratulations_screen` (Tests 29–34).
 
 13. [ ] **Batch 11 (PPU Rendering & OAM)**:
     - OAM sprite staging and nametable row updates.
@@ -181,4 +182,4 @@
 | Batch 7 | Piece Spawning, 2P Delay Mechanics & Gameplay Framing | 4 | 38 | 9 suites / 15 ROM tables + 20 6502 diff | `6b57386` |
 | Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `42c06e2` |
 | Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 28 6502 diff | `3d19246` |
-| Batch 10 | High Score Operations, Tables, Sorting & Name Entry Screen | 10 | 56 | 11 suites / 28 ROM tables + 33 6502 diff | `4719dc1` |
+| Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `85b0f9d` |

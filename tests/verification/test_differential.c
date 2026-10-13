@@ -44,6 +44,7 @@
 #define ROM_ADDR_COPY_HIGH_SCORE_NAME   0xA192
 #define ROM_ADDR_COPY_HIGH_SCORE_SCORE  0xA1C1
 #define ROM_ADDR_COPY_HIGH_SCORE_LEVEL  0xA1E0
+#define ROM_ADDR_RENDER_MODE_CONGRATULATIONS_SCREEN 0xA344
 #define ROM_ADDR_LFSR_PRNG              0xAB47
 #define ROM_ADDR_POLL_CONTROLLER        0xAB9D
 #define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
@@ -1468,6 +1469,37 @@ int test_differential_verification(void) {
             assert(nes_c.ram[ADDR_HIGH_SCORE_RAW_POS] == (gtype == 0 ? 3 : 7));
             assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
         }
+    }
+
+    /* Test 34: Differential render_mode_congratulations_screen ($A344) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = RENDER_HIGH_SCORE_LETTER;
+        nes_6502.ram[ADDR_HIGH_SCORE_RAW_POS] = 1;
+        nes_6502.ram[ADDR_HIGH_SCORE_NAME_OFFSET_LETTER] = 3;
+        nes_6502.ram[ADDR_HIGH_SCORE_CURRENT_LETTER] = 2; /* 'B' */
+        nes_6502.ram[ADDR_PPU_SCROLL_X] = 0x20;
+        nes_6502.ram[ADDR_PPU_SCROLL_Y] = 0x30;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_MODE_CONGRATULATIONS_SCREEN, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_MODE_CONGRATULATIONS_SCREEN, 200);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = RENDER_HIGH_SCORE_LETTER;
+        nes_c.ram[ADDR_HIGH_SCORE_RAW_POS] = 1;
+        nes_c.ram[ADDR_HIGH_SCORE_NAME_OFFSET_LETTER] = 3;
+        nes_c.ram[ADDR_HIGH_SCORE_CURRENT_LETTER] = 2; /* 'B' */
+        nes_c.ram[ADDR_PPU_SCROLL_X] = 0x20;
+        nes_c.ram[ADDR_PPU_SCROLL_Y] = 0x30;
+
+        render_mode_congratulations_screen(&nes_c);
+
+        assert(nes_6502.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] == nes_c.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_X] == nes_c.ram[ADDR_PPU_SCROLL_X]);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_Y] == nes_c.ram[ADDR_PPU_SCROLL_Y]);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

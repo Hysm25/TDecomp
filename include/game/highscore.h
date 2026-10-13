@@ -155,6 +155,14 @@ bool highScoreEntryScreen_step(NES_State *nes);
  */
 void highScoreEntryScreen(NES_State *nes);
 
+/*
+ * Renders the updated high score letter to PPU nametable during VBlank (renderMode 2).
+ * Writes the tile at the cursor PPU address, resets PPU scroll to (0, 0),
+ * and clears outOfDateRenderFlags.
+ * Source address: $A344 (main.asm lines 4443-4473).
+ */
+void render_mode_congratulations_screen(NES_State *nes);
+
 #ifdef __cplusplus
 }
 #endif
