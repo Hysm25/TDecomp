@@ -279,4 +279,4 @@
 | Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | `d45aa2e` |
 | ROM Build Baseline | Baseline assembly rebuild & C-to-6502 proof-of-concept pipeline | 0 (Infra) | 171 | 15 suites + baseline & POC verification | `6f6c900` |
 | C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
-| C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | Pending |
+| C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `73dd826` |
