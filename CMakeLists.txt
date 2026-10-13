@@ -88,8 +88,14 @@ if(Python3_FOUND)
         COMMENT "Compiling and verifying target C-to-6502 proof-of-concept"
     )
 
+    add_custom_target(rom_experimental
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py experimental --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Building and verifying experimental C-integrated NES ROM"
+    )
+
     add_custom_target(rom
-        DEPENDS rom_baseline rom_poc
-        COMMENT "Full ROM build baseline and C-to-6502 feasibility verification"
+        DEPENDS rom_baseline rom_poc rom_experimental
+        COMMENT "Full ROM build suite: baseline ROM, C POC, and experimental C-integrated ROM"
     )
 endif()

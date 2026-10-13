@@ -3478,6 +3478,52 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_VERTICAL_BLANK_INTERVAL] == nes_c.ram[ADDR_VERTICAL_BLANK_INTERVAL]);
     }
 
+    /* Test: Experimental C-integrated NES ROM Verification (if built) */
+    {
+        const char *exp_paths[] = {
+            "build/rom/tetris_experimental.nes",
+            "rom/tetris_experimental.nes",
+            "../build/rom/tetris_experimental.nes"
+        };
+        NES_State nes_exp;
+        bool loaded = false;
+        for (size_t p = 0; p < sizeof(exp_paths)/sizeof(exp_paths[0]); ++p) {
+            if (load_reference_rom(&nes_exp, exp_paths[p])) {
+                loaded = true;
+                break;
+            }
+        }
+        if (loaded) {
+            /* 1. Bit-for-bit PRG payload verification */
+            assert(memcmp(nes_exp.prg_rom, rom_nes.prg_rom, NES_PRG_SIZE) == 0);
+
+            /* 2. Direct 6502 CPU execution of compiled C copyOamStagingToOam */
+            cpu6502_init(&cpu, &nes_exp);
+            cpu6502_set_state(&cpu, ROM_ADDR_COPY_OAM_STAGING_TO_OAM, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_OAM_STAGING_TO_OAM, 50);
+            assert(ok);
+            assert(nes_exp.oam_addr == 0x00);
+            assert(cpu.a == 0x02);
+
+            /* 3. Execute NMI interrupt containing compiled C copyOamStagingToOam */
+            nes_exp.ram[ADDR_RENDER_MODE] = 0;
+            nes_exp.ram[ADDR_SLEEP_COUNTER] = 4;
+            nes_exp.ram[ADDR_FRAME_COUNTER] = 0x20;
+            nes_exp.ram[ADDR_FRAME_COUNTER + 1] = 0x01;
+            nes_exp.ram[ADDR_RNG_SEED] = 0x89;
+            nes_exp.ram[ADDR_RNG_SEED + 1] = 0x88;
+            nes_exp.ram[ADDR_OAM_STAGING_LENGTH] = 12;
+
+            cpu6502_init(&cpu, &nes_exp);
+            cpu6502_set_state(&cpu, ROM_ADDR_NMI, 0, 0, 0, 0, 0xFD);
+            ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_NMI, 5000);
+            assert(ok);
+            assert(nes_exp.oam_addr == 0x00);
+            assert(nes_exp.ram[ADDR_FRAME_COUNTER] == 0x21);
+            printf("  [PASS] test_experimental_c_rom (Compiled C copyOamStagingToOam verified in 6502 CPU)\n");
+        }
+    }
+
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");
     return 0;
 }

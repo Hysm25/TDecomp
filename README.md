@@ -69,16 +69,17 @@ ctest --test-dir build --output-on-failure
 ./build/tdecomp_tests
 ```
 
-### Build NES ROM & Feasibility Verification
-To rebuild the authoritative baseline assembly ROM and test the target C-to-6502 compilation pipeline:
+### Build NES ROM & Verified C Integration
+To build the authoritative baseline assembly ROM, verify the C-to-6502 proof-of-concept, and produce the experimental ROM with compiled C routines:
 ```bash
-# Full ROM pipeline (Baseline assembly rebuild + C-to-6502 proof-of-concept)
+# Full ROM pipeline (Baseline assembly + C POC + C-integrated experimental ROM)
 cmake --build build --target rom
 # or directly:
 python3 tools/build_rom.py all
 
 # Specific targets:
-cmake --build build --target rom_baseline  # Rebuilds tetris_baseline.nes from assembly
-cmake --build build --target rom_poc       # Compiles target-ready C routines with cc65
+cmake --build build --target rom_baseline      # Rebuilds tetris_baseline.nes from assembly
+cmake --build build --target rom_poc           # Compiles target-ready C routines with cc65
+cmake --build build --target rom_experimental  # Builds tetris_experimental.nes with C routine integrated
 ```
-See [ROM_BUILD_REPORT.md](ROM_BUILD_REPORT.md) for full feasibility analysis, byte comparisons, and architecture details.
+See [ROM_BUILD_REPORT.md](ROM_BUILD_REPORT.md) and [C_TO_6502_INTEGRATION_REPORT.md](C_TO_6502_INTEGRATION_REPORT.md) for full architecture, linker configurations, and verification details.

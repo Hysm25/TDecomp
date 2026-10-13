@@ -242,6 +242,11 @@
     - Authoritative ROM data tables verified byte-for-byte against reference ROM: 4 packet palette tables (`game_palette`, `legal_screen_palette`, `menu_palette`, `ending_palette`) bringing cumulative verified tables to 111.
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`, `memset_ppu_page_and_more`, `LAA82`, and `nmi` (Tests 85–91, bringing cumulative differential tests to 91).
     - Project milestone: Achieved 171/171 (100.0%) verified standalone routines and 111/111 (100.0%) verified alternate entry points across all 11 game subsystems.
+20. [x] **First Verified C-to-6502 ROM Integration (`copyOamStagingToOam`)**:
+    - Isolated compilation of target-ready C routine `copyOamStagingToOam` ($AB5E, 11 bytes) using cc65/ca65.
+    - Out-of-tree linker segmentation configuration (`tetris_exp.cfg`) placing compiled C object code at authoritative address $AB5E with zero code shifting across the entire 32KB PRG ROM payload.
+    - Verified 100% bit-exact 6502 machine code matching the 1989 Nintendo cartridge PRG payload.
+    - Differential NMOS 6502 CPU simulator verification: direct subroutine execution and full NMI interrupt handler pass without side effects.
 
 ---
 
@@ -267,3 +272,5 @@
 | Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
 | Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `3c8cd51` |
 | Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | `d45aa2e` |
+| ROM Build Baseline | Baseline assembly rebuild & C-to-6502 proof-of-concept pipeline | 0 (Infra) | 171 | 15 suites + baseline & POC verification | `6f6c900` |
+| C-to-6502 Integration | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | Pending |

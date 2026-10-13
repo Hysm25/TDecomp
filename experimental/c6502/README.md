@@ -76,12 +76,30 @@ Using `cc65 -t none -O -Oi`:
 
 ---
 
-## 3. How to Build & Verify
+## 3. Experimental ROM Integration
 
-Run the automated ROM build and proof-of-concept verification tool:
+The repository contains an isolated experimental build pipeline that compiles `copy_oam.c` with `cc65`, segments the original PRG cleanly around address `$AB5E`, and links the compiled C object code directly into a functional NES ROM:
 
 ```bash
-# Build baseline assembly ROM and verify C-to-6502 proof-of-concept
+# Build experimental ROM with compiled C copyOamStagingToOam integrated
+python3 tools/build_rom.py experimental
+
+# Or via CMake:
+cmake --build build --target rom_experimental
+```
+
+The resulting ROM (`build/rom/tetris_experimental.nes`) is verified:
+1. **Bit-Exact Machine Code**: The compiled C routine matches the original 11 bytes at `$AB5E` bit-for-bit.
+2. **Zero Code Shifting**: All preceding and succeeding code/data maintain bit-exact addresses and byte content across the entire 32KB PRG payload.
+3. **Interrupt & Calling Convention**: Executed cleanly inside the NMI interrupt vector (`$8005 -> $801B JSR $AB5E`).
+4. **Behavioral Simulation**: Proven on the differential NMOS 6502 CPU simulator in automated test suites.
+
+---
+
+## 4. How to Build & Verify All ROM Targets
+
+```bash
+# Build baseline assembly ROM, C POC, and C-integrated experimental ROM
 python3 tools/build_rom.py all
 
 # Or via CMake:
