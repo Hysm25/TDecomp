@@ -112,6 +112,7 @@ extern "C" {
 #define ADDR_ALLEGRO                        0x00BA
 #define ADDR_PENDING_GARBAGE                0x00BB
 #define ADDR_PENDING_GARBAGE_INACTIVE       0x00BC
+#define ADDR_PENDING_GARBAGE_INACTIVE_PLAYER 0x00BC
 #define ADDR_RENDER_MODE                    0x00BD
 #define ADDR_NUMBER_OF_PLAYERS              0x00BE
 #define ADDR_NEXT_PIECE                     0x00BF
@@ -164,6 +165,7 @@ extern "C" {
 #define ADDR_STATS_BY_TYPE                  0x03F0 /* 14 bytes: 7 pieces * 2 bytes BCD */
 #define ADDR_PLAYFIELD                      0x0400 /* 200 bytes ($C8): 10 x 20 cells */
 #define ADDR_PLAYFIELD_P2                   0x0500 /* 200 bytes */
+#define ADDR_MUSIC_STAGING_NOISE_HI         0x068D
 #define ADDR_SOUND_EFFECT_SLOT0_INIT        0x06F0
 #define ADDR_SOUND_EFFECT_SLOT1_INIT        0x06F1
 #define ADDR_SOUND_EFFECT_SLOT2_INIT        0x06F2

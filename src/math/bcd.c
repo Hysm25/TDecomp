@@ -235,3 +235,32 @@ void playState_updateLinesAndStatistics(NES_State *nes) {
     updateMusicSpeed(nes);
     updateLinesAndLevel(nes);
 }
+
+/*
+ * Adds 100 points in BCD to totalScore ($00DD / $00DE) with carry handling.
+ * Used for Type B ending score calculation before high score evaluation.
+ * Source address: $9F62 (main.asm lines 3945-3973).
+ */
+void add100Points(NES_State *nes) {
+    if (!nes) return;
+
+    uint8_t mid = (uint8_t)(nes->ram[ADDR_TOTAL_SCORE + 1] + 1);
+    nes->ram[ADDR_TOTAL_SCORE + 1] = mid;
+
+    if ((mid & 0x0F) >= 0x0A) {
+        mid = (uint8_t)(mid + 0x06);
+        nes->ram[ADDR_TOTAL_SCORE + 1] = mid;
+    }
+
+    if ((mid & 0xF0) >= 0xA0) {
+        mid = (uint8_t)(mid + 0x60);
+        nes->ram[ADDR_TOTAL_SCORE + 1] = mid;
+        nes->ram[ADDR_TOTAL_SCORE + 2]++;
+    }
+
+    uint8_t hi = nes->ram[ADDR_TOTAL_SCORE + 2];
+    if ((hi & 0x0F) >= 0x0A) {
+        hi = (uint8_t)(hi + 0x06);
+        nes->ram[ADDR_TOTAL_SCORE + 2] = hi;
+    }
+}

@@ -58,6 +58,13 @@ void updateMusicSpeed(NES_State *nes);
  */
 void setMusicTrack(NES_State *nes, uint8_t track);
 
+/*
+ * Adds 100 points in BCD to totalScore ($00DD / $00DE) with carry handling.
+ * Used for Type B ending score calculation before high score evaluation.
+ * Source address: $9F62 (main.asm lines 3945-3973).
+ */
+void add100Points(NES_State *nes);
+
 /* Point values table per completed line count (0 to 4 lines) */
 extern const uint16_t pointsTable[5];
 

@@ -118,6 +118,77 @@ void branchOnPlayStatePlayer2(NES_State *nes);
  */
 void branchOnPlayState(NES_State *nes);
 
+/*
+ * Memory clearing routine filling 256-byte pages from end_page down to start_page
+ * with value val. Sets tmp1 = 0, tmp2 = start_page - 1.
+ * Source address: $AC6A (main.asm lines 5635-5653).
+ */
+void memset_page(NES_State *nes, uint8_t val, uint8_t start_page, uint8_t end_page);
+
+/*
+ * Evaluates game over state: in 1P mode triggers high-score check and name entry,
+ * clears playfields to tileEmpty, and transitions gameMode to MODE_LEVEL_MENU (3).
+ * In 2P mode transitions gameModeState to 9. If not game over, increments gameModeState.
+ * Source address: $9CBF (main.asm lines 3545-3595).
+ */
+void gameModeState_handleGameOver(NES_State *nes);
+
+/*
+ * Checks for A + B + SELECT + START soft reset combo on Player 1.
+ * If active, resets gameMode to MODE_LEGAL_SCREEN (0). Otherwise increments gameModeState.
+ * Source address: $9E16 (main.asm lines 3756-3770).
+ */
+void gameModeState_checkForResetKeyCombo(NES_State *nes);
+
+/*
+ * Handles START button during gameplay and demo mode:
+ * In Mode 5 (Demo): exits demo to Title Screen (gameMode = 1).
+ * In Game (renderMode = 3): handles pause toggle, PAUSE sprite staging, and resume.
+ * Source address: $A37F (main.asm lines 4475-4544).
+ */
+void gameModeState_startButtonHandling(NES_State *nes);
+void gameModeState_startButtonHandling_step(NES_State *nes);
+
+/*
+ * Authoritative 44-byte nametable patch for Type B playing background.
+ * Source address: $86B0 (main.asm lines 1183-1189).
+ */
+extern const uint8_t game_typeb_nametable_patch[44];
+
+/*
+ * Initializes the game background, copying palettes, nametables, and writing
+ * the top high score (from RAM $0730 Type A or $073C Type B) to PPU nametable.
+ * Source address: $85F0 (main.asm lines 1092-1167).
+ */
+void gameModeState_initGameBackground(NES_State *nes);
+
+/*
+ * Completes background initialization, setting playStates to 1, copying startLevel
+ * to levelNumber, and incrementing gameModeState.
+ * Source address: $8693 (main.asm lines 1168-1182).
+ */
+void gameModeState_initGameBackground_finish(NES_State *nes);
+
+/*
+ * Initializes game state for playing and demo modes: clears playfield, stats,
+ * scores, lines, sets demo pointer, chooses starting tetriminos, and sets music.
+ * Source address: $86DC (main.asm lines 1190-1268).
+ */
+void gameModeState_initGameState(NES_State *nes);
+
+/*
+ * Master state machine dispatcher for Mode 4 (Playing) and Mode 5 (Ending / Demo),
+ * jumping through switch_s_plus_2a over states 0..8 of gameModeState.
+ * Source address: $819B (main.asm lines 462-473).
+ */
+void gameMode_playAndEndingHighScore(NES_State *nes);
+
+/*
+ * JSR wrapper jump target for Mode 4 and Mode 5 from branchOnGameMode.
+ * Source address: $815D (main.asm lines 428-431).
+ */
+void gameMode_playAndEndingHighScore_jmp(NES_State *nes);
+
 #ifdef __cplusplus
 }
 #endif

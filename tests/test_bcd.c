@@ -109,6 +109,35 @@ int test_bcd_and_scoring(void) {
     /* musicSelectionTable[0] = 0x03 */
     assert(nes.ram[ADDR_MUSIC_TRACK] == 0x03);
 
+    /* Test 6: add100Points */
+    nes_init(&nes);
+    nes.ram[ADDR_TOTAL_SCORE] = 0x00;
+    nes.ram[ADDR_TOTAL_SCORE + 1] = 0x00;
+    nes.ram[ADDR_TOTAL_SCORE + 2] = 0x00;
+    add100Points(&nes);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 1] == 0x01);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 2] == 0x00);
+
+    /* BCD low nibble carry: 900 + 100 = 1,000 */
+    nes.ram[ADDR_TOTAL_SCORE + 1] = 0x09;
+    add100Points(&nes);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 1] == 0x10);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 2] == 0x00);
+
+    /* BCD high nibble carry: 9,900 + 100 = 10,000 */
+    nes.ram[ADDR_TOTAL_SCORE + 1] = 0x99;
+    nes.ram[ADDR_TOTAL_SCORE + 2] = 0x00;
+    add100Points(&nes);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 1] == 0x00);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 2] == 0x01);
+
+    /* BCD low nibble carry on high byte: 90,000 + 10,000 = 100,000 */
+    nes.ram[ADDR_TOTAL_SCORE + 1] = 0x99;
+    nes.ram[ADDR_TOTAL_SCORE + 2] = 0x09;
+    add100Points(&nes);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 1] == 0x00);
+    assert(nes.ram[ADDR_TOTAL_SCORE + 2] == 0x10);
+
     printf("  [PASS] test_bcd_and_scoring\n");
     return 0;
 }

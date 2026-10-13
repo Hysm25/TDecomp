@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **57** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **67** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **114** | Pending conversion |
-| **Current Progress** | **33.33%** | `[#################-----------------------------------] 33.33%` |
-| **Build & Test Suite** | 11 / 11 suites passing | Unit, 28 ROM data tables, & 6502 differential CPU oracle (34 differential tests) |
+| **Remaining Routines** | **104** | Pending conversion |
+| **Current Progress** | **39.18%** | `[####################--------------------------------] 39.18%` |
+| **Build & Test Suite** | 11 / 11 suites passing | Unit, 29 ROM data tables, & 6502 differential CPU oracle (40 differential tests) |
 
 ---
 
@@ -31,17 +31,17 @@
 | Subsystem | Total Routines | Verified | Decompiled | Missing | Progress |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
-| **MATH_BCD** (Score & Line Math) | 12 | 10 | 0 | 2 | **83.3%** |
+| **MATH_BCD** (Score & Line Math) | 12 | 12 | 0 | 0 | **100.0%** |
+| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 4 | 0 | 0 | **100.0%** |
+| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 11 | 0 | 3 | **78.6%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
-| **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 3 | 0 | 1 | **75.0%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 11 | 0 | 5 | **68.8%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 6 | 0 | 7 | **46.2%** |
-| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 6 | 0 | 8 | **42.9%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 8 | 0 | 30 | **21.1%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 10 | 0 | 28 | **26.3%** |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 2 | 0 | 14 | **12.5%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **57** | **0** | **114** | **33.33%** |
+| **TOTAL** | **171** | **67** | **0** | **104** | **39.18%** |
 
 ---
 
@@ -159,10 +159,22 @@
     - Authoritative data tables bit-exact verified against reference ROM: `highScorePpuAddrTable` ($A086), `highScoreCharToTile` ($A08C), `byteToBcdTable` ($A0BC), `highScoreIndexToHighScoreNamesOffset` ($A1F1), `highScoreIndexToHighScoreScoresOffset` ($A1F9), `highScorePosToY` ($A33B), `highScoreNamePosToX` ($A33E), `defaultHighScoresTable` ($AD67).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `twoDigsToPPU`, `copyHighScoreNameToNextIndex`, `copyHighScoreScoreToNextIndex`, `copyHighScoreLevelToNextIndex`, `handleHighScoreIfNecessary` non-qualifying traversal, and `render_mode_congratulations_screen` (Tests 29–34).
 
-13. [ ] **Batch 11 (PPU Rendering & OAM)**:
-    - OAM sprite staging and nametable row updates.
+13. [x] **Batch 10 (Part 2: Mode 5 High Score Operations, GameOver, & State Dispatcher)**:
+    - Decompiled `memset_page` ($AC6A): Multi-page memory fill from `end_page` down to `start_page` setting `tmp1 = 0` and `tmp2 = start_page - 1`.
+    - Decompiled `add100Points` ($9F62): Type B ending bonus BCD scoring adding 100 points to `totalScore` with carry to high byte.
+    - Decompiled `gameModeState_handleGameOver` ($9CBF): 1P vs 2P game over handler triggering `handleHighScoreIfNecessary`, wiping playfields to `tileEmpty`, resetting play states to 1, and transitioning to `MODE_LEVEL_MENU` (3) for high score display.
+    - Decompiled `gameModeState_checkForResetKeyCombo` ($9E16): Soft reset combo check (`A + B + SELECT + START` on Player 1) returning to `MODE_LEGAL_SCREEN` (0).
+    - Decompiled `gameModeState_startButtonHandling` ($A37F) & `gameModeState_startButtonHandling_step`: Mode 5 (Demo) START button exit to title screen, in-game pause toggle, and pause sprite staging.
+    - Decompiled `gameModeState_initGameBackground` ($85F0) & `gameModeState_initGameBackground_finish` ($8693): In-game background initialization displaying top high score (from RAM $0730 Type A or $073C Type B) via `twoDigsToPPU` and applying `game_typeb_nametable_patch`.
+    - Decompiled `gameModeState_initGameState` ($86DC): Game state initialization clearing playfield, stats, scores, lines, configuring demo table pointers, and choosing initial tetriminos.
+    - Decompiled `gameMode_playAndEndingHighScore` ($819B) & `gameMode_playAndEndingHighScore_jmp` ($815D): Master state dispatcher jump table for Mode 4 and Mode 5 over states 0..8 of `gameModeState`.
+    - Authoritative data tables bit-exact verified against reference ROM: `game_typeb_nametable_patch` ($86B0, 44 bytes).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `memset_page`, `add100Points`, `gameModeState_checkForResetKeyCombo`, `gameModeState_handleGameOver`, `gameModeState_startButtonHandling`, and `gameMode_playAndEndingHighScore` (Tests 35–40).
 
-14. [ ] **Batch 12 (Audio & Sound Effects)**:
+14. [ ] **Batch 11 (PPU Rendering & OAM)**:
+    - OAM sprite staging (`stageSpriteForCurrentPiece`, `stageSpriteForNextPiece`, `loadSpriteIntoOamStaging`) and nametable row updates.
+
+15. [ ] **Batch 12 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
 
 ---
@@ -183,3 +195,4 @@
 | Batch 8 | Legal Screen, Title Screen, Demo Transition & Mode Dispatcher | 4 | 42 | 10 suites / 15 ROM tables + 24 6502 diff | `42c06e2` |
 | Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 28 6502 diff | `3d19246` |
 | Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `c24f9c0` |
+| Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `01dcbcd` |

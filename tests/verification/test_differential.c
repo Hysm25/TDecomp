@@ -15,6 +15,7 @@
 #include "game/highscore.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
+#define ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE 0x819B
 #define ROM_ADDR_BRANCH_ON_GAME_MODE    0x8161
 #define ROM_ADDR_BRANCH_ON_PLAY_STATE_P1 0x81B2
 #define ROM_ADDR_LEGAL_SCREEN           0x8200
@@ -33,21 +34,26 @@
 #define ROM_ADDR_SPAWN_NEXT_TETRIMINO   0x988E
 #define ROM_ADDR_INCREMENT_PIECE_STAT   0x9969
 #define ROM_ADDR_CHECK_FOR_COMPLETED_ROWS 0x9A6B
+#define ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER 0x9CBF
 #define ROM_ADDR_UPDATE_PLAYFIELD       0x9CAF
 #define ROM_ADDR_UPDATE_MUSIC_SPEED     0x9D17
 #define ROM_ADDR_DEMO_BUTTONS_INDEX_INCR 0x9DE8
 #define ROM_ADDR_SET_MUSIC_TRACK        0x9E07
+#define ROM_ADDR_GAME_MODE_STATE_CHECK_RESET_COMBO 0x9E16
 #define ROM_ADDR_GAME_MODE_STATE_VBLANK_THEN_RUN_STATE_2 0x9E27
 #define ROM_ADDR_PLAYSTATE_UNASSIGN_ORIENTATION 0x9E2F
 #define ROM_ADDR_PLAYSTATE_INCREMENT_PLAYSTATE 0x9E37
+#define ROM_ADDR_ADD_100_POINTS         0x9F62
 #define ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY 0xA0EE
 #define ROM_ADDR_COPY_HIGH_SCORE_NAME   0xA192
 #define ROM_ADDR_COPY_HIGH_SCORE_SCORE  0xA1C1
 #define ROM_ADDR_COPY_HIGH_SCORE_LEVEL  0xA1E0
 #define ROM_ADDR_RENDER_MODE_CONGRATULATIONS_SCREEN 0xA344
+#define ROM_ADDR_GAME_MODE_STATE_START_BUTTON_HANDLING 0xA37F
 #define ROM_ADDR_LFSR_PRNG              0xAB47
 #define ROM_ADDR_POLL_CONTROLLER        0xAB9D
 #define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
+#define ROM_ADDR_MEMSET_PAGE            0xAC6A
 #define ROM_ADDR_SOUND_RNG              0xE09E
 
 int test_differential_verification(void) {
@@ -1500,6 +1506,275 @@ int test_differential_verification(void) {
         assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
         assert(nes_6502.ram[ADDR_PPU_SCROLL_X] == nes_c.ram[ADDR_PPU_SCROLL_X]);
         assert(nes_6502.ram[ADDR_PPU_SCROLL_Y] == nes_c.ram[ADDR_PPU_SCROLL_Y]);
+    }
+
+    /* Test 35: Differential memset_page ($AC6A) */
+    {
+        /* Case 1: single page (X = 4, Y = 4, val = 0xEF) */
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MEMSET_PAGE, 0xEF, 0x04, 0x04, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MEMSET_PAGE, 2000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        memset_page(&nes_c, 0xEF, 0x04, 0x04);
+
+        assert(memcmp(&nes_6502.ram[0x0400], &nes_c.ram[0x0400], 256) == 0);
+        assert(nes_6502.ram[ADDR_TMP1] == nes_c.ram[ADDR_TMP1]);
+        assert(nes_6502.ram[ADDR_TMP2] == nes_c.ram[ADDR_TMP2]);
+
+        /* Case 2: two pages (X = 4, Y = 5, val = 0xAA) */
+        nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MEMSET_PAGE, 0xAA, 0x04, 0x05, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MEMSET_PAGE, 4000);
+        assert(ok);
+
+        nes_c = rom_nes;
+        memset_page(&nes_c, 0xAA, 0x04, 0x05);
+
+        assert(memcmp(&nes_6502.ram[0x0400], &nes_c.ram[0x0400], 512) == 0);
+        assert(nes_6502.ram[ADDR_TMP1] == nes_c.ram[ADDR_TMP1]);
+        assert(nes_6502.ram[ADDR_TMP2] == nes_c.ram[ADDR_TMP2]);
+    }
+
+    /* Test 36: Differential add100Points ($9F62) */
+    {
+        uint8_t test_scores[][2] = {
+            { 0x00, 0x00 },
+            { 0x08, 0x00 },
+            { 0x09, 0x00 },
+            { 0x45, 0x01 },
+            { 0x98, 0x00 },
+            { 0x99, 0x00 },
+            { 0x99, 0x09 },
+            { 0x99, 0x12 }
+        };
+        size_t nscores = sizeof(test_scores) / sizeof(test_scores[0]);
+
+        for (size_t i = 0; i < nscores; i++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_TOTAL_SCORE + 1] = test_scores[i][0];
+            nes_6502.ram[ADDR_TOTAL_SCORE + 2] = test_scores[i][1];
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_ADD_100_POINTS, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ADD_100_POINTS, 200);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_TOTAL_SCORE + 1] = test_scores[i][0];
+            nes_c.ram[ADDR_TOTAL_SCORE + 2] = test_scores[i][1];
+
+            add100Points(&nes_c);
+
+            assert(nes_6502.ram[ADDR_TOTAL_SCORE + 1] == nes_c.ram[ADDR_TOTAL_SCORE + 1]);
+            assert(nes_6502.ram[ADDR_TOTAL_SCORE + 2] == nes_c.ram[ADDR_TOTAL_SCORE + 2]);
+        }
+    }
+
+    /* Test 37: Differential gameModeState_checkForResetKeyCombo ($9E16) */
+    {
+        /* Case 1: normal input (no reset combo) */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 6;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_CHECK_RESET_COMBO, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_CHECK_RESET_COMBO, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 6;
+
+        gameModeState_checkForResetKeyCombo(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+
+        /* Case 2: soft reset combo held (A + B + SELECT + START) */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B | BUTTON_SELECT | BUTTON_START;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 6;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_CHECK_RESET_COMBO, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_CHECK_RESET_COMBO, 500);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B | BUTTON_SELECT | BUTTON_START;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 6;
+
+        gameModeState_checkForResetKeyCombo(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_c.ram[ADDR_GAME_MODE] == MODE_LEGAL_SCREEN);
+    }
+
+    /* Test 38: Differential gameModeState_handleGameOver ($9CBF) */
+    {
+        /* Case 1: 1P mode game not over */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_6502.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_c.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        gameModeState_handleGameOver(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+
+        /* Case 2: 2P mode game not over */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_6502.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_6502.ram[ADDR_P2_PLAY_STATE] = 2;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_c.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_c.ram[ADDR_P2_PLAY_STATE] = 2;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        gameModeState_handleGameOver(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+
+        /* Case 3: 2P mode game over */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_6502.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_6502.ram[ADDR_P2_PLAY_STATE] = 0;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_HANDLE_GAME_OVER, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_c.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes_c.ram[ADDR_P2_PLAY_STATE] = 0;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 3;
+
+        gameModeState_handleGameOver(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 9);
+    }
+
+    /* Test 39: Differential gameModeState_startButtonHandling ($A37F) */
+    {
+        /* Case 1: Demo mode (Mode 5), START pressed -> exits to title screen */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_DEMO;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 7;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_START_BUTTON_HANDLING, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_START_BUTTON_HANDLING, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_DEMO;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 7;
+
+        gameModeState_startButtonHandling(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE] == nes_c.ram[ADDR_GAME_MODE]);
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+
+        /* Case 2: In-game mode (renderMode 3), curtain falling (playState 10), START pressed -> no pause */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_6502.ram[ADDR_RENDER_MODE] = 3;
+        nes_6502.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_CURTAIN_FALL;
+        nes_6502.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 7;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_START_BUTTON_HANDLING, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_START_BUTTON_HANDLING, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE] = MODE_PLAY;
+        nes_c.ram[ADDR_RENDER_MODE] = 3;
+        nes_c.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_CURTAIN_FALL;
+        nes_c.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 7;
+
+        gameModeState_startButtonHandling(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_RENDER_MODE] == nes_c.ram[ADDR_RENDER_MODE]);
+    }
+
+    /* Test 40: Differential gameMode_playAndEndingHighScore ($819B) */
+    {
+        /* Case 1: State 6 (reset combo check) dispatch */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 6;
+        nes_6502.ram[ADDR_HELD_BUTTONS_P1] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 6;
+        nes_c.ram[ADDR_HELD_BUTTONS_P1] = 0;
+
+        gameMode_playAndEndingHighScore(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 7);
+
+        /* Case 2: State 8 (vblankThenRunState2) dispatch */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 8;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 8;
+
+        gameMode_playAndEndingHighScore(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 2);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

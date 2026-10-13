@@ -79,8 +79,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Mode 4/5 JSR jump target to playAndEndingHighScore differential proven against 6502 ROM"
     },
     {
       "name": "branchOnGameMode",
@@ -135,8 +135,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master states 0..8 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table"
     },
     {
       "name": "branchOnPlayStatePlayer1",
@@ -317,8 +317,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Game background setup, nametable patching, and top high score PPU write verified"
     },
     {
       "name": "gameModeState_initGameBackground_finish",
@@ -331,8 +331,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Background finish setting playStates to 1, startLevel to levelNumber, and advancing gameModeState verified"
     },
     {
       "name": "gameModeState_initGameState",
@@ -345,8 +345,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Playing/demo state initialization, score/line clear, demo table pointer init, and piece selection verified"
     },
     {
       "name": "makePlayer1Active",
@@ -765,8 +765,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 1P vs 2P game over handler, high-score trigger, playfield wipe, and menu transition differential proven against 6502 ROM"
     },
     {
       "name": "updateMusicSpeed",
@@ -849,8 +849,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: A+B+Select+Start soft reset check returning to legal screen differential proven against 6502 ROM"
     },
     {
       "name": "gameModeState_vblankThenRunState2",
@@ -933,8 +933,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B ending BCD bonus scoring on totalScore with carry handling differential proven against 6502 ROM"
     },
     {
       "name": "render_mode_ending_animation",
@@ -1101,8 +1101,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Demo exit to title screen and gameplay pause toggle differential proven against 6502 ROM"
     },
     {
       "name": "playState_bTypeGoalCheck",
@@ -1535,8 +1535,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Multi-page memory fill from end_page down to start_page differential proven against 6502 ROM"
     },
     {
       "name": "switch_s_plus_2a",
@@ -4045,8 +4045,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 44-byte Type B nametable patch verified bit-exact against reference ROM at 6B0"
     },
     {
       "name": "typeBBlankInitCountByHeightTable",

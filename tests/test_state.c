@@ -5,6 +5,8 @@
 #include "game/state.h"
 #include "game/tetrimino.h"
 #include "game/playfield.h"
+#include "game/highscore.h"
+#include "game/menu.h"
 #include "math/rng.h"
 #include "constants/gameplay.h"
 #include "constants/memory.h"
@@ -344,6 +346,233 @@ static void test_gamemode_framing(void) {
     printf("  [PASS] test_gamemode_framing\n");
 }
 
+static void test_memset_page_unit(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* Fill page 4 with 0xEF */
+    memset_page(&nes, 0xEF, 0x04, 0x04);
+    for (int i = 0; i < 256; i++) {
+        assert(nes.ram[0x0400 + i] == 0xEF);
+        assert(nes.ram[0x0300 + i] == 0x00);
+        assert(nes.ram[0x0500 + i] == 0x00);
+    }
+    assert(nes.ram[ADDR_TMP1] == 0x00);
+    assert(nes.ram[ADDR_TMP2] == 0x03);
+
+    /* Fill pages 4 and 5 with 0xAA */
+    memset_page(&nes, 0xAA, 0x04, 0x05);
+    for (int i = 0; i < 256; i++) {
+        assert(nes.ram[0x0400 + i] == 0xAA);
+        assert(nes.ram[0x0500 + i] == 0xAA);
+    }
+    assert(nes.ram[ADDR_TMP1] == 0x00);
+    assert(nes.ram[ADDR_TMP2] == 0x03);
+
+    printf("  [PASS] test_memset_page_unit\n");
+}
+
+static void test_game_over_and_high_score_trigger(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* 1. 1P mode when game NOT over: p1_playState != 0 */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_P1_PLAY_STATE] = 1;
+    nes.ram[ADDR_GAME_MODE_STATE] = 3;
+    gameModeState_handleGameOver(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 4);
+    assert(nes.ram[ADDR_GENERAL_COUNTER2] == 0x05);
+
+    /* 2. 2P mode when game NOT over: p1_playState != 0, p2_playState != 0 */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+    nes.ram[ADDR_P1_PLAY_STATE] = 1;
+    nes.ram[ADDR_P2_PLAY_STATE] = 2;
+    nes.ram[ADDR_GAME_MODE_STATE] = 3;
+    gameModeState_handleGameOver(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 4);
+    assert(nes.ram[ADDR_GENERAL_COUNTER2] == 0x04);
+
+    /* 3. 2P mode when game OVER: p2_playState == 0 */
+    nes.ram[ADDR_P2_PLAY_STATE] = 0;
+    nes.ram[ADDR_GAME_MODE_STATE] = 3;
+    gameModeState_handleGameOver(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 9);
+
+    /* 4. 1P mode when game OVER: p1_playState == 0 */
+    nes_init(&nes);
+    initHighScoreTable(&nes);
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_GAME_TYPE] = 0; /* Type A */
+    nes.ram[ADDR_P1_PLAY_STATE] = 0; /* Game Over */
+    nes.ram[ADDR_GAME_MODE] = MODE_PLAY;
+    nes.ram[ADDR_GAME_MODE_STATE] = 3;
+
+    /* Give player high score of 50,000 (qualifies for 1st place in Type A) */
+    nes.ram[ADDR_P1_SCORE] = 0x00;
+    nes.ram[ADDR_P1_SCORE + 1] = 0x00;
+    nes.ram[ADDR_P1_SCORE + 2] = 0x05;
+    nes.ram[ADDR_P1_LEVEL_NUMBER] = 9;
+
+    gameModeState_handleGameOver(&nes);
+
+    /* Should transition to MODE_LEVEL_MENU (3) */
+    assert(nes.ram[ADDR_GAME_MODE] == MODE_LEVEL_MENU);
+    /* High score entry screen sets renderMode to 2 (congratulations / name entry) */
+    assert(nes.ram[ADDR_RENDER_MODE] == 2);
+    assert(nes.ram[ADDR_P1_PLAY_STATE] == 1);
+    assert(nes.ram[ADDR_P2_PLAY_STATE] == 1);
+    assert(nes.ram[ADDR_P1_VRAM_ROW] == 0);
+    assert(nes.ram[ADDR_P2_VRAM_ROW] == 0);
+
+    /* Playfields should be cleared to TILE_EMPTY */
+    for (int i = 0; i < 256; i++) {
+        assert(nes.ram[ADDR_PLAYFIELD + i] == TILE_EMPTY);
+        assert(nes.ram[ADDR_PLAYFIELD_P2 + i] == TILE_EMPTY);
+    }
+
+    /* Top score in high score table should now be 50,000! */
+    assert(nes.ram[ADDR_HIGH_SCORE_A] == 0x05);
+    assert(nes.ram[ADDR_HIGH_SCORE_A + 1] == 0x00);
+    assert(nes.ram[ADDR_HIGH_SCORE_A + 2] == 0x00);
+
+    /* 5. 1P mode game OVER with non-qualifying score (0): renderMode remains 3 */
+    nes_init(&nes);
+    initHighScoreTable(&nes);
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_GAME_TYPE] = 0;
+    nes.ram[ADDR_P1_PLAY_STATE] = 0;
+    nes.ram[ADDR_GAME_MODE] = MODE_PLAY;
+    nes.ram[ADDR_GAME_MODE_STATE] = 3;
+    nes.ram[ADDR_P1_SCORE] = 0;
+    nes.ram[ADDR_P1_SCORE + 1] = 0;
+    nes.ram[ADDR_P1_SCORE + 2] = 0;
+    gameModeState_handleGameOver(&nes);
+    assert(nes.ram[ADDR_GAME_MODE] == MODE_LEVEL_MENU);
+    assert(nes.ram[ADDR_RENDER_MODE] == 3);
+
+    printf("  [PASS] test_game_over_and_high_score_trigger\n");
+}
+
+static void test_reset_key_combo(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* Partial combo: A + B held */
+    nes.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B;
+    nes.ram[ADDR_GAME_MODE] = MODE_PLAY;
+    nes.ram[ADDR_GAME_MODE_STATE] = 6;
+    gameModeState_checkForResetKeyCombo(&nes);
+    assert(nes.ram[ADDR_GAME_MODE] == MODE_PLAY);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 7);
+
+    /* Full soft reset combo: A + B + SELECT + START */
+    nes.ram[ADDR_HELD_BUTTONS_P1] = BUTTON_A | BUTTON_B | BUTTON_SELECT | BUTTON_START;
+    gameModeState_checkForResetKeyCombo(&nes);
+    assert(nes.ram[ADDR_GAME_MODE] == MODE_LEGAL_SCREEN);
+
+    printf("  [PASS] test_reset_key_combo\n");
+}
+
+static void test_start_button_handling_unit(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* 1. In Demo mode (Mode 5), START exits to title screen */
+    nes.ram[ADDR_GAME_MODE] = MODE_DEMO;
+    nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+    nes.ram[ADDR_GAME_MODE_STATE] = 7;
+    gameModeState_startButtonHandling(&nes);
+    assert(nes.ram[ADDR_GAME_MODE] == MODE_TITLE_SCREEN);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 8);
+
+    /* 2. In game mode (renderMode == 3), curtain falling (playState == 10): START does not pause */
+    nes_init(&nes);
+    nes.ram[ADDR_GAME_MODE] = MODE_PLAY;
+    nes.ram[ADDR_RENDER_MODE] = 3;
+    nes.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_CURTAIN_FALL;
+    nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+    nes.ram[ADDR_GAME_MODE_STATE] = 7;
+    gameModeState_startButtonHandling(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 8);
+    assert(nes.ram[ADDR_RENDER_MODE] == 3);
+
+    /* 3. In game mode, normal play (playState == 1): START pauses and unpauses cleanly */
+    nes_init(&nes);
+    nes.ram[ADDR_GAME_MODE] = MODE_PLAY;
+    nes.ram[ADDR_RENDER_MODE] = 3;
+    nes.ram[ADDR_P1_PLAY_STATE] = 1;
+    nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
+    nes.ram[ADDR_GAME_MODE_STATE] = 7;
+    gameModeState_startButtonHandling(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 8);
+    assert(nes.ram[ADDR_RENDER_MODE] == 3);
+    assert(nes.ram[ADDR_MUSIC_STAGING_NOISE_HI] == 0);
+
+    printf("  [PASS] test_start_button_handling_unit\n");
+}
+
+static void test_init_game_background_and_state(void) {
+    NES_State nes;
+    nes_init(&nes);
+    initHighScoreTable(&nes);
+
+    /* Type A background initialization */
+    nes.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+    nes.ram[ADDR_P1_START_LEVEL] = 9;
+    nes.ram[ADDR_P2_START_LEVEL] = 5;
+    nes.ram[ADDR_GAME_MODE_STATE] = 0;
+    gameModeState_initGameBackground(&nes);
+    assert(nes.ram[ADDR_P1_PLAY_STATE] == 1);
+    assert(nes.ram[ADDR_P2_PLAY_STATE] == 1);
+    assert(nes.ram[ADDR_P1_LEVEL_NUMBER] == 9);
+    assert(nes.ram[ADDR_P2_LEVEL_NUMBER] == 5);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 1);
+
+    /* Type B background initialization */
+    nes.ram[ADDR_GAME_TYPE] = GAMETYPE_B;
+    nes.ram[ADDR_START_HEIGHT] = 3;
+    nes.ram[ADDR_GAME_MODE_STATE] = 0;
+    gameModeState_initGameBackground(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 1);
+
+    /* Game state initialization */
+    nes.ram[ADDR_MUSIC_TYPE] = 1;
+    nes.ram[ADDR_RNG_SEED] = 0x34;
+    nes.ram[ADDR_RNG_SEED + 1] = 0x12;
+    nes.ram[ADDR_GAME_MODE_STATE] = 1;
+    gameModeState_initGameState(&nes);
+
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 2);
+    assert(nes.ram[ADDR_P1_TETRIMINO_X] == 5);
+    assert(nes.ram[ADDR_P2_TETRIMINO_X] == 5);
+    assert(nes.ram[ADDR_RENDER_MODE] == 3);
+    assert(nes.ram[ADDR_DEMO_BUTTONS_ADDR + 1] == 0xDD);
+    /* In Type B, lines initialized to 0x25 */
+    assert(nes.ram[ADDR_P1_LINES] == 0x25);
+    assert(nes.ram[ADDR_P2_LINES] == 0x25);
+
+    printf("  [PASS] test_init_game_background_and_state\n");
+}
+
+static void test_play_and_ending_high_score_dispatcher(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* State 6 dispatch (reset combo check) */
+    nes.ram[ADDR_GAME_MODE_STATE] = 6;
+    nes.ram[ADDR_HELD_BUTTONS_P1] = 0;
+    gameMode_playAndEndingHighScore(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 7);
+
+    /* State 8 dispatch (vblankThenRunState2) */
+    nes.ram[ADDR_GAME_MODE_STATE] = 8;
+    gameMode_playAndEndingHighScore_jmp(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 2);
+
+    printf("  [PASS] test_play_and_ending_high_score_dispatcher\n");
+}
+
 int test_state_subsystem(void) {
     printf("[RUN] Running Gameplay State Machine tests...\n");
     test_player_context_switching();
@@ -352,6 +581,12 @@ int test_state_subsystem(void) {
     test_branch_on_playstate_dispatch();
     test_playstate_spawn_next_tetrimino();
     test_gamemode_framing();
+    test_memset_page_unit();
+    test_game_over_and_high_score_trigger();
+    test_reset_key_combo();
+    test_start_button_handling_unit();
+    test_init_game_background_and_state();
+    test_play_and_ending_high_score_dispatcher();
     printf("[PASS] All Gameplay State Machine unit tests passed successfully!\n");
     return 0;
 }

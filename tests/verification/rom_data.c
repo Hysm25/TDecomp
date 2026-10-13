@@ -9,8 +9,10 @@
 #include "game/playfield.h"
 #include "game/menu.h"
 #include "game/highscore.h"
+#include "game/state.h"
 
 /* Addresses from tetris.lbl */
+#define ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH 0x86B0
 #define ADDR_ROM_LEVEL_TO_SPRITE_Y_OFFSET   0x85B2
 #define ADDR_ROM_LEVEL_TO_SPRITE_X_OFFSET   0x85BC
 #define ADDR_ROM_HEIGHT_TO_PPU_HIGH_ADDR    0x85C6
@@ -308,6 +310,13 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (28 ROM data tables verified bit-for-bit)\n");
+    /* Test 29: game_typeb_nametable_patch (44 bytes at $86B0) */
+    for (int i = 0; i < 44; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH + i));
+        assert(game_typeb_nametable_patch[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (29 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

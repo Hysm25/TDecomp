@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **46** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **67** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **125** | Pending conversion |
-| **Completion Percentage** | **26.90%** | Standalone routine completion rate |
+| **Remaining Routines** | **104** | Pending conversion |
+| **Completion Percentage** | **39.18%** | Standalone routine completion rate |
 
 ---
 
@@ -27,14 +27,14 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
-| **CORE_LOGIC** | 38 | 8 | 0 | 30 | 21.1% |
-| **GAMEPLAY_STATE** | 14 | 6 | 0 | 8 | 42.9% |
-| **MATH_BCD** | 12 | 1 | 0 | 11 | 8.3% |
+| **CORE_LOGIC** | 38 | 10 | 0 | 28 | 26.3% |
+| **GAMEPLAY_STATE** | 14 | 11 | 0 | 3 | 78.6% |
+| **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 6 | 0 | 7 | 46.2% |
-| **PLAYER_INPUT** | 4 | 3 | 0 | 1 | 75.0% |
+| **PLAYER_INPUT** | 4 | 4 | 0 | 0 | 100.0% |
 | **PLAYFIELD** | 9 | 7 | 0 | 2 | 77.8% |
-| **RENDER** | 16 | 0 | 0 | 16 | 0.0% |
+| **RENDER** | 16 | 2 | 0 | 14 | 12.5% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
 | **TETRIMINO** | 16 | 11 | 0 | 5 | 68.8% |
 
@@ -101,7 +101,7 @@
 | `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Jump Table | `VERIFIED` | Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM |
 | `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `MISSING` |  |
 | `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `MISSING` |  |
-| `add100Points` | `0x9F62` | L3945–L3956 | JSR | `MISSING` |  |
+| `add100Points` | `0x9F62` | L3945–L3956 | JSR | `VERIFIED` | Verified: Type B ending BCD bonus scoring on totalScore with carry handling differential proven against 6502 ROM |
 | `checkSelectHeldToAddPoints` | `N/A` | L4610–L4622 | Entry / Direct | `MISSING` |  |
 | `ending_initTypeBVars` | `0xA463` | L4623–L4663 | JSR | `MISSING` |  |
 | `ending_typeB` | `0xA52E` | L4739–L4748 | Entry / Direct | `MISSING` |  |
@@ -113,7 +113,7 @@
 | `selectEndingScreen` | `0xA96E` | L5197–L5225 | JSR | `MISSING` |  |
 | `LAA82` | `0xAA82` | L5351–L5355 | JSR | `MISSING` |  |
 | `addExpansionPortInputAsControllerInput` | `0xAB8B` | L5515–L5525 | JSR | `VERIFIED` | Verified: Famicom expansion port input OR-mixing verified with unit vectors |
-| `memset_page` | `0xAC6A` | L5635–L5653 | JSR | `MISSING` |  |
+| `memset_page` | `0xAC6A` | L5635–L5653 | JSR | `VERIFIED` | Verified: Multi-page memory fill from end_page down to start_page differential proven against 6502 ROM |
 | `switch_s_plus_2a` | `0xAC82` | L5654–L5683 | JSR | `MISSING` |  |
 | `setMMC1Control` | `0xACA3` | L5684–L5695 | JSR | `MISSING` |  |
 | `changeCHRBank0` | `0xACB7` | L5696–L5710 | JSR | `MISSING` |  |
@@ -139,12 +139,12 @@
 | `gameModeState_updatePlayer2` | `0x8186` | L451–L461 | Jump Table | `MISSING` |  |
 | `branchOnPlayStatePlayer1` | `0x81B2` | L474–L488 | JSR | `VERIFIED` | Verified: 12-state dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table |
 | `branchOnPlayStatePlayer2` | `0x81D9` | L495–L509 | JSR | `VERIFIED` | Verified: Player 2 state dispatcher verified with 6502 simulator |
-| `gameModeState_initGameBackground` | `0x85F0` | L1092–L1167 | Jump Table | `MISSING` |  |
-| `gameModeState_initGameBackground_finish` | `0x8693` | L1168–L1182 | Entry / Direct | `MISSING` |  |
-| `gameModeState_initGameState` | `0x86DC` | L1190–L1268 | Jump Table | `MISSING` |  |
+| `gameModeState_initGameBackground` | `0x85F0` | L1092–L1167 | Jump Table | `VERIFIED` | Verified: Game background setup, nametable patching, and top high score PPU write verified |
+| `gameModeState_initGameBackground_finish` | `0x8693` | L1168–L1182 | Entry / Direct | `VERIFIED` | Verified: Background finish setting playStates to 1, startLevel to levelNumber, and advancing gameModeState verified |
+| `gameModeState_initGameState` | `0x86DC` | L1190–L1268 | Jump Table | `VERIFIED` | Verified: Playing/demo state initialization, score/line clear, demo table pointer init, and piece selection verified |
 | `gameModeState_updateCountersAndNonPlayerState` | `0x8884` | L1441–L1464 | Jump Table | `VERIFIED` | Verified: Fall timer progression, 2P piece delay advancement, and SELECT preview toggle differential proven against 6502 ROM |
-| `gameModeState_handleGameOver` | `0x9CBF` | L3545–L3595 | Jump Table | `MISSING` |  |
-| `gameModeState_checkForResetKeyCombo` | `0x9E16` | L3756–L3770 | Jump Table | `MISSING` |  |
+| `gameModeState_handleGameOver` | `0x9CBF` | L3545–L3595 | Jump Table | `VERIFIED` | Verified: 1P vs 2P game over handler, high-score trigger, playfield wipe, and menu transition differential proven against 6502 ROM |
+| `gameModeState_checkForResetKeyCombo` | `0x9E16` | L3756–L3770 | Jump Table | `VERIFIED` | Verified: A+B+Select+Start soft reset check returning to legal screen differential proven against 6502 ROM |
 | `gameModeState_vblankThenRunState2` | `0x9E27` | L3771–L3776 | Jump Table | `VERIFIED` | Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM |
 | `playState_incrementPlayState` | `0x9E37` | L3785–L3786 | Jump Table | `VERIFIED` | Verified: PlayState incrementation differential proven against 6502 ROM |
 | `playState_bTypeGoalCheck` | `0xA3F2` | L4545–L4584 | Jump Table | `VERIFIED` | Verified: Type A vs Type B line goal check and victory tile placement verified |
@@ -154,8 +154,8 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `MISSING` |  |
-| `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `MISSING` |  |
+| `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `VERIFIED` | Verified: Mode 4/5 JSR jump target to playAndEndingHighScore differential proven against 6502 ROM |
+| `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `VERIFIED` | Verified: Master states 0..8 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table |
 | `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Jump Table | `VERIFIED` | Verified: PlayState 5 scoring, line counts, and stat update proven |
 | `showHighScores` | `0x9FF2` | L4015–L4020 | JSR | `VERIFIED` | Verified: 1P vs 2P high score nametable display dispatcher differential proven |
 | `showHighScores_real` | `0x9FFB` | L4021–L4092 | Entry / Direct | `VERIFIED` | Verified: 3-entry names, 6-digit BCD scores, and 2-digit BCD levels PPU display verified |
@@ -198,7 +198,7 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `pollControllerButtons` | `0x9D51` | L3630–L3724 | JSR | `VERIFIED` | Verified: Mode dispatch, Start button demo cancellation, and demo move playback verified |
 | `demoButtonsTable_indexIncr` | `0x9DE8` | L3725–L3734 | JSR | `VERIFIED` | Verified: 16-bit demo table address pointer increment verified with 6502 simulator |
-| `gameModeState_startButtonHandling` | `0xA37F` | L4475–L4544 | Jump Table | `MISSING` |  |
+| `gameModeState_startButtonHandling` | `0xA37F` | L4475–L4544 | Jump Table | `VERIFIED` | Verified: Demo exit to title screen and gameplay pause toggle differential proven against 6502 ROM |
 | `pollController_actualRead` | `0xAB69` | L5493–L5514 | JSR | `VERIFIED` | Verified: Serial joypad 4016/4017 strobe and 8-bit read verified with unit vectors |
 
 ### PLAYFIELD (9 Routines)
