@@ -238,5 +238,5 @@
 | Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `c24f9c0` |
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
 | Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | `ad44ed4` |
-| Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `PENDING` |
+| Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
 
