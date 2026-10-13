@@ -2,21 +2,7 @@
 
 void nes_init(NES_State *nes) {
     if (!nes) return;
-    memset(nes->ram, 0, sizeof(nes->ram));
-    nes->ppu_ctrl = 0;
-    nes->ppu_mask = 0;
-    nes->ppu_status = 0;
-    nes->ppu_scroll_x = 0;
-    nes->ppu_scroll_y = 0;
-    nes->ppu_addr = 0;
-    nes->oam_addr = 0;
-    memset(nes->apu_regs, 0, sizeof(nes->apu_regs));
-    nes->joy1_latch = 0;
-    nes->joy1_shift = 0;
-    nes->joy2_latch = 0;
-    nes->joy2_shift = 0;
-    nes->nmi_pending = false;
-    nes->irq_pending = false;
+    memset(nes, 0, sizeof(NES_State));
 }
 
 bool nes_load_rom(NES_State *nes, const uint8_t *data, size_t size) {

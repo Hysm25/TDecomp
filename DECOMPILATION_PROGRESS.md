@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **148** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **156** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **23** | Pending conversion |
-| **Current Progress** | **86.55%** | `[###########################################-------] 86.55%` |
-| **Build & Test Suite** | 14 / 14 suites passing | Unit, 96 ROM data tables, & 6502 differential CPU oracle (76 differential tests) |
+| **Remaining Routines** | **15** | Pending conversion |
+| **Current Progress** | **91.23%** | `[##############################################----] 91.23%` |
+| **Build & Test Suite** | 14 / 14 suites passing | Unit, 107 ROM data tables, & 6502 differential CPU oracle (84 differential tests) |
 
 ---
 
@@ -37,11 +37,11 @@
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 16 | 0 | 0 | **100.0%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 9 | 0 | 0 | **100.0%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 13 | 0 | 0 | **100.0%** |
-| **AUDIO** (Music Engine, SFX, APU) | 41 | 35 | 0 | 6 | **85.4%** |
+| **AUDIO** (Music Engine, SFX, APU) | 41 | 41 | 0 | 0 | **100.0%** |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 14 | 0 | 2 | **87.5%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 29 | 0 | 9 | **76.3%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 31 | 0 | 7 | **81.6%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | **0.0%** |
-| **TOTAL** | **171** | **148** | **0** | **23** | **86.55%** |
+| **TOTAL** | **171** | **156** | **0** | **15** | **91.23%** |
 
 ---
 
@@ -228,8 +228,17 @@
     - Authoritative ROM data tables verified byte-for-byte against reference ROM: 33 audio tables (96 cumulative verified tables in suite).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyToSq1Channel`, `computeSoundEffMethod`, `advanceAudioSlotFrame`, `muteAudio`, `soundEffectSlot2_makesNoSound`, `initSoundEffectShared`, `soundEffectSlot1_lockTetriminoInit`, `soundEffectSlot1Playing_stop`, `soundEffectSlot2_mediumBuzz`/`lowBuzz`, `soundEffectSlot3_donk`/`stop`, and `_updatePpuMask` (Tests 66–76).
 
-18. [ ] **Batch 15 (Music Channel Engine & Sequence Interpreter)**:
-    - Music track loader (`loadMusicTrack` at $E6D7), instruction stream parser (`updateMusicFrame`, `musicGetNextInstructionByte`), note duration & pitch envelopes, and music tracks (Tracks 1, 2, 3).
+18. [x] **Batch 15 (Music Channel Engine & Sequence Interpreter)**:
+    - Decompiled master music track loader & dispatcher: `updateMusic` ($E583), `updateMusic_noSoundJmp` ($E580), `loadMusicTrack` ($E6D7), `copyFFFFToDeref` ($E6D0), `derefNextAddr` ($E711), `storeDeref1AndContinue` ($E72A), `initSq12IfTrashedBySoundEffect` ($E735), `initSq12IfTrashedBySoundEffect_ret` ($E765).
+    - Decompiled volume envelope & duty cycle progression engine: `updateMusicFrame_setChanVol` ($E766) indexing 20-entry envelope table array `envelope_tables_EA76_EB13` ($EA76..$EB13) and `musicChanVolControlTable` ($EA4A).
+    - Decompiled frequency, period & pitch-bend vibrato modulation engine: `updateMusicFrame_setChanLo` ($E5D0), `updateMusicFrame_setChanLoOffset` ($E637), `musicLoOffset_8AndC` ($E5FA), `LE613` ($E613), `musicLoOffset_4` ($E617), `musicLoOffset_minus2_6` ($E628), `musicLoOffset_setLoAndSaveFrameCounter` ($E671), `musicLoOffset_setLo` ($E677), utilizing trill/descend tables (`loOff9To0FallTable`, `loOffSlowStartTrillTable`, `loOffTrillNeg2To2Table`, `loOffDescendToNeg11BounceToNeg9Table`).
+    - Decompiled music APU channel sub-drivers: `playNoise` ($E9EB), `playDmc` ($EA03).
+    - Decompiled sequence bytecode interpreter & channel scheduler: `musicGetNextInstructionByte` ($EA41), `updateMusicFrame` ($E840), `updateMusicFrame_updateChannel` ($E85A), `updateMusicFrame_incSlot` ($E84D), `updateMusicFrame_incSlotFromOffset` ($E84A), `updateMusicFrame_ret` ($E7FE), `updateMusicFrame_progLoadRoutine` ($E818), `updateMusicFrame_progNextRoutine` ($E7FF), `updateMusicFrame_progNextRoutine_jmp` ($E83D), `updateMusicFrame_progLoadNextScript` ($E7D9), `updateMusicFrame_progEnd` ($E7FB), `applyDurationForTri`.
+    - Authoritative ROM data tables verified byte-for-byte against reference ROM: 11 music tables (`noises_table`, `loOff9To0FallTable`, `loOffSlowStartTrillTable`, `loOffTrillNeg2To2Table`, `loOffDescendToNeg11BounceToNeg9Table`, `musicChanVolControlTable`, `envelope_tables_EA76_EB13`, `noteToWaveTable`, `noteDurationTable`, `musicDataTableIndex`, `musicDataTable`) bringing cumulative verified tables to 107.
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `initSq12IfTrashedBySoundEffect`, `updateMusic_noSoundJmp`, `updateMusicFrame_setChanVol`, `updateMusicFrame_setChanLo`, `playNoise`, `playDmc`, `musicGetNextInstructionByte`, and `loadMusicTrack` (Tests 77–84).
+
+19. [ ] **Batch 16 (System Boot, MMC1 Mapper, NMI Framing & Reset Engine)**:
+    - Master hardware reset & bootstrap (`reset` at $FF00), RAM clearing (`initRam` at $8000, `initRamContinued` at $805A), VBlank timing waits (`sleep_for_14_vblanks` at $A44D, `sleep_for_a_vblanks` at $A459), MMC1 bankswitching & register control (`setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`), PPU bulk copy streaming (`bulkCopyToPpu`, `memset_ppu_page_and_more`), and jump table indirect driver (`switch_s_plus_2a`).
 
 ---
 
@@ -253,3 +262,4 @@
 | Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | `ad44ed4` |
 | Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
 | Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
+| Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `PENDING` |

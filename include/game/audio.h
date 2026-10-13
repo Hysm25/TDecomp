@@ -159,6 +159,50 @@ void updateAudioWaitForNmiAndDisablePpuRendering(NES_State *nes); /* $AA52 */
 void _updatePpuMask(NES_State *nes, uint8_t mask);                /* $AA59 */
 void updateAudioWaitForNmiAndEnablePpuRendering(NES_State *nes);  /* $AA5F */
 
+/* Music Subsystem & Bytecode Sequence Interpreter Routines ($E580 - $EA45) */
+void updateMusic_noSoundJmp(NES_State *nes);                       /* $E580 */
+void updateMusic(NES_State *nes);                                 /* $E583 */
+void updateMusicFrame_setChanLo(NES_State *nes, uint8_t chan);    /* $E5D0 */
+void musicLoOffset_8AndC(NES_State *nes, uint8_t chan);           /* $E5FA */
+void LE613(NES_State *nes, uint8_t chan, uint8_t offset_a);       /* $E613 */
+void musicLoOffset_4(NES_State *nes, uint8_t chan);               /* $E617 */
+void musicLoOffset_minus2_6(NES_State *nes, uint8_t chan);        /* $E628 */
+void updateMusicFrame_setChanLoOffset(NES_State *nes, uint8_t chan); /* $E637 */
+void musicLoOffset_setLoAndSaveFrameCounter(NES_State *nes, uint8_t chan, uint8_t y_counter, uint8_t a_val); /* $E671 */
+void musicLoOffset_setLo(NES_State *nes, uint8_t chan, uint8_t a_val); /* $E677 */
+void copyFFFFToDeref(NES_State *nes, uint8_t chan2);              /* $E66E */
+void loadMusicTrack(NES_State *nes);                              /* $E6D7 */
+void derefNextAddr(NES_State *nes);                               /* $E711 */
+void storeDeref1AndContinue(NES_State *nes, uint8_t chan2, uint8_t hi_byte); /* $E72A */
+void initSq12IfTrashedBySoundEffect(NES_State *nes);              /* $E735 */
+void updateMusicFrame_setChanVol(NES_State *nes, uint8_t chan);   /* $E766 */
+void updateMusicFrame_progLoadNextScript(NES_State *nes, uint8_t chan); /* $E7D9 */
+void updateMusicFrame_progEnd(NES_State *nes);                    /* $E7FB */
+void updateMusicFrame_ret(NES_State *nes);                        /* $E7FE */
+void updateMusicFrame_progNextRoutine(NES_State *nes, uint8_t chan); /* $E7FF */
+void updateMusicFrame_progLoadRoutine(NES_State *nes, uint8_t chan, uint8_t offset_y); /* $E818 */
+void updateMusicFrame_progNextRoutine_jmp(NES_State *nes, uint8_t chan); /* $E83D */
+void updateMusicFrame(NES_State *nes);                            /* $E840 */
+void updateMusicFrame_incSlotFromOffset(NES_State *nes, uint8_t chan2); /* $E84A */
+void updateMusicFrame_incSlot(NES_State *nes, uint8_t chan);      /* $E84D */
+void updateMusicFrame_updateChannel(NES_State *nes, uint8_t chan); /* $E85A */
+void playNoise(NES_State *nes, uint8_t note_masked);              /* $E9EB */
+void playDmc(NES_State *nes, uint8_t note_val);                   /* $EA03 */
+uint8_t musicGetNextInstructionByte(NES_State *nes, uint8_t chan); /* $EA41 */
+
+/* Music ROM Data Tables ($E5AB - $EC90) */
+extern const uint8_t noises_table[35];
+extern const uint8_t loOff9To0FallTable[12];
+extern const uint8_t loOffSlowStartTrillTable[33];
+extern const uint8_t loOffTrillNeg2To2Table[10];
+extern const uint8_t loOffDescendToNeg11BounceToNeg9Table[16];
+extern const uint8_t musicChanVolControlTable[44];
+extern const uint8_t envelope_tables_EA76_EB13[157];
+extern const uint8_t noteToWaveTable[156];
+extern const uint8_t noteDurationTable[116];
+extern const uint8_t musicDataTableIndex[10];
+extern const uint8_t musicDataTable[100];
+
 #ifdef __cplusplus
 }
 #endif

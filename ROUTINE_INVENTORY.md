@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **148** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **156** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **23** | Pending conversion |
-| **Completion Percentage** | **86.55%** | Standalone routine completion rate |
+| **Remaining Routines** | **15** | Pending conversion |
+| **Completion Percentage** | **91.23%** | Standalone routine completion rate |
 
 ---
 
@@ -26,8 +26,8 @@
 
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **AUDIO** | 41 | 35 | 0 | 6 | 85.4% |
-| **CORE_LOGIC** | 38 | 29 | 0 | 9 | 76.3% |
+| **AUDIO** | 41 | 41 | 0 | 0 | 100.0% |
+| **CORE_LOGIC** | 38 | 31 | 0 | 7 | 81.6% |
 | **GAMEPLAY_STATE** | 14 | 14 | 0 | 0 | 100.0% |
 | **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
@@ -81,12 +81,12 @@
 | `soundEffectSlot3Playing_advance` | `0xE53B` | L6573–L6575 | Jump Table | `VERIFIED` | Verified: Slot 3 frame advance and stop check |
 | `updateSoundEffectSlot3_apu` | `0xE551` | L6586–L6599 | Jump Table | `VERIFIED` | Verified: Slot 3 APU triangle period progression from trilo_table |
 | `soundEffectSlot3_fallingAlien` | `0xE56E` | L6600–L6607 | Jump Table | `VERIFIED` | Verified: Falling alien triangle sound effect initialization |
-| `updateMusic_noSoundJmp` | `0xE580` | L6610–L6612 | Entry / Direct | `MISSING` |  |
-| `updateMusic` | `0xE583` | L6613–L6635 | JSR | `MISSING` |  |
-| `updateMusicFrame_setChanLo` | `0xE5D0` | L6643–L6664 | JSR | `MISSING` |  |
-| `initSq12IfTrashedBySoundEffect` | `0xE735` | L6831–L6849 | JSR | `MISSING` |  |
-| `updateMusicFrame_setChanVol` | `0xE766` | L6854–L6921 | JSR | `MISSING` |  |
-| `musicGetNextInstructionByte` | `0xEA41` | L7293–L7299 | JSR | `MISSING` |  |
+| `updateMusic_noSoundJmp` | `0xE580` | L6610–L6612 | Entry / Direct | `VERIFIED` | Verified: Silence audio and clear music channel playback differential proven against 6502 ROM (Test 78) |
+| `updateMusic` | `0xE583` | L6613–L6635 | JSR | `VERIFIED` | Verified: Master music track dispatcher branching on track 0, $FF, or 1..3 with loadMusicTrack and updateMusicFrame |
+| `updateMusicFrame_setChanLo` | `0xE5D0` | L6643–L6664 | JSR | `VERIFIED` | Verified: Square/Triangle pitch bend and frequency modulation driver differential proven against 6502 ROM (Test 80) |
+| `initSq12IfTrashedBySoundEffect` | `0xE735` | L6831–L6849 | JSR | `VERIFIED` | Verified: Restore Square 1 & 2 staging registers if trashed by SFX differential proven against 6502 ROM (Test 77) |
+| `updateMusicFrame_setChanVol` | `0xE766` | L6854–L6921 | JSR | `VERIFIED` | Verified: Envelope and duty cycle volume progression driver differential proven against 6502 ROM (Test 79) |
+| `musicGetNextInstructionByte` | `0xEA41` | L7293–L7299 | JSR | `VERIFIED` | Verified: Bytecode instruction fetch and program counter increment differential proven against 6502 ROM (Test 83) |
 
 ### CORE_LOGIC (38 Routines)
 
@@ -128,8 +128,8 @@
 | `LE33B` | `0xE33B` | L6312–L6320 | JSR | `VERIFIED` | Verified: Sound effect priority check protecting active Tetris/line/level sounds |
 | `LE46C` | `0xE46C` | L6480–L6481 | Entry / Direct | `VERIFIED` | Verified: Jump to soundEffectSlot1Playing_stop |
 | `LE4E9` | `0xE4E9` | L6535–L6536 | Entry / Direct | `VERIFIED` | Verified: Jump to soundEffectSlot1Playing_stop |
-| `playNoise` | `0xE9EB` | L7244–L7254 | JSR | `MISSING` |  |
-| `playDmc` | `0xEA03` | L7255–L7292 | JSR | `MISSING` |  |
+| `playNoise` | `0xE9EB` | L7244–L7254 | JSR | `VERIFIED` | Verified: Drum and percussion noise channel trigger differential proven against 6502 ROM (Test 81) |
+| `playDmc` | `0xEA03` | L7255–L7292 | JSR | `VERIFIED` | Verified: Bass DMC sample playback configuration differential proven against 6502 ROM (Test 82) |
 
 ### GAMEPLAY_STATE (14 Routines)
 
@@ -371,19 +371,19 @@ Total alternate entry points identified: **111**
 | `LE51B` | `0xE51B` | L6556–L6567 | `soundEffectSlot2_mediumBuzz` | Internal | `VERIFIED` |
 | `soundEffectSlot3Playing_stop` | `0xE540` | L6576–L6582 | `soundEffectSlot3Playing_advance` | Internal | `VERIFIED` |
 | `soundEffectSlot3Playing_ret` | `0xE550` | L6583–L6585 | `soundEffectSlot3Playing_advance` | Internal | `VERIFIED` |
-| `LE613` | `0xE613` | L6680–L6683 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
-| `musicLoOffset_minus2_6` | `0xE628` | L6696–L6705 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
-| `updateMusicFrame_setChanLoOffset` | `0xE637` | L6706–L6739 | `updateMusicFrame_setChanLo` | Yes | `MISSING` |
-| `musicLoOffset_setLoAndSaveFrameCounter` | `0xE671` | L6740–L6744 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
-| `musicLoOffset_setLo` | `0xE677` | L6745–L6759 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
-| `loadMusicTrack` | `0xE6D7` | L6780–L6809 | Shared Context | Yes | `MISSING` |
-| `derefNextAddr` | `0xE711` | L6810–L6821 | Shared Context | Internal | `MISSING` |
-| `storeDeref1AndContinue` | `0xE72A` | L6822–L6830 | Shared Context | Internal | `MISSING` |
-| `initSq12IfTrashedBySoundEffect_ret` | `0xE765` | L6850–L6853 | `initSq12IfTrashedBySoundEffect` | Internal | `MISSING` |
-| `updateMusicFrame_progLoadNextScript` | `0xE7D9` | L6922–L6940 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_ret` | `0xE7FE` | L6943–L6945 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_progLoadRoutine` | `0xE818` | L6961–L6982 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_progNextRoutine_jmp` | `0xE83D` | L6983–L6985 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_incSlotFromOffset` | `0xE84A` | L6993–L6997 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_incSlot` | `0xE84D` | L6998–L7007 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
-| `updateMusicFrame_updateChannel` | `0xE85A` | L7008–L7243 | `updateMusicFrame_setChanVol` | Internal | `MISSING` |
+| `LE613` | `0xE613` | L6680–L6683 | `updateMusicFrame_setChanLo` | Internal | `VERIFIED` |
+| `musicLoOffset_minus2_6` | `0xE628` | L6696–L6705 | `updateMusicFrame_setChanLo` | Internal | `VERIFIED` |
+| `updateMusicFrame_setChanLoOffset` | `0xE637` | L6706–L6739 | `updateMusicFrame_setChanLo` | Yes | `VERIFIED` |
+| `musicLoOffset_setLoAndSaveFrameCounter` | `0xE671` | L6740–L6744 | `updateMusicFrame_setChanLo` | Internal | `VERIFIED` |
+| `musicLoOffset_setLo` | `0xE677` | L6745–L6759 | `updateMusicFrame_setChanLo` | Internal | `VERIFIED` |
+| `loadMusicTrack` | `0xE6D7` | L6780–L6809 | Shared Context | Yes | `VERIFIED` |
+| `derefNextAddr` | `0xE711` | L6810–L6821 | Shared Context | Internal | `VERIFIED` |
+| `storeDeref1AndContinue` | `0xE72A` | L6822–L6830 | Shared Context | Internal | `VERIFIED` |
+| `initSq12IfTrashedBySoundEffect_ret` | `0xE765` | L6850–L6853 | `initSq12IfTrashedBySoundEffect` | Internal | `VERIFIED` |
+| `updateMusicFrame_progLoadNextScript` | `0xE7D9` | L6922–L6940 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_ret` | `0xE7FE` | L6943–L6945 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_progLoadRoutine` | `0xE818` | L6961–L6982 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_progNextRoutine_jmp` | `0xE83D` | L6983–L6985 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_incSlotFromOffset` | `0xE84A` | L6993–L6997 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_incSlot` | `0xE84D` | L6998–L7007 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |
+| `updateMusicFrame_updateChannel` | `0xE85A` | L7008–L7243 | `updateMusicFrame_setChanVol` | Internal | `VERIFIED` |

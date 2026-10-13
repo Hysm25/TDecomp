@@ -59,6 +59,140 @@ const uint8_t trilo_table[4] = {                          /* $E57C */
     0x72, 0x74, 0x77, 0x00
 };
 
+const uint8_t noises_table[35] = {                        /* $E5AB */
+    0x00, 0x10, 0x01, 0x18, 0x00, 0x01, 0x38, 0x00, 0x03, 0x40, 0x00, 0x06,
+    0x58, 0x00, 0x0A, 0x38, 0x02, 0x04, 0x40, 0x13, 0x05, 0x40, 0x14, 0x0A,
+    0x40, 0x14, 0x08, 0x40, 0x12, 0x0E, 0x08, 0x16, 0x0E, 0x28, 0x16
+};
+
+const uint8_t loOff9To0FallTable[12] = {                  /* $E689 */
+    0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x02, 0x01, 0x01, 0x00
+};
+
+const uint8_t loOffSlowStartTrillTable[33] = {            /* $E695 */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00,
+    0x00, 0x01, 0x01, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00
+};
+
+const uint8_t loOffTrillNeg2To2Table[10] = {              /* $E6B6 */
+    0x00, 0x01, 0x01, 0x02, 0x01, 0x00, 0xFF, 0xFF, 0xFE, 0xFF
+};
+
+const uint8_t loOffDescendToNeg11BounceToNeg9Table[16] = { /* $E6C0 */
+    0x00, 0xFF, 0xFE, 0xFD, 0xFC, 0xFB, 0xFA, 0xF9, 0xF8, 0xF7, 0xF6, 0xF5,
+    0xF6, 0xF7, 0xF6, 0xF5
+};
+
+const uint8_t musicChanVolControlTable[44] = {            /* $EA4A */
+    0x76, 0xEA, 0x82, 0xEA, 0x8B, 0xEA, 0x91, 0xEA, 0x9A, 0xEA, 0xA2, 0xEA,
+    0xA5, 0xEA, 0xA8, 0xEA, 0xAC, 0xEA, 0xBA, 0xEA, 0xC7, 0xEA, 0xD4, 0xEA,
+    0xDE, 0xEA, 0xE8, 0xEA, 0xF2, 0xEA, 0xF7, 0xEA, 0xFC, 0xEA, 0x01, 0xEB,
+    0x05, 0xEB, 0x0A, 0xEB, 0x0D, 0xEB, 0x10, 0xEB
+};
+
+const uint8_t envelope_tables_EA76_EB13[157] = {          /* $EA76 */
+    0x46, 0x89, 0x87, 0x76, 0x66, 0x55, 0x44, 0x33, 0x22, 0x21, 0x11, 0xF0,
+    0x86, 0x55, 0x44, 0x44, 0x31, 0x11, 0x11, 0x11, 0xF0, 0x54, 0x43, 0x33,
+    0x22, 0x11, 0xF0, 0x23, 0x45, 0x77, 0x66, 0x55, 0x44, 0x44, 0x44, 0xFF,
+    0x32, 0x22, 0x22, 0x22, 0x22, 0x22, 0x22, 0xFF, 0x99, 0x81, 0xFF, 0x58,
+    0x71, 0xFF, 0xE7, 0x99, 0x81, 0xFF, 0xA8, 0x66, 0x55, 0x54, 0x43, 0x43,
+    0x32, 0x22, 0x22, 0x21, 0x11, 0x11, 0x11, 0xF0, 0x97, 0x65, 0x44, 0x33,
+    0x33, 0x33, 0x22, 0x22, 0x11, 0x11, 0x11, 0x11, 0xF0, 0x65, 0x44, 0x44,
+    0x33, 0x22, 0x22, 0x11, 0x11, 0x11, 0x11, 0x11, 0x11, 0xF0, 0x44, 0x33,
+    0x22, 0x22, 0x11, 0x11, 0x11, 0x11, 0x11, 0xF0, 0x22, 0x22, 0x11, 0x11,
+    0x11, 0x11, 0x11, 0x11, 0x11, 0xF0, 0x97, 0x65, 0x32, 0x43, 0x21, 0x11,
+    0x32, 0x21, 0x11, 0xFF, 0xD8, 0x76, 0x54, 0x32, 0xFF, 0xB8, 0x76, 0x53,
+    0x21, 0xFF, 0x85, 0x43, 0x21, 0x11, 0xFF, 0x53, 0x22, 0x11, 0xFF, 0xEB,
+    0x97, 0x53, 0x21, 0xFF, 0xA9, 0x91, 0xF0, 0x85, 0x51, 0xF0, 0x63, 0x31,
+    0xF0
+};
+
+const uint8_t noteToWaveTable[156] = {                    /* $EB13 */
+    0x07, 0xF0, 0x00, 0x00, 0x06, 0xAE, 0x06, 0x4E, 0x05, 0xF3, 0x05, 0x9E,
+    0x05, 0x4D, 0x05, 0x01, 0x04, 0xB9, 0x04, 0x75, 0x04, 0x35, 0x03, 0xF8,
+    0x03, 0xBF, 0x03, 0x89, 0x03, 0x57, 0x03, 0x27, 0x02, 0xF9, 0x02, 0xCF,
+    0x02, 0xA6, 0x02, 0x80, 0x02, 0x5C, 0x02, 0x3A, 0x02, 0x1A, 0x01, 0xFC,
+    0x01, 0xDF, 0x01, 0xC4, 0x01, 0xAB, 0x01, 0x93, 0x01, 0x7C, 0x01, 0x67,
+    0x01, 0x52, 0x01, 0x3F, 0x01, 0x2D, 0x01, 0x1C, 0x01, 0x0C, 0x00, 0xFD,
+    0x00, 0xEE, 0x00, 0xE1, 0x00, 0xD4, 0x00, 0xC8, 0x00, 0xBD, 0x00, 0xB2,
+    0x00, 0xA8, 0x00, 0x9F, 0x00, 0x96, 0x00, 0x8D, 0x00, 0x85, 0x00, 0x7E,
+    0x00, 0x76, 0x00, 0x70, 0x00, 0x69, 0x00, 0x63, 0x00, 0x5E, 0x00, 0x58,
+    0x00, 0x53, 0x00, 0x4F, 0x00, 0x4A, 0x00, 0x46, 0x00, 0x42, 0x00, 0x3E,
+    0x00, 0x3A, 0x00, 0x37, 0x00, 0x34, 0x00, 0x31, 0x00, 0x2E, 0x00, 0x2B,
+    0x00, 0x29, 0x00, 0x27, 0x00, 0x01, 0x00, 0x24, 0x00, 0x22, 0x00, 0x20,
+    0x00, 0x1E, 0x00, 0x1C, 0x00, 0x1A, 0x00, 0x0A, 0x00, 0x10, 0x00, 0x19
+};
+
+const uint8_t noteDurationTable[116] = {                  /* $EBAF */
+    0x03, 0x06, 0x0C, 0x18, 0x30, 0x12, 0x24, 0x09, 0x08, 0x04, 0x02, 0x01,
+    0x04, 0x08, 0x10, 0x20, 0x40, 0x18, 0x30, 0x0C, 0x0A, 0x05, 0x02, 0x01,
+    0x05, 0x0A, 0x14, 0x28, 0x50, 0x1E, 0x3C, 0x0F, 0x0D, 0x06, 0x02, 0x01,
+    0x06, 0x0C, 0x18, 0x30, 0x60, 0x24, 0x48, 0x12, 0x10, 0x08, 0x03, 0x01,
+    0x04, 0x02, 0x00, 0x90, 0x07, 0x0E, 0x1C, 0x38, 0x70, 0x2A, 0x54, 0x15,
+    0x12, 0x09, 0x03, 0x01, 0x02, 0x08, 0x10, 0x20, 0x40, 0x80, 0x30, 0x60,
+    0x18, 0x15, 0x0A, 0x04, 0x01, 0x02, 0xC0, 0x09, 0x12, 0x24, 0x48, 0x90,
+    0x36, 0x6C, 0x1B, 0x18, 0x0A, 0x14, 0x28, 0x50, 0xA0, 0x3C, 0x78, 0x1E,
+    0x1A, 0x0D, 0x05, 0x01, 0x02, 0x17, 0x0B, 0x16, 0x2C, 0x58, 0xB0, 0x42,
+    0x84, 0x21, 0x1D, 0x0E, 0x05, 0x01, 0x02, 0x17
+};
+
+const uint8_t musicDataTableIndex[10] = {                 /* $EC23 */
+    0x00, 0x0A, 0x14, 0x1E, 0x28, 0x32, 0x3C, 0x46, 0x50, 0x5A
+};
+
+const uint8_t musicDataTable[100] = {                     /* $EC2D */
+    0x0A, 0x24, 0xF1, 0xEC, 0xF5, 0xEC, 0xF7, 0xEC, 0xF9, 0xEC, 0x83, 0x00,
+    0x91, 0xEC, 0x95, 0xEC, 0x97, 0xEC, 0x99, 0xEC, 0x81, 0x24, 0xBF, 0xEE,
+    0xC9, 0xEE, 0xD3, 0xEE, 0xDD, 0xEE, 0x83, 0x24, 0xC2, 0xF5, 0xD0, 0xF5,
+    0xDE, 0xF5, 0xEC, 0xF5, 0x81, 0x24, 0xB1, 0xF2, 0xB9, 0xF2, 0xBF, 0xF2,
+    0xFF, 0xFF, 0x81, 0x00, 0xBF, 0xEE, 0xC9, 0xEE, 0xD3, 0xEE, 0xDD, 0xEE,
+    0x83, 0x0C, 0xC2, 0xF5, 0xD0, 0xF5, 0xDE, 0xF5, 0xEC, 0xF5, 0x81, 0x0C,
+    0xB1, 0xF2, 0xB9, 0xF2, 0xBF, 0xF2, 0xFF, 0xFF, 0x00, 0x18, 0xA4, 0xF3,
+    0xAA, 0xF3, 0xB0, 0xF3, 0xB6, 0xF3, 0x8F, 0x24, 0x9E, 0xF8, 0xAA, 0xF8,
+    0xB6, 0xF8, 0xC2, 0xF8
+};
+
+static inline uint8_t read_audio_rom_byte(const NES_State *nes, uint16_t addr) {
+    if (nes && (nes->prg_rom[0x0000] != 0 || nes->prg_rom[0x0001] != 0 || nes->prg_rom[0x6580] != 0)) {
+        return nes_read8(nes, addr);
+    }
+    if (addr >= 0xE5AB && addr < 0xE5AB + sizeof(noises_table)) {
+        return noises_table[addr - 0xE5AB];
+    }
+    if (addr >= 0xE689 && addr < 0xE689 + sizeof(loOff9To0FallTable)) {
+        return loOff9To0FallTable[addr - 0xE689];
+    }
+    if (addr >= 0xE695 && addr < 0xE695 + sizeof(loOffSlowStartTrillTable)) {
+        return loOffSlowStartTrillTable[addr - 0xE695];
+    }
+    if (addr >= 0xE6B6 && addr < 0xE6B6 + sizeof(loOffTrillNeg2To2Table)) {
+        return loOffTrillNeg2To2Table[addr - 0xE6B6];
+    }
+    if (addr >= 0xE6C0 && addr < 0xE6C0 + sizeof(loOffDescendToNeg11BounceToNeg9Table)) {
+        return loOffDescendToNeg11BounceToNeg9Table[addr - 0xE6C0];
+    }
+    if (addr >= 0xEA4A && addr < 0xEA4A + sizeof(musicChanVolControlTable)) {
+        return musicChanVolControlTable[addr - 0xEA4A];
+    }
+    if (addr >= 0xEA76 && addr < 0xEA76 + sizeof(envelope_tables_EA76_EB13)) {
+        return envelope_tables_EA76_EB13[addr - 0xEA76];
+    }
+    if (addr >= 0xEB13 && addr < 0xEB13 + sizeof(noteToWaveTable)) {
+        return noteToWaveTable[addr - 0xEB13];
+    }
+    if (addr >= 0xEBAF && addr < 0xEBAF + sizeof(noteDurationTable)) {
+        return noteDurationTable[addr - 0xEBAF];
+    }
+    if (addr >= 0xEC23 && addr < 0xEC23 + sizeof(musicDataTableIndex)) {
+        return musicDataTableIndex[addr - 0xEC23];
+    }
+    if (addr >= 0xEC2D && addr < 0xEC2D + sizeof(musicDataTable)) {
+        return musicDataTable[addr - 0xEC2D];
+    }
+    return nes_read8(nes, addr);
+}
+
 /* 16-bit address dispatch tables in PRG chunk 2 */
 const uint16_t soundEffectSlot0Init_table[3] = {          /* $E009 */
     0xE2DD, 0xE2F8, 0xE2CC
@@ -401,6 +535,7 @@ void updateAudio(NES_State *nes) {
     updateSoundEffectSlot0(nes);
     updateSoundEffectSlot3(nes);
     updateSoundEffectSlot1(nes);
+    updateMusic(nes);
 
     for (int8_t x = 6; x > 0; x--) {
         nes->ram[0x06EF + x] = 0;
@@ -825,4 +960,524 @@ void updateAudioWaitForNmiAndEnablePpuRendering(NES_State *nes) {
     copyCurrentScrollAndCtrlToPPU(nes);
     uint8_t mask = (uint8_t)(nes->ram[ADDR_CURRENT_PPU_MASK] | 0x1E);
     _updatePpuMask(nes, mask);
+}
+
+/*
+ * Music Subsystem & Bytecode Sequence Interpreter Routines ($E580 - $EA45)
+ */
+
+void updateMusic_noSoundJmp(NES_State *nes) {
+    if (!nes) return;
+    soundEffectSlot2_makesNoSound(nes);
+}
+
+void updateMusic(NES_State *nes) {
+    if (!nes) return;
+    uint8_t track = nes->ram[ADDR_MUSIC_TRACK];
+    if (track == 0xFF) {
+        updateMusic_noSoundJmp(nes);
+        return;
+    }
+    if (track == 0x00) {
+        if (nes->ram[ADDR_CURRENTLY_PLAYING_MUSIC_TRACK] != 0) {
+            updateMusicFrame(nes);
+        }
+        return;
+    }
+    nes->ram[ADDR_CURRENT_AUDIO_SLOT] = track;
+    nes->ram[ADDR_MUSIC_TRACK_DEC] = (uint8_t)(track - 1);
+    nes->ram[ADDR_MUSIC_STAGING_SQ1_SWEEP] = 0x7F;
+    nes->ram[ADDR_MUSIC_STAGING_SQ1_SWEEP + 1] = 0x7F;
+    loadMusicTrack(nes);
+    updateMusicFrame(nes);
+}
+
+void copyFFFFToDeref(NES_State *nes, uint8_t chan2) {
+    if (!nes) return;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + chan2] = 0xFF;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + chan2 + 1] = 0xFF;
+}
+
+void storeDeref1AndContinue(NES_State *nes, uint8_t chan2, uint8_t hi_byte) {
+    if (!nes) return;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + chan2 + 1] = hi_byte;
+}
+
+void derefNextAddr(NES_State *nes) {
+    if (!nes) return;
+    for (uint8_t x = 0; x < 8; x += 2) {
+        uint8_t lo = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x];
+        uint8_t hi = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x + 1];
+        nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] = lo;
+        nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] = hi;
+        if (hi == 0xFF) {
+            copyFFFFToDeref(nes, x);
+            continue;
+        }
+        uint16_t ptr = (uint16_t)(lo | (hi << 8));
+        uint8_t y_off = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF]; /* channel 0 off */
+        nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x] = read_audio_rom_byte(nes, (uint16_t)(ptr + y_off));
+        storeDeref1AndContinue(nes, x, read_audio_rom_byte(nes, (uint16_t)(ptr + y_off + 1)));
+    }
+}
+
+void loadMusicTrack(NES_State *nes) {
+    if (!nes) return;
+    muteAudioAndClearTriControl(nes);
+    nes->ram[ADDR_CURRENTLY_PLAYING_MUSIC_TRACK] = nes->ram[ADDR_CURRENT_AUDIO_SLOT];
+    uint8_t dec = nes->ram[ADDR_MUSIC_TRACK_DEC];
+    uint8_t table_idx = (dec < sizeof(musicDataTableIndex)) ? musicDataTableIndex[dec] : (uint8_t)(dec * 10);
+    for (uint8_t x = 0; x < 10; x++) {
+        nes->ram[ADDR_MUSIC_DATA_NOTE_TABLE_OFFSET + x] = read_audio_rom_byte(nes, (uint16_t)(0xEC2D + table_idx + x));
+    }
+    nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING] = 1;
+    nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + 1] = 1;
+    nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + 2] = 1;
+    nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + 3] = 1;
+    nes->ram[ADDR_MUSIC_UNUSED2] = 0;
+    for (uint8_t y = 8; y > 0; y--) {
+        nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + 7 + y] = 0;
+    }
+    derefNextAddr(nes);
+}
+
+void initSq12IfTrashedBySoundEffect(NES_State *nes) {
+    if (!nes) return;
+    uint8_t reset = nes->ram[ADDR_RESET_SQ12_FOR_MUSIC];
+    if (reset == 0) return;
+    if (reset != 1) {
+        nes_write8(nes, REG_SQ2_SWEEP, 0x7F);
+        nes_write8(nes, REG_SQ2_LO, nes->ram[ADDR_MUSIC_STAGING_SQ2_LO]);
+        nes_write8(nes, REG_SQ2_HI, nes->ram[ADDR_MUSIC_STAGING_SQ2_HI]);
+    }
+    nes_write8(nes, REG_SQ1_SWEEP, 0x7F);
+    nes_write8(nes, REG_SQ1_LO, nes->ram[ADDR_MUSIC_STAGING_SQ1_LO]);
+    nes_write8(nes, REG_SQ1_HI, nes->ram[ADDR_MUSIC_STAGING_SQ1_HI]);
+    nes->ram[ADDR_RESET_SQ12_FOR_MUSIC] = 0;
+}
+
+void updateMusicFrame_setChanVol(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 2) return;
+    uint8_t ctrl = (uint8_t)(nes->ram[ADDR_MUSIC_CHAN_CONTROL + chan] & 0x1F);
+    if (ctrl == 0) return;
+    nes->ram[ADDR_AUDIOTMP2] = ctrl;
+    uint8_t chan_off = nes->ram[ADDR_MUSIC_CHAN_OFFSET];
+    if (nes->ram[ADDR_MUSIC_CHAN_NOTE + chan] == 0x02) {
+        /* Rest */
+        nes->ram[ADDR_MUSIC_CHAN_VOL_FRAME_COUNTER + chan]++;
+        if (nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] == 0) {
+            nes_write8(nes, (uint16_t)(REG_SQ1_VOL + chan_off), 0x10);
+        }
+        return;
+    }
+    uint8_t table_y = (uint8_t)((ctrl - 1) * 2);
+    uint16_t env_addr = (uint16_t)(read_audio_rom_byte(nes, (uint16_t)(0xEA4A + table_y)) |
+                                  (read_audio_rom_byte(nes, (uint16_t)(0xEA4A + table_y + 1)) << 8));
+    uint8_t frame = nes->ram[ADDR_MUSIC_CHAN_VOL_FRAME_COUNTER + chan];
+    uint8_t val = read_audio_rom_byte(nes, (uint16_t)(env_addr + (frame >> 1)));
+    if (val == 0xFF) {
+        uint8_t vol = nes->ram[ADDR_MUSIC_CHAN_VOLUME + chan];
+        if (nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] == 0) {
+            nes_write8(nes, (uint16_t)(REG_SQ1_VOL + chan_off), vol);
+        }
+        return;
+    }
+    if (val == 0xF0) {
+        if (nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] == 0) {
+            nes_write8(nes, (uint16_t)(REG_SQ1_VOL + chan_off), 0x10);
+        }
+        return;
+    }
+    uint8_t nibble = (frame & 1) ? (val & 0x0F) : ((val >> 4) & 0x0F);
+    nes->ram[ADDR_AUDIOTMP1] = nibble;
+    uint8_t vol = (uint8_t)((nes->ram[ADDR_MUSIC_CHAN_VOLUME + chan] & 0xF0) | nibble);
+    nes->ram[ADDR_MUSIC_CHAN_VOL_FRAME_COUNTER + chan]++;
+    if (nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] == 0) {
+        nes_write8(nes, (uint16_t)(REG_SQ1_VOL + chan_off), vol);
+    }
+}
+
+void musicLoOffset_setLo(NES_State *nes, uint8_t chan, uint8_t a_val) {
+    if (!nes || chan >= 4) return;
+    if (nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] != 0) return;
+    uint8_t res = (uint8_t)(a_val + nes->ram[ADDR_AUDIOTMP2]);
+    uint8_t chan_off = nes->ram[ADDR_MUSIC_CHAN_OFFSET];
+    nes_write8(nes, (uint16_t)(REG_SQ1_LO + chan_off), res);
+}
+
+void musicLoOffset_setLoAndSaveFrameCounter(NES_State *nes, uint8_t chan, uint8_t y_counter, uint8_t a_val) {
+    if (!nes || chan >= 4) return;
+    nes->ram[ADDR_MUSIC_CHAN_LO_FRAME_COUNTER + chan] = y_counter;
+    musicLoOffset_setLo(nes, chan, a_val);
+}
+
+void LE613(NES_State *nes, uint8_t chan, uint8_t offset_a) {
+    if (!nes || chan >= 4) return;
+    uint8_t y = nes->ram[ADDR_AUDIOTMP3];
+    if (y >= 0x31) y = 0x27;
+    musicLoOffset_setLoAndSaveFrameCounter(nes, chan, y, offset_a);
+}
+
+void musicLoOffset_8AndC(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t y = nes->ram[ADDR_AUDIOTMP3];
+    if (y >= 0x31) y = 0x27;
+    uint8_t a = read_audio_rom_byte(nes, (uint16_t)(0xE689 + y));
+    if (nes->ram[ADDR_MUSIC_CHAN_NOTE + chan] == 0x46) {
+        musicLoOffset_setLoAndSaveFrameCounter(nes, chan, y, 0x00);
+    } else {
+        LE613(nes, chan, a);
+    }
+}
+
+void musicLoOffset_4(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t y = nes->ram[ADDR_AUDIOTMP3];
+    if (y < 0x10) {
+        uint8_t a = read_audio_rom_byte(nes, (uint16_t)(0xE6C0 + y));
+        musicLoOffset_setLo(nes, chan, a);
+    } else {
+        musicLoOffset_setLo(nes, chan, 0xF6);
+    }
+}
+
+void musicLoOffset_minus2_6(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    musicLoOffset_setLo(nes, chan, 0xFE);
+}
+
+void updateMusicFrame_setChanLoOffset(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t frame = nes->ram[ADDR_MUSIC_CHAN_LO_FRAME_COUNTER + chan];
+    nes->ram[ADDR_AUDIOTMP3] = frame;
+    uint8_t ctrl_hi = nes->ram[ADDR_AUDIOTMP1];
+    switch (ctrl_hi) {
+        case 0x20: {
+            uint8_t y = (frame >= 0x0A) ? 0x00 : frame;
+            uint8_t a = read_audio_rom_byte(nes, (uint16_t)(0xE6B6 + y));
+            musicLoOffset_setLoAndSaveFrameCounter(nes, chan, y, a);
+            break;
+        }
+        case 0xA0: {
+            uint8_t y = (frame >= 0x2B) ? 0x21 : frame;
+            uint8_t a = read_audio_rom_byte(nes, (uint16_t)(0xE695 + y));
+            musicLoOffset_setLoAndSaveFrameCounter(nes, chan, y, a);
+            break;
+        }
+        case 0x60:
+            musicLoOffset_minus2_6(nes, chan);
+            break;
+        case 0x40:
+            musicLoOffset_4(nes, chan);
+            break;
+        case 0x80:
+        case 0xC0:
+            musicLoOffset_8AndC(nes, chan);
+            break;
+        default:
+            break;
+    }
+}
+
+void updateMusicFrame_setChanLo(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    if (nes->ram[ADDR_CURRENTLY_PLAYING_MUSIC_TRACK] == 1) return;
+    if (chan == 3) return; /* Noise */
+    uint8_t ctrl_hi = (uint8_t)(nes->ram[ADDR_MUSIC_CHAN_CONTROL + chan] & 0xE0);
+    if (ctrl_hi == 0) return;
+    nes->ram[ADDR_AUDIOTMP1] = ctrl_hi;
+    if (nes->ram[ADDR_MUSIC_CHAN_NOTE + chan] == 0x02) {
+        nes->ram[ADDR_MUSIC_CHAN_LO_FRAME_COUNTER + chan]++;
+        return;
+    }
+    uint8_t chan_off = nes->ram[ADDR_MUSIC_CHAN_OFFSET];
+    nes->ram[ADDR_AUDIOTMP2] = nes->ram[ADDR_MUSIC_STAGING_SQ1_LO + chan_off];
+    updateMusicFrame_setChanLoOffset(nes, chan);
+    nes->ram[ADDR_MUSIC_CHAN_LO_FRAME_COUNTER + chan]++;
+}
+
+void playNoise(NES_State *nes, uint8_t note_masked) {
+    if (!nes) return;
+    if (nes->ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING] != 0) return;
+    uint8_t y = (uint8_t)(note_masked & 0x3F);
+    uint8_t vol = read_audio_rom_byte(nes, (uint16_t)(0xE5AB + y));
+    uint8_t lo  = read_audio_rom_byte(nes, (uint16_t)(0xE5AB + y + 1));
+    uint8_t hi  = read_audio_rom_byte(nes, (uint16_t)(0xE5AB + y + 2));
+    nes_write8(nes, REG_NOISE_VOL, vol);
+    nes_write8(nes, REG_NOISE_LO, lo);
+    nes_write8(nes, REG_NOISE_HI, hi);
+}
+
+void playDmc(NES_State *nes, uint8_t note_val) {
+    if (!nes) return;
+    uint8_t top = (uint8_t)(note_val & 0xC0);
+    uint8_t dmc_len, dmc_start;
+    if (top == 0x40) {
+        dmc_len = 0x07;
+        dmc_start = 0x00;
+    } else if (top == 0x80) {
+        dmc_len = 0x0F;
+        dmc_start = 0x02;
+    } else {
+        return;
+    }
+    nes->ram[ADDR_AUDIOTMP2] = 0x0E;
+    nes_write8(nes, REG_DMC_LEN, dmc_len);
+    nes_write8(nes, REG_DMC_START, dmc_start);
+    if (nes->ram[ADDR_MUSIC_DMC_SFX4_CHECK] != 0) return;
+    nes_write8(nes, REG_DMC_FREQ, 0x0E);
+    nes_write8(nes, REG_SND_CHN, 0x0F);
+    nes_write8(nes, REG_DMC_RAW, 0x00);
+    nes_write8(nes, REG_SND_CHN, 0x1F);
+}
+
+uint8_t musicGetNextInstructionByte(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return 0;
+    uint8_t off = nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET + chan];
+    nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET + chan]++;
+    uint16_t base = (uint16_t)(nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] | (nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] << 8));
+    return read_audio_rom_byte(nes, (uint16_t)(base + off));
+}
+
+void updateMusicFrame_progEnd(NES_State *nes) {
+    if (!nes) return;
+    soundEffectSlot2_makesNoSound(nes);
+}
+
+void updateMusicFrame_ret(NES_State *nes) {
+    (void)nes;
+}
+
+void updateMusicFrame_progLoadRoutine(NES_State *nes, uint8_t chan, uint8_t offset_y) {
+    if (!nes || chan >= 4) return;
+    uint8_t x2 = (uint8_t)(chan * 2);
+    uint16_t script_base = (uint16_t)(nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] | (nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] << 8));
+    uint8_t deref_lo = read_audio_rom_byte(nes, (uint16_t)(script_base + offset_y));
+    uint8_t deref_hi = read_audio_rom_byte(nes, (uint16_t)(script_base + offset_y + 1));
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x2] = deref_lo;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x2 + 1] = deref_hi;
+    if (deref_hi == 0x00) {
+        updateMusicFrame_progEnd(nes);
+        return;
+    }
+    if (deref_hi == 0xFF) {
+        updateMusicFrame_progLoadNextScript(nes, chan);
+        return;
+    }
+    nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET + chan] = 0;
+    nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + chan] = 1;
+}
+
+void updateMusicFrame_progLoadNextScript(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t x2 = (uint8_t)(chan * 2);
+    uint16_t script_base = (uint16_t)(nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] | (nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] << 8));
+    uint8_t y = (uint8_t)(nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF + chan] + 2);
+    uint8_t next_lo = read_audio_rom_byte(nes, (uint16_t)(script_base + y));
+    uint8_t next_hi = read_audio_rom_byte(nes, (uint16_t)(script_base + y + 1));
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x2] = next_lo;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x2 + 1] = next_hi;
+    nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] = next_lo;
+    nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] = next_hi;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF + chan] = 0;
+    updateMusicFrame_progLoadRoutine(nes, chan, 0);
+}
+
+void updateMusicFrame_progNextRoutine(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t x2 = (uint8_t)(chan * 2);
+    uint8_t lo = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x2];
+    uint8_t hi = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR + x2 + 1];
+    nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] = lo;
+    nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] = hi;
+    nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF + chan] = (uint8_t)(nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF + chan] + 2);
+    uint8_t y = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_OFF + chan];
+    updateMusicFrame_progLoadRoutine(nes, chan, y);
+}
+
+void updateMusicFrame_progNextRoutine_jmp(NES_State *nes, uint8_t chan) {
+    updateMusicFrame_progNextRoutine(nes, chan);
+}
+
+static inline void applyDurationForTri(NES_State *nes, uint8_t dur_frames) {
+    uint8_t ctrl = nes->ram[ADDR_MUSIC_CHAN_CONTROL + 2];
+    if ((ctrl & 0x1F) != 0) {
+        return;
+    }
+    uint8_t ctrl_hi = (uint8_t)(ctrl & 0xC0);
+    if (ctrl_hi != 0 && ctrl_hi != 0xC0) {
+        nes->ram[ADDR_MUSIC_CHAN_VOLUME + 2] = 0xFF;
+        return;
+    }
+    if (dur_frames == 0) {
+        nes->ram[ADDR_MUSIC_CHAN_VOLUME + 2] = 0;
+    } else {
+        uint8_t val = (uint8_t)((dur_frames - 1) * 4);
+        if (val > 0x3C) val = 0x3C;
+        nes->ram[ADDR_MUSIC_CHAN_VOLUME + 2] = val;
+    }
+}
+
+void updateMusicFrame_updateChannel(NES_State *nes, uint8_t chan) {
+    if (!nes || chan >= 4) return;
+    uint8_t x2 = (uint8_t)(chan * 2);
+
+    while (1) {
+        uint8_t deref_lo = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x2];
+        uint8_t deref_hi = nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x2 + 1];
+        nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR] = deref_lo;
+        nes->ram[ADDR_MUSIC_CHAN_TMP_ADDR + 1] = deref_hi;
+        if (deref_hi == 0xFF) {
+            /* Channel disabled */
+            updateMusicFrame_incSlot(nes, chan);
+            return;
+        }
+
+        nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + chan]--;
+        if (nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + chan] != 0) {
+            updateMusicFrame_setChanVol(nes, chan);
+            updateMusicFrame_setChanLo(nes, chan);
+            updateMusicFrame_incSlot(nes, chan);
+            return;
+        }
+
+        nes->ram[ADDR_MUSIC_CHAN_VOL_FRAME_COUNTER + chan] = 0;
+        nes->ram[ADDR_MUSIC_CHAN_LO_FRAME_COUNTER + chan] = 0;
+
+        bool advance_routine = false;
+        while (1) {
+            uint8_t b = musicGetNextInstructionByte(nes, chan);
+            if (b == 0x00) {
+                advance_routine = true;
+                break;
+            }
+            if (b == 0x9F) {
+                nes->ram[ADDR_MUSIC_CHAN_CONTROL + chan] = musicGetNextInstructionByte(nes, chan);
+                nes->ram[ADDR_MUSIC_CHAN_VOLUME + chan] = musicGetNextInstructionByte(nes, chan);
+                continue;
+            }
+            if (b == 0x9E) {
+                nes->ram[ADDR_MUSIC_DATA_DURATION_TABLE_OFFSET] = musicGetNextInstructionByte(nes, chan);
+                continue;
+            }
+            if (b == 0x9C) {
+                nes->ram[ADDR_MUSIC_DATA_NOTE_TABLE_OFFSET] = musicGetNextInstructionByte(nes, chan);
+                continue;
+            }
+            if (b == 0xFF) {
+                if (nes->ram[ADDR_MUSIC_CHAN_PROG_LOOP_COUNTER + chan] != 0) {
+                    nes->ram[ADDR_MUSIC_CHAN_PROG_LOOP_COUNTER + chan]--;
+                    nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET + chan] =
+                        nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET_BACKUP + chan];
+                }
+                continue;
+            }
+            if ((b & 0xC0) == 0xC0) {
+                nes->ram[ADDR_MUSIC_CHAN_PROG_LOOP_COUNTER + chan] = (uint8_t)((b & 0x3F) - 1);
+                nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET_BACKUP + chan] =
+                    nes->ram[ADDR_MUSIC_DATA_CHAN_INSTRUCTION_OFFSET + chan];
+                continue;
+            }
+
+            /* Note and maybe duration */
+            uint8_t note_val;
+            if ((b & 0xB0) == 0xB0) {
+                uint8_t dur_idx = (uint8_t)((b & 0x0F) + nes->ram[ADDR_MUSIC_DATA_DURATION_TABLE_OFFSET]);
+                uint8_t dur = read_audio_rom_byte(nes, (uint16_t)(0xEBAF + dur_idx));
+                nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION + chan] = dur;
+                if (chan == 2) {
+                    applyDurationForTri(nes, dur);
+                }
+                note_val = musicGetNextInstructionByte(nes, chan);
+            } else {
+                note_val = b;
+            }
+
+            nes->ram[ADDR_MUSIC_CHAN_NOTE + chan] = note_val;
+            if (chan == 3) {
+                playDmc(nes, note_val);
+                playNoise(nes, (uint8_t)(note_val & 0x3F));
+                nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + 3] = nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION + 3];
+                updateMusicFrame_incSlot(nes, chan);
+                return;
+            }
+
+            /* Channels 0, 1, 2 */
+            uint8_t chan_off = nes->ram[ADDR_MUSIC_CHAN_OFFSET];
+            uint8_t wave_lo = read_audio_rom_byte(nes, (uint16_t)(0xEB13 + note_val + 1));
+            if (wave_lo != 0) {
+                int8_t note_off = (int8_t)nes->ram[ADDR_MUSIC_DATA_NOTE_TABLE_OFFSET];
+                uint8_t adj_note;
+                if (note_off >= 0) {
+                    adj_note = (uint8_t)(note_val + note_off);
+                } else {
+                    uint8_t mag = (uint8_t)(note_off & 0x7F);
+                    adj_note = (uint8_t)(note_val - mag - 1);
+                }
+                nes->ram[ADDR_MUSIC_STAGING_SQ1_LO + chan_off] = read_audio_rom_byte(nes, (uint16_t)(0xEB13 + adj_note + 1));
+                nes->ram[ADDR_MUSIC_STAGING_SQ1_HI + chan_off] = (uint8_t)(read_audio_rom_byte(nes, (uint16_t)(0xEB13 + adj_note)) | 0x08);
+                nes->ram[ADDR_AUDIOTMP1] = nes->ram[ADDR_MUSIC_CHAN_VOLUME + chan];
+            } else {
+                nes->ram[ADDR_AUDIOTMP1] = (chan == 2) ? 0x00 : 0x10;
+            }
+
+            uint8_t inhib = (uint8_t)(nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] - 1);
+            nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] = inhib;
+            if (inhib == chan) {
+                nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] = (uint8_t)(inhib + 1);
+                nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + chan] = nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION + chan];
+                updateMusicFrame_incSlot(nes, chan);
+                return;
+            }
+            nes->ram[ADDR_MUSIC_CHAN_INHIBIT + chan] = (uint8_t)(inhib + 1);
+
+            uint8_t vol_to_write;
+            if (chan == 2) {
+                vol_to_write = nes->ram[ADDR_AUDIOTMP1];
+            } else if ((nes->ram[ADDR_MUSIC_CHAN_CONTROL + chan] & 0x1F) == 0) {
+                vol_to_write = nes->ram[ADDR_AUDIOTMP1];
+            } else if (nes->ram[ADDR_AUDIOTMP1] == 0x10) {
+                vol_to_write = 0x10;
+            } else {
+                vol_to_write = (uint8_t)(nes->ram[ADDR_AUDIOTMP1] & 0xF0);
+            }
+            nes_write8(nes, (uint16_t)(REG_SQ1_VOL + chan_off), vol_to_write);
+            nes_write8(nes, (uint16_t)(REG_SQ1_SWEEP + chan_off), nes->ram[ADDR_MUSIC_STAGING_SQ1_SWEEP + chan]);
+            nes_write8(nes, (uint16_t)(REG_SQ1_LO + chan_off), nes->ram[ADDR_MUSIC_STAGING_SQ1_LO + chan_off]);
+            nes_write8(nes, (uint16_t)(REG_SQ1_HI + chan_off), nes->ram[ADDR_MUSIC_STAGING_SQ1_HI + chan_off]);
+
+            nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING + chan] = nes->ram[ADDR_MUSIC_CHAN_NOTE_DURATION + chan];
+            updateMusicFrame_incSlot(nes, chan);
+            return;
+        }
+
+        if (advance_routine) {
+            updateMusicFrame_progNextRoutine(nes, chan);
+            if (nes->ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF + x2 + 1] == 0x00) {
+                return;
+            }
+        }
+    }
+}
+
+void updateMusicFrame_incSlotFromOffset(NES_State *nes, uint8_t chan2) {
+    updateMusicFrame_incSlot(nes, (uint8_t)(chan2 >> 1));
+}
+
+void updateMusicFrame_incSlot(NES_State *nes, uint8_t chan) {
+    if (!nes) return;
+    uint8_t next_chan = (uint8_t)(chan + 1);
+    if (next_chan >= 4) {
+        updateMusicFrame_ret(nes);
+        return;
+    }
+    nes->ram[ADDR_MUSIC_CHAN_OFFSET] = (uint8_t)(nes->ram[ADDR_MUSIC_CHAN_OFFSET] + 4);
+    updateMusicFrame_updateChannel(nes, next_chan);
+}
+
+void updateMusicFrame(NES_State *nes) {
+    if (!nes) return;
+    initSq12IfTrashedBySoundEffect(nes);
+    nes->ram[ADDR_MUSIC_CHAN_OFFSET] = 0;
+    updateMusicFrame_updateChannel(nes, 0);
 }

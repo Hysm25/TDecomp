@@ -113,6 +113,17 @@
 #define ADDR_ROM_SFX_SLOT1_LINECLEAR_LO          0xE4B9
 #define ADDR_ROM_SFX_SLOT1_LEVELUP_LO            0xE4F3
 #define ADDR_ROM_TRILO_TABLE                     0xE57C
+#define ADDR_ROM_NOISES_TABLE                    0xE5AB
+#define ADDR_ROM_LOFF_9TO0_FALL_TABLE            0xE689
+#define ADDR_ROM_LOFF_SLOW_START_TRILL_TABLE     0xE695
+#define ADDR_ROM_LOFF_TRILL_NEG2TO2_TABLE        0xE6B6
+#define ADDR_ROM_LOFF_DESCEND_TO_NEG11_TABLE     0xE6C0
+#define ADDR_ROM_MUSIC_CHAN_VOL_CONTROL_TABLE    0xEA4A
+#define ADDR_ROM_ENVELOPE_TABLES_EA76            0xEA76
+#define ADDR_ROM_NOTE_TO_WAVE_TABLE              0xEB13
+#define ADDR_ROM_NOTE_DURATION_TABLE             0xEBAF
+#define ADDR_ROM_MUSIC_DATA_TABLE_INDEX          0xEC23
+#define ADDR_ROM_MUSIC_DATA_TABLE                0xEC2D
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -858,6 +869,83 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_w;
     }
 
-    printf("  [PASS] test_rom_tables_match (96 ROM data tables verified bit-for-bit)\n");
+    /* Test 97: noises_table (35 bytes at $E5AB) */
+    for (int i = 0; i < 35; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_NOISES_TABLE + i));
+        assert(noises_table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 98: loOff9To0FallTable (12 bytes at $E689) */
+    for (int i = 0; i < 12; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LOFF_9TO0_FALL_TABLE + i));
+        assert(loOff9To0FallTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 99: loOffSlowStartTrillTable (33 bytes at $E695) */
+    for (int i = 0; i < 33; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LOFF_SLOW_START_TRILL_TABLE + i));
+        assert(loOffSlowStartTrillTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 100: loOffTrillNeg2To2Table (10 bytes at $E6B6) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LOFF_TRILL_NEG2TO2_TABLE + i));
+        assert(loOffTrillNeg2To2Table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 101: loOffDescendToNeg11BounceToNeg9Table (16 bytes at $E6C0) */
+    for (int i = 0; i < 16; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LOFF_DESCEND_TO_NEG11_TABLE + i));
+        assert(loOffDescendToNeg11BounceToNeg9Table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 102: musicChanVolControlTable (44 bytes at $EA4A) */
+    for (int i = 0; i < 44; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MUSIC_CHAN_VOL_CONTROL_TABLE + i));
+        assert(musicChanVolControlTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 103: envelope_tables_EA76_EB13 (157 bytes at $EA76) */
+    for (int i = 0; i < 157; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENVELOPE_TABLES_EA76 + i));
+        assert(envelope_tables_EA76_EB13[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 104: noteToWaveTable (156 bytes at $EB13) */
+    for (int i = 0; i < 156; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_NOTE_TO_WAVE_TABLE + i));
+        assert(noteToWaveTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 105: noteDurationTable (116 bytes at $EBAF) */
+    for (int i = 0; i < 116; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_NOTE_DURATION_TABLE + i));
+        assert(noteDurationTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 106: musicDataTableIndex (10 bytes at $EC23) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MUSIC_DATA_TABLE_INDEX + i));
+        assert(musicDataTableIndex[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 107: musicDataTable (100 bytes at $EC2D) */
+    for (int i = 0; i < 100; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MUSIC_DATA_TABLE + i));
+        assert(musicDataTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (107 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

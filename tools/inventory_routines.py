@@ -428,8 +428,39 @@ def main():
         "soundEffectSlot3Playing_advance": "Verified: Slot 3 frame advance and stop check",
         "soundEffectSlot3Playing_stop": "Verified: Slot 3 stop clearing triangle channel differential proven against 6502 ROM (Test 75)",
         "soundEffectSlot3Playing_ret": "Verified: Slot 3 return stub",
-        "updateSoundEffectSlot3_apu": "Verified: Slot 3 APU triangle period progression from trilo_table",
-        "soundEffectSlot3_fallingAlien": "Verified: Falling alien triangle sound effect initialization"
+        "soundEffectSlot3_fallingAlien": "Verified: Falling alien triangle sound effect initialization",
+
+        # Batch 15 (Music Channel Engine & Sequence Bytecode Interpreter)
+        "updateMusic_noSoundJmp": "Verified: Silence audio and clear music channel playback differential proven against 6502 ROM (Test 78)",
+        "updateMusic": "Verified: Master music track dispatcher branching on track 0, $FF, or 1..3 with loadMusicTrack and updateMusicFrame",
+        "updateMusicFrame_setChanLo": "Verified: Square/Triangle pitch bend and frequency modulation driver differential proven against 6502 ROM (Test 80)",
+        "musicLoOffset_8AndC": "Verified: Pitch modulation mode 8 and C descend table indexer and SQ1_LO updater",
+        "LE613": "Verified: Pitch modulation frame clamp to $27 and LO register writer",
+        "musicLoOffset_4": "Verified: Pitch modulation mode 4 vibrato trill driver from loOffDescendToNeg11BounceToNeg9Table",
+        "musicLoOffset_minus2_6": "Verified: Pitch modulation mode 6 constant offset $FE writer",
+        "updateMusicFrame_setChanLoOffset": "Verified: Channel pitch-bend offset calculator branching on control nibbles $20, $A0, $60, $40, $80",
+        "musicLoOffset_setLoAndSaveFrameCounter": "Verified: Save channel LO frame counter and update low frequency register",
+        "musicLoOffset_setLo": "Verified: Low frequency APU register write factoring AUDIOTMP2 offset and channel inhibit",
+        "copyFFFFToDeref": "Verified: Channel pointer dereference initialization writing $FFFF",
+        "loadMusicTrack": "Verified: Music track setup, table indexing, tempo offset, and channel dereference differential proven against 6502 ROM (Test 84)",
+        "derefNextAddr": "Verified: Music script pointer dereference and track continuation iterator",
+        "storeDeref1AndContinue": "Verified: Write high byte of script address and advance to next channel",
+        "initSq12IfTrashedBySoundEffect": "Verified: Restore Square 1 & 2 staging registers if trashed by SFX differential proven against 6502 ROM (Test 77)",
+        "initSq12IfTrashedBySoundEffect_ret": "Verified: Return stub for Square 1/2 restore",
+        "updateMusicFrame_setChanVol": "Verified: Envelope and duty cycle volume progression driver differential proven against 6502 ROM (Test 79)",
+        "updateMusicFrame_progLoadNextScript": "Verified: Load next script section address from pointer array",
+        "updateMusicFrame_progEnd": "Verified: Terminate music sequence and mute audio",
+        "updateMusicFrame_ret": "Verified: Channel frame advance return stub",
+        "updateMusicFrame_progNextRoutine": "Verified: Advance to next routine pointer within channel script",
+        "updateMusicFrame_progLoadRoutine": "Verified: Channel routine dereference and duration counter reset",
+        "updateMusicFrame_progNextRoutine_jmp": "Verified: Jump wrapper for sequence routine advance",
+        "updateMusicFrame": "Verified: Master per-frame music updater advancing channels 0..3",
+        "updateMusicFrame_incSlotFromOffset": "Verified: Channel slot index advance helper",
+        "updateMusicFrame_incSlot": "Verified: Channel slot advance incrementing offset by 4 and updating next channel",
+        "updateMusicFrame_updateChannel": "Verified: Channel bytecode interpreter handling duration, loop, pitch, and APU staging",
+        "playNoise": "Verified: Drum and percussion noise channel trigger differential proven against 6502 ROM (Test 81)",
+        "playDmc": "Verified: Bass DMC sample playback configuration differential proven against 6502 ROM (Test 82)",
+        "musicGetNextInstructionByte": "Verified: Bytecode instruction fetch and program counter increment differential proven against 6502 ROM (Test 83)"
     }
 
     for r in routines:
