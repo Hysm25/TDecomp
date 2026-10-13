@@ -60,25 +60,27 @@ cmake --build build --target verify
 
 ---
 
-## WebAssembly Build & Browser Demo
+## WebAssembly Full ROM Execution
 
-TDecomp includes a WebAssembly port allowing the full C engine to run at 60 FPS directly in web browsers.
+TDecomp includes a WebAssembly emulator integration allowing the original, complete `Tetris (USA).nes` ROM to execute directly in web browsers with cycle-accurate 60 FPS video, 2A03 APU audio synthesis, and controller input.
 
-### Compile WebAssembly
+### Compile WebAssembly Emulator
 
 ```bash
 make -C web
 ```
 
-Compiles `web/tdecomp.js` and `web/tdecomp.wasm` using strict C11 (`-O2 -std=c11 -Wall -Wextra -Werror -pedantic`).
+Compiles the MIT-licensed `binjnes` C emulation core to `web/binjnes.js` and `web/binjnes.wasm`.
 
-### Run Test Suite (Node.js)
+### Run Automated ROM Verification (Node.js)
 
 ```bash
-node web/test_wasm.js
+node web/test_rom.js
 ```
 
-### Launch Browser Demo
+Verifies the original reference ROM (`Tetris (USA).nes`), executes the 6502 CPU and 2C02 PPU through the legal screen, title screen, menus, and active gameplay, and validates 2A03 APU audio buffer generation.
+
+### Launch Browser Emulator
 
 Start a local HTTP server from the project root:
 
@@ -86,12 +88,14 @@ Start a local HTTP server from the project root:
 python3 -m http.server 8080 --directory web
 ```
 
-Open `http://localhost:8080` in your web browser. The demo features:
-- Authentic NES Tetris piece mechanics, rotation tables, gravity timings, and line clear logic.
-- Type A (marathon) and Type B (25-line goal with starting height).
-- Real-time score, lines, level, and next-piece HUD.
-- Full keyboard controls (&larr;/&rarr; move, &darr; soft drop, Space hard drop, Z rotate CCW, X/&uarr; rotate CW, Enter pause, R restart) and on-screen touch controls.
-- Clean JavaScript API (`web/tdecomp_api.js`) wrapping the WebAssembly module.
+Open `http://localhost:8080` in your web browser:
+- **Automatic ROM Detection**: If `Tetris (USA).nes` or `tetris.nes` is placed in `web/`, it boots immediately.
+- **User-Supplied ROM**: A drag-and-drop file picker allows loading your own `.nes` ROM file with SHA-1 integrity verification.
+- **Display & Audio**: Renders the authentic 256×240 NES framebuffer with integer-ratio pixel scaling and Web Audio API sound.
+- **Controls**:
+  - Keyboard: <kbd>&larr;</kbd> / <kbd>&rarr;</kbd> Left/Right, <kbd>&darr;</kbd> Down, <kbd>Z</kbd> B (Rotate CCW), <kbd>X</kbd> or <kbd>&uarr;</kbd> A (Rotate CW), <kbd>Enter</kbd> Start, <kbd>Shift</kbd> / <kbd>Tab</kbd> Select, <kbd>Space</kbd> Pause, <kbd>R</kbd> Reset.
+  - Gamepads: Automatic Gamepad API detection for USB / Bluetooth controllers.
+  - Touch: On-screen D-Pad and action buttons for mobile devices.
 
 ---
 
@@ -144,5 +148,6 @@ This project is built upon the research and reverse engineering of the NES Tetri
 - **[TetrisNESDisasm](https://github.com/CelestialAmber/TetrisNESDisasm)**: Disassembly created and maintained by Amber Brault (CelestialAmber) and contributors.
 - **[taus](https://github.com/ejona86/taus)**: Disassembly data, info files, and research by ejona86.
 - **[nes-util](https://github.com/qalle2/nes-util)**: CHR conversion utilities by qalle2.
+- **[binjnes](https://github.com/binji/binjnes)**: Cycle-accurate NES emulation core in C by Ben Smith (binji), licensed under MIT and adapted for WebAssembly full ROM execution.
 
 Tetris is a registered trademark of Tetris Holding, LLC. NES is a registered trademark of Nintendo of America Inc. This project is an independent educational and research decompilation not affiliated with or endorsed by Nintendo or Tetris Holding, LLC.

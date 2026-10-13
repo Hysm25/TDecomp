@@ -1,35 +1,28 @@
 CC = emcc
-CFLAGS = -O2 -std=c11 -Wall -Wextra -Werror -pedantic -I ../include
+CFLAGS = -O2 -std=c11 -Wall -Wextra -I emulator
 LDFLAGS = -s WASM=1 \
           -s ALLOW_MEMORY_GROWTH=1 \
           -s MODULARIZE=1 \
-          -s EXPORT_NAME='createTDecompModule' \
-          -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","getValue","setValue","HEAPU8"]' \
-          -s NO_EXIT_RUNTIME=1
+          -s EXPORT_NAME='Binjnes' \
+          -s NO_EXIT_RUNTIME=1 \
+          -s EXPORTED_FUNCTIONS=@emulator/exported.json \
+          -s EXPORTED_RUNTIME_METHODS='["ccall","cwrap","setValue","getValue","UTF8ToString","HEAPU8","HEAP32","HEAPF32"]'
 
-SRCS = tdecomp_wasm.c \
-       ../src/nes.c \
-       ../src/math/bcd.c \
-       ../src/math/rng.c \
-       ../src/game/audio.c \
-       ../src/game/ending.c \
-       ../src/game/highscore.c \
-       ../src/game/input.c \
-       ../src/game/menu.c \
-       ../src/game/playfield.c \
-       ../src/game/render.c \
-       ../src/game/state.c \
-       ../src/game/system.c \
-       ../src/game/tetrimino.c
+SRCS = emulator/memory.c \
+       emulator/cartdb.c \
+       emulator/emulator.c \
+       emulator/joypad.c \
+       emulator/rewind.c \
+       emulator/wrapper.c
 
-TARGET = tdecomp.js
+TARGET = binjnes.js
 
 all: $(TARGET)
 
-$(TARGET): $(SRCS)
+$(TARGET): $(SRCS) emulator/exported.json
 	$(CC) $(CFLAGS) $(SRCS) $(LDFLAGS) -o $(TARGET)
 
 clean:
-	rm -f tdecomp.js tdecomp.wasm
+	rm -f binjnes.js binjnes.wasm tdecomp.js tdecomp.wasm
 
 .PHONY: all clean
