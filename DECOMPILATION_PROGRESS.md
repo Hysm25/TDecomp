@@ -267,7 +267,7 @@
     - In-place replacement status: Strictly BLOCKED due to +361-byte collision with downstream `$A201` (`highScoreEntryScreen`).
     - Relocatable bank integration: Proved feasible and built experimental bank ROM (`build/rom/tetris_bank_exp.nes`, 49,168 bytes) placing compiled C code into unreferenced cartridge slack (`unreferenced_data1` at `$D6C9`, taking 640 of 1,591 available bytes) via a 3-byte trampoline at `$A0EE` (`JMP _handleHighScoreIfNecessary_c`) padded with 272B NOP.
     - Hardware & behavioral verification: Verified on NMOS 6502 CPU simulator for Type A (109 cycles, `rawPos = 3`) and Type B (112 cycles, `rawPos = 7`), with exact memory invariants and 100% bit-exact code outside the slot and slack.
-    - Project documentation: Authoritative audit report published in `BANK_LEVEL_C_PORT_FEASIBILITY.md`.
+    - Project documentation: Authoritative audit report published in `docs/BANK_LEVEL_C_PORT_FEASIBILITY.md`.
 
 ---
 
