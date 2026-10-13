@@ -13,6 +13,7 @@
 #include "game/render.h"
 #include "game/ending.h"
 #include "game/audio.h"
+#include "game/system.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH 0x86B0
@@ -78,6 +79,10 @@
 #define ADDR_ROM_ROCKET_TO_JET_X_OFFSET     0xAA20
 #define ADDR_ROM_ROCKET_TO_X_OFFSET         0xAA25
 #define ADDR_ROM_ROCKET_START_Y             0xAA2A
+#define ADDR_ROM_GAME_PALETTE               0xACF3
+#define ADDR_ROM_LEGAL_SCREEN_PALETTE       0xAD17
+#define ADDR_ROM_MENU_PALETTE               0xAD2B
+#define ADDR_ROM_ENDING_PALETTE             0xAD43
 
 /* Audio PRG chunk 2 tables ($E000 - $E580) */
 #define ADDR_ROM_SFX_SLOT0_INIT_TABLE            0xE009
@@ -946,6 +951,34 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (107 ROM data tables verified bit-for-bit)\n");
+    /* Test 108: game_palette (36 bytes at $ACF3) */
+    for (int i = 0; i < 36; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_GAME_PALETTE + i));
+        assert(game_palette[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 109: legal_screen_palette (20 bytes at $AD17) */
+    for (int i = 0; i < 20; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LEGAL_SCREEN_PALETTE + i));
+        assert(legal_screen_palette[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 110: menu_palette (24 bytes at $AD2B) */
+    for (int i = 0; i < 24; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MENU_PALETTE + i));
+        assert(menu_palette[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 111: ending_palette (36 bytes at $AD43) */
+    for (int i = 0; i < 36; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_PALETTE + i));
+        assert(ending_palette[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (111 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

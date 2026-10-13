@@ -40,6 +40,14 @@ typedef struct NES_State {
     /* Frame timing / interrupts */
     bool nmi_pending;
     bool irq_pending;
+
+    /* MMC1 mapper state */
+    uint8_t mmc1_shift;
+    uint8_t mmc1_shift_count;
+    uint8_t mmc1_control;
+    uint8_t mmc1_chr0;
+    uint8_t mmc1_chr1;
+    uint8_t mmc1_prg;
 } NES_State;
 
 /* Initialize or reset the NES state */

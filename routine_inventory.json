@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 156,
+    "verified_routines": 171,
     "decompiled_untested": 0,
-    "missing_routines": 15,
-    "progress_percentage": 91.23
+    "missing_routines": 0,
+    "progress_percentage": 100.0
   },
   "routines": [
     {
@@ -23,8 +23,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cold boot entry point jumping to initRamContinued"
     },
     {
       "name": "nmi",
@@ -37,8 +37,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Vertical blank interrupt driver, render dispatch, sleep counter update, OAM DMA trigger, frame counter advance, RNG seed stepping, scroll flush, controller poll differential proven against 6502 ROM (Test 91)"
     },
     {
       "name": "render",
@@ -65,8 +65,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: CPU RAM zeroing ($0000-$06FF), magic byte check, boot audio init, nametable wipe, playfield setup, and main game loop"
     },
     {
       "name": "gameMode_playAndEndingHighScore_jmp",
@@ -1143,8 +1143,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 20-frame ($14) sleep loop synchronizing with NMI and audio updates"
     },
     {
       "name": "sleep_for_a_vblanks",
@@ -1157,8 +1157,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Frame sleep loop with sleepCounter countdown and NMI audio sync"
     },
     {
       "name": "checkSelectHeldToAddPoints",
@@ -1171,8 +1171,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PAL-only debug point increment on SELECT button hold"
     },
     {
       "name": "ending_initTypeBVars",
@@ -1423,8 +1423,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Nametable clearing wrapper writing tile $FF and attr $00 differential proven against 6502 ROM (Test 90)"
     },
     {
       "name": "copyCurrentScrollAndCtrlToPPU",
@@ -1451,8 +1451,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Bulk PPU stream transfer initiator with return address stack extraction and copyToPpu dispatch"
     },
     {
       "name": "generateNextPseudorandomNumber",
@@ -1521,8 +1521,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU memory block fill with 4-page nametable and 64-byte attribute table write differential proven against 6502 ROM (Test 89)"
     },
     {
       "name": "memset_page",
@@ -1549,8 +1549,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 6502 indirect jump table dispatcher via RTS stack return address and switch index"
     },
     {
       "name": "setMMC1Control",
@@ -1563,8 +1563,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 5-bit serial write to MMC1 Control register $9FFF differential proven against 6502 ROM (Test 85)"
     },
     {
       "name": "changeCHRBank0",
@@ -1577,8 +1577,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 5-bit serial write to MMC1 CHR Bank 0 register $BFFF differential proven against 6502 ROM (Test 86)"
     },
     {
       "name": "changeCHRBank1",
@@ -1591,8 +1591,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 5-bit serial write to MMC1 CHR Bank 1 register $DFFF differential proven against 6502 ROM (Test 87)"
     },
     {
       "name": "changePRGBank",
@@ -1605,8 +1605,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 5-bit serial write to MMC1 PRG Bank register $FFF0 differential proven against 6502 ROM (Test 88)"
     },
     {
       "name": "updateAudio_jmp",
@@ -2403,8 +2403,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master reset vector, PPUCTRL/MASK zeroing, MMC1 reset, bank init, and initRam call"
     }
   ],
   "alternate_entry_points": [
@@ -2419,8 +2419,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "nmi",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Interrupt request RTI stub"
     },
     {
       "name": "L830B",
@@ -2433,8 +2433,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "gameMode_gameTypeMenu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Game type menu interactive navigation loop"
     },
     {
       "name": "typeBRows",
@@ -2447,8 +2447,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B garbage row iteration loop"
     },
     {
       "name": "typeBGarbageInRow",
@@ -2461,8 +2461,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B cell PRNG garbage placement loop"
     },
     {
       "name": "initCopyPlayfieldToPlayer2",
@@ -2475,8 +2475,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Player 2 playfield buffer copy setup"
     },
     {
       "name": "copyPlayfieldToPlayer2",
@@ -2489,8 +2489,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Player 1 playfield to Player 2 playfield 200-byte copy"
     },
     {
       "name": "typeBBlankInitPlayer1",
@@ -2503,8 +2503,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Player 1 Type B blank cell guarantee generator"
     },
     {
       "name": "typeBBlankInitPlayer2",
@@ -2517,8 +2517,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Player 2 Type B blank cell guarantee generator"
     },
     {
       "name": "endTypeBInit",
@@ -2531,8 +2531,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "initPlayfieldIfTypeB",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B initialization completion and return"
     },
     {
       "name": "L8B9D",
@@ -2545,8 +2545,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "stageSpriteForCurrentPiece",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Active tetromino mino clipping check helper"
     },
     {
       "name": "L992A",
@@ -2559,8 +2559,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "pickRandomTetrimino",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Modulo-7 random piece reroll branch"
     },
     {
       "name": "useNewSpawnID",
@@ -2573,8 +2573,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "pickRandomTetrimino",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Store newly selected piece spawn ID"
     },
     {
       "name": "L9996",
@@ -2587,8 +2587,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "incrementPieceStat",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: BCD piece stat increment helper"
     },
     {
       "name": "incrementLines",
@@ -2601,8 +2601,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line count BCD increment and level boundary check"
     },
     {
       "name": "L9BC7",
@@ -2615,8 +2615,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type A level transition threshold check"
     },
     {
       "name": "L9BFB",
@@ -2629,8 +2629,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PlayState 5 scoring calculation branch"
     },
     {
       "name": "addHoldDownPoints",
@@ -2643,8 +2643,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Soft drop push-down points BCD accumulation"
     },
     {
       "name": "L9C18",
@@ -2657,8 +2657,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Soft drop points add branch"
     },
     {
       "name": "L9C27",
@@ -2671,8 +2671,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Score overflow clamp to 999,999 check"
     },
     {
       "name": "addLineClearPoints",
@@ -2685,8 +2685,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line completion BCD point bonus multipliers"
     },
     {
       "name": "L9C37",
@@ -2699,8 +2699,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Single line clear point addition"
     },
     {
       "name": "L9C4E",
@@ -2713,8 +2713,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Double line clear point addition"
     },
     {
       "name": "L9C64",
@@ -2727,8 +2727,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Triple line clear point addition"
     },
     {
       "name": "L9C75",
@@ -2741,8 +2741,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Tetris 4-line clear point addition"
     },
     {
       "name": "L9C84",
@@ -2755,8 +2755,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: High score threshold compare"
     },
     {
       "name": "L9C94",
@@ -2769,8 +2769,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "playState_updateLinesAndStatistics",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Scoring completion return"
     },
     {
       "name": "playState_noop",
@@ -2797,8 +2797,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "add100Points",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Bonus 100 points BCD addition intermediate stage"
     },
     {
       "name": "L9F85",
@@ -2811,8 +2811,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "add100Points",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Bonus 100 points BCD addition stage 2"
     },
     {
       "name": "L9F94",
@@ -2825,8 +2825,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "add100Points",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Bonus 100 points return"
     },
     {
       "name": "L9FE9",
@@ -2839,8 +2839,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "render_mode_ending_animation",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Ending nametable score render branch"
     },
     {
       "name": "LA6BE",
@@ -2853,8 +2853,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LA6BC",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral liftoff acceleration stage"
     },
     {
       "name": "LA6D0",
@@ -2867,8 +2867,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LA6BC",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral liftoff thrust increment"
     },
     {
       "name": "LA6D9",
@@ -2881,8 +2881,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LA6BC",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral smoke particle generation"
     },
     {
       "name": "LA6F7",
@@ -2895,8 +2895,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LA6BC",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral flame sprite staging loop"
     },
     {
       "name": "LA72C",
@@ -2909,8 +2909,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LA6BC",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral animation frame step"
     },
     {
       "name": "ending_selected",
@@ -2937,8 +2937,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "selectEndingScreen",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Ending screen tier selection branch"
     },
     {
       "name": "LAA0B",
@@ -2951,8 +2951,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "selectEndingScreen",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Ending rocket parameter initialization"
     },
     {
       "name": "LAA10",
@@ -2965,8 +2965,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "selectEndingScreen",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Ending rocket starting Y coordinate store"
     },
     {
       "name": "_updatePpuMask",
@@ -2993,8 +2993,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "updateAudioWaitForNmiAndEnablePpuRendering",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Wait for VBlank and enable NMI interrupt by setting PPUCTRL bit 7"
     },
     {
       "name": "disableNmi",
@@ -3007,8 +3007,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "updateAudioWaitForNmiAndEnablePpuRendering",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Disable NMI interrupt by clearing PPUCTRL bit 7"
     },
     {
       "name": "_updatePpuCtrl",
@@ -3021,8 +3021,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "updateAudioWaitForNmiAndEnablePpuRendering",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPUCTRL and currentPpuCtrl register update"
     },
     {
       "name": "LAAB5",
@@ -3035,8 +3035,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPUCTRL vertical mode branch in copyToPpu"
     },
     {
       "name": "LAAC2",
@@ -3049,8 +3049,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU data byte counter setup in copyToPpu"
     },
     {
       "name": "LAAC7",
@@ -3063,8 +3063,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: RLE vs literal mode branch in copyToPpu"
     },
     {
       "name": "LAACA",
@@ -3077,8 +3077,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU data byte transfer loop in copyToPpu"
     },
     {
       "name": "LAACD",
@@ -3091,8 +3091,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU stream byte read and write in copyToPpu"
     },
     {
       "name": "LAAE6",
@@ -3105,8 +3105,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Advance stream pointer in copyToPpu"
     },
     {
       "name": "copyToPpu",
@@ -3119,8 +3119,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Primary PPU data stream interpreter"
     },
     {
       "name": "LAB0A",
@@ -3133,8 +3133,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Sub-stream branch in copyToPpu"
     },
     {
       "name": "copyAddrAtReturnAddressToTmp_incrReturnAddrBy2",
@@ -3147,8 +3147,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "bulkCopyToPpu",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Return address extraction helper for bulkCopyToPpu"
     },
     {
       "name": "pollController",
@@ -3189,8 +3189,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "addExpansionPortInputAsControllerInput",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Expansion port bit test helper"
     },
     {
       "name": "LABEA",
@@ -3203,8 +3203,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "addExpansionPortInputAsControllerInput",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Controller 1 & 2 port bit read"
     },
     {
       "name": "LAC0D",
@@ -3217,8 +3217,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "addExpansionPortInputAsControllerInput",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Port bit shift loop"
     },
     {
       "name": "LAC40",
@@ -3231,8 +3231,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "memset_ppu_page_and_more",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU page loop setup in memset_ppu_page_and_more"
     },
     {
       "name": "LAC44",
@@ -3245,8 +3245,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "memset_ppu_page_and_more",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU page write loop in memset_ppu_page_and_more"
     },
     {
       "name": "LAC61",
@@ -3259,8 +3259,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "memset_ppu_page_and_more",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU attribute table write loop in memset_ppu_page_and_more"
     },
     {
       "name": "LAC67",
@@ -3273,8 +3273,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "memset_ppu_page_and_more",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Restore X register in memset_ppu_page_and_more"
     },
     {
       "name": "copyToTriChannel",

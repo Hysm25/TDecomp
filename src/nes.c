@@ -107,8 +107,31 @@ void nes_write8(NES_State *nes, uint16_t addr, uint8_t val) {
         return;
     }
 
-    /* PRG ROM writes (e.g. MMC1 control registers: $8000 - $FFFF) */
-    /* Handled by MMC1 driver when required */
+    /* PRG ROM writes: MMC1 mapper ($8000 - $FFFF) */
+    if (addr >= 0x8000) {
+        if (val & 0x80) {
+            nes->mmc1_shift = 0;
+            nes->mmc1_shift_count = 0;
+            nes->mmc1_control |= 0x0C;
+        } else {
+            nes->mmc1_shift |= (uint8_t)((val & 0x01) << nes->mmc1_shift_count);
+            nes->mmc1_shift_count++;
+            if (nes->mmc1_shift_count == 5) {
+                if (addr < 0xA000) {
+                    nes->mmc1_control = nes->mmc1_shift;
+                } else if (addr < 0xC000) {
+                    nes->mmc1_chr0 = nes->mmc1_shift;
+                } else if (addr < 0xE000) {
+                    nes->mmc1_chr1 = nes->mmc1_shift;
+                } else {
+                    nes->mmc1_prg = (uint8_t)(nes->mmc1_shift & 0x0F);
+                }
+                nes->mmc1_shift = 0;
+                nes->mmc1_shift_count = 0;
+            }
+        }
+        return;
+    }
 }
 
 uint16_t nes_read16(const NES_State *nes, uint16_t addr) {

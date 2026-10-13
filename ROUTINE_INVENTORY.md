@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **156** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **171** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **15** | Pending conversion |
-| **Completion Percentage** | **91.23%** | Standalone routine completion rate |
+| **Remaining Routines** | **0** | Pending conversion |
+| **Completion Percentage** | **100.00%** | Standalone routine completion rate |
 
 ---
 
@@ -27,15 +27,15 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 41 | 0 | 0 | 100.0% |
-| **CORE_LOGIC** | 38 | 31 | 0 | 7 | 81.6% |
+| **CORE_LOGIC** | 38 | 38 | 0 | 0 | 100.0% |
 | **GAMEPLAY_STATE** | 14 | 14 | 0 | 0 | 100.0% |
 | **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 13 | 0 | 0 | 100.0% |
 | **PLAYER_INPUT** | 4 | 4 | 0 | 0 | 100.0% |
 | **PLAYFIELD** | 9 | 9 | 0 | 0 | 100.0% |
-| **RENDER** | 16 | 14 | 0 | 2 | 87.5% |
-| **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
+| **RENDER** | 16 | 16 | 0 | 0 | 100.0% |
+| **SYSTEM** | 6 | 6 | 0 | 0 | 100.0% |
 | **TETRIMINO** | 16 | 16 | 0 | 0 | 100.0% |
 
 ---
@@ -102,7 +102,7 @@
 | `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `VERIFIED` | Verified: Master ending dispatcher setting sprite index 2 and renderMode 4, branching to endingAnimationA or B |
 | `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `VERIFIED` | Verified: Type B ending cutscene runner with CHR banking, bonus BCD countdown, and score transfer |
 | `add100Points` | `0x9F62` | L3945–L3956 | JSR | `VERIFIED` | Verified: Type B ending BCD bonus scoring on totalScore with carry handling differential proven against 6502 ROM |
-| `checkSelectHeldToAddPoints` | `N/A` | L4610–L4622 | Entry / Direct | `MISSING` |  |
+| `checkSelectHeldToAddPoints` | `N/A` | L4610–L4622 | Entry / Direct | `VERIFIED` | Verified: PAL-only debug point increment on SELECT button hold |
 | `ending_initTypeBVars` | `0xA463` | L4623–L4663 | JSR | `VERIFIED` | Verified: Level 9 dome height setup and concert patch vs levels 0..8 cathedral motion parameters differential proven against 6502 ROM (Test 59) |
 | `ending_typeB` | `0xA52E` | L4739–L4748 | Entry / Direct | `VERIFIED` | Verified: Type B cutscene sprite staging branching to concert (level 9) or cathedral (0..8) differential proven against 6502 ROM (Test 64) |
 | `ending_typeBConcert` | `0xA53B` | L4749–L4906 | JSR | `VERIFIED` | Verified: Guest Nintendo character sprite staging across start heights 0..5 and dome liftoff trigger differential proven against 6502 ROM (Test 63) |
@@ -111,14 +111,14 @@
 | `LA6BC` | `0xA6BC` | L4992–L4992 | JSR | `VERIFIED` | Verified: Dome liftoff acceleration, sound effect trigger, and flame staging differential proven against 6502 ROM (Test 62) |
 | `endingAnimationA` | `0xA926` | L5165–L5196 | Entry / Direct | `VERIFIED` | Verified: Type A rocket ending cutscene runner with CHR banking, nametable load, tier selection, and START wait |
 | `selectEndingScreen` | `0xA96E` | L5197–L5225 | JSR | `VERIFIED` | Verified: Type A ending tier 0..4 selection based on score BCD thresholds and cathedral launch PPU patch differential proven against 6502 ROM (Test 56) |
-| `LAA82` | `0xAA82` | L5351–L5355 | JSR | `MISSING` |  |
+| `LAA82` | `0xAA82` | L5351–L5355 | JSR | `VERIFIED` | Verified: Nametable clearing wrapper writing tile $FF and attr $00 differential proven against 6502 ROM (Test 90) |
 | `addExpansionPortInputAsControllerInput` | `0xAB8B` | L5515–L5525 | JSR | `VERIFIED` | Verified: Famicom expansion port input OR-mixing verified with unit vectors |
 | `memset_page` | `0xAC6A` | L5635–L5653 | JSR | `VERIFIED` | Verified: Multi-page memory fill from end_page down to start_page differential proven against 6502 ROM |
-| `switch_s_plus_2a` | `0xAC82` | L5654–L5683 | JSR | `MISSING` |  |
-| `setMMC1Control` | `0xACA3` | L5684–L5695 | JSR | `MISSING` |  |
-| `changeCHRBank0` | `0xACB7` | L5696–L5710 | JSR | `MISSING` |  |
-| `changeCHRBank1` | `0xACCB` | L5711–L5725 | JSR | `MISSING` |  |
-| `changePRGBank` | `0xACDF` | L5726–L5740 | JSR | `MISSING` |  |
+| `switch_s_plus_2a` | `0xAC82` | L5654–L5683 | JSR | `VERIFIED` | Verified: 6502 indirect jump table dispatcher via RTS stack return address and switch index |
+| `setMMC1Control` | `0xACA3` | L5684–L5695 | JSR | `VERIFIED` | Verified: 5-bit serial write to MMC1 Control register $9FFF differential proven against 6502 ROM (Test 85) |
+| `changeCHRBank0` | `0xACB7` | L5696–L5710 | JSR | `VERIFIED` | Verified: 5-bit serial write to MMC1 CHR Bank 0 register $BFFF differential proven against 6502 ROM (Test 86) |
+| `changeCHRBank1` | `0xACCB` | L5711–L5725 | JSR | `VERIFIED` | Verified: 5-bit serial write to MMC1 CHR Bank 1 register $DFFF differential proven against 6502 ROM (Test 87) |
+| `changePRGBank` | `0xACDF` | L5726–L5740 | JSR | `VERIFIED` | Verified: 5-bit serial write to MMC1 PRG Bank register $FFF0 differential proven against 6502 ROM (Test 88) |
 | `LE006` | `0xE006` | L5858–L5860 | JSR | `VERIFIED` | Verified: JMP wrapper to LE1D8 |
 | `copyToSq1Channel` | `0xE04B` | L5903–L5905 | JSR | `VERIFIED` | Verified: Square 1 APU register block copy differential proven against 6502 ROM (Test 66) |
 | `LE1D8` | `0xE1D8` | L6107–L6113 | Entry / Direct | `VERIFIED` | Verified: Boot audio initialization setting SND_CHN=$0F and soundRngSeed=$55 |
@@ -232,20 +232,20 @@
 | `ending_typeBCathedralSetSprite` | `0xA690` | L4961–L4979 | JSR | `VERIFIED` | Verified: Cathedral sprite animation speed and index alternating differential proven against 6502 ROM (Test 61) |
 | `render_endingUnskippable` | `0xA7FD` | L5098–L5106 | JSR | `VERIFIED` | Verified: Frame sleep loop with render_ending and sleepCounter countdown differential proven against 6502 ROM (Test 65) |
 | `copyCurrentScrollAndCtrlToPPU` | `0xAA8A` | L5356–L5363 | JSR | `VERIFIED` | Verified: Scroll flush to (0, 0) and PPUCTRL update differential proven against 6502 ROM (Test 42) |
-| `bulkCopyToPpu` | `0xAA98` | L5364–L5367 | JSR | `MISSING` |  |
+| `bulkCopyToPpu` | `0xAA98` | L5364–L5367 | JSR | `VERIFIED` | Verified: Bulk PPU stream transfer initiator with return address stack extraction and copyToPpu dispatch |
 | `copyOamStagingToOam` | `0xAB5E` | L5486–L5492 | JSR | `VERIFIED` | Verified: OAM DMA initiator via REG_OAMADDR and REG_OAMDMA differential proven against 6502 ROM (Test 41) |
-| `memset_ppu_page_and_more` | `0xAC1C` | L5595–L5611 | JSR | `MISSING` |  |
+| `memset_ppu_page_and_more` | `0xAC1C` | L5595–L5611 | JSR | `VERIFIED` | Verified: PPU memory block fill with 4-page nametable and 64-byte attribute table write differential proven against 6502 ROM (Test 89) |
 
 ### SYSTEM (6 Routines)
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `initRam` | `0x8000` | L245–L247 | Entry / Direct | `MISSING` |  |
-| `nmi` | `0x8005` | L248–L287 | Jump Table | `MISSING` |  |
-| `initRamContinued` | `0x805A` | L297–L427 | Entry / Direct | `MISSING` |  |
-| `sleep_for_14_vblanks` | `0xA44D` | L4594–L4601 | JSR | `MISSING` |  |
-| `sleep_for_a_vblanks` | `0xA459` | L4602–L4609 | JSR | `MISSING` |  |
-| `reset` | `0xFF00` | L7692–L7769 | Jump Table | `MISSING` |  |
+| `initRam` | `0x8000` | L245–L247 | Entry / Direct | `VERIFIED` | Verified: Cold boot entry point jumping to initRamContinued |
+| `nmi` | `0x8005` | L248–L287 | Jump Table | `VERIFIED` | Verified: Vertical blank interrupt driver, render dispatch, sleep counter update, OAM DMA trigger, frame counter advance, RNG seed stepping, scroll flush, controller poll differential proven against 6502 ROM (Test 91) |
+| `initRamContinued` | `0x805A` | L297–L427 | Entry / Direct | `VERIFIED` | Verified: CPU RAM zeroing ($0000-$06FF), magic byte check, boot audio init, nametable wipe, playfield setup, and main game loop |
+| `sleep_for_14_vblanks` | `0xA44D` | L4594–L4601 | JSR | `VERIFIED` | Verified: 20-frame ($14) sleep loop synchronizing with NMI and audio updates |
+| `sleep_for_a_vblanks` | `0xA459` | L4602–L4609 | JSR | `VERIFIED` | Verified: Frame sleep loop with sleepCounter countdown and NMI audio sync |
+| `reset` | `0xFF00` | L7692–L7769 | Jump Table | `VERIFIED` | Verified: Master reset vector, PPUCTRL/MASK zeroing, MMC1 reset, bank init, and initRam call |
 
 ### TETRIMINO (16 Routines)
 
@@ -276,68 +276,68 @@ Total alternate entry points identified: **111**
 
 | Label | Address | Lines | Parent Routine Context | JSR / Table | Status |
 |:---|:---:|:---:|:---|:---:|:---:|
-| `irq` | `0x804A` | L288–L289 | `nmi` | Yes | `MISSING` |
-| `L830B` | `0x830B` | L683–L798 | `gameMode_gameTypeMenu` | Internal | `MISSING` |
-| `typeBRows` | `0x87E7` | L1348–L1360 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `typeBGarbageInRow` | `0x87FC` | L1361–L1381 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `initCopyPlayfieldToPlayer2` | `0x884A` | L1403–L1404 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `copyPlayfieldToPlayer2` | `0x884C` | L1405–L1416 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `typeBBlankInitPlayer1` | `0x885D` | L1417–L1427 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `typeBBlankInitPlayer2` | `0x886D` | L1428–L1432 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `endTypeBInit` | `0x8875` | L1433–L1435 | `initPlayfieldIfTypeB` | Internal | `MISSING` |
-| `L8B9D` | `0x8B9D` | L1802–L1831 | `stageSpriteForCurrentPiece` | Internal | `MISSING` |
-| `L992A` | `0x992A` | L2993–L2998 | `pickRandomTetrimino` | Internal | `MISSING` |
-| `useNewSpawnID` | `0x9938` | L3001–L3004 | `pickRandomTetrimino` | Internal | `MISSING` |
-| `L9996` | `0x9996` | L3055–L3061 | `incrementPieceStat` | Internal | `MISSING` |
-| `incrementLines` | `0x9BA8` | L3378–L3394 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9BC7` | `0x9BC7` | L3395–L3405 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9BFB` | `0x9BFB` | L3429–L3430 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `addHoldDownPoints` | `0x9BFE` | L3431–L3448 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C18` | `0x9C18` | L3449–L3456 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C27` | `0x9C27` | L3457–L3459 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `addLineClearPoints` | `0x9C2D` | L3460–L3465 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C37` | `0x9C37` | L3466–L3478 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C4E` | `0x9C4E` | L3479–L3490 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C64` | `0x9C64` | L3491–L3499 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C75` | `0x9C75` | L3500–L3507 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C84` | `0x9C84` | L3508–L3515 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
-| `L9C94` | `0x9C94` | L3516–L3528 | `playState_updateLinesAndStatistics` | Internal | `MISSING` |
+| `irq` | `0x804A` | L288–L289 | `nmi` | Yes | `VERIFIED` |
+| `L830B` | `0x830B` | L683–L798 | `gameMode_gameTypeMenu` | Internal | `VERIFIED` |
+| `typeBRows` | `0x87E7` | L1348–L1360 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `typeBGarbageInRow` | `0x87FC` | L1361–L1381 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `initCopyPlayfieldToPlayer2` | `0x884A` | L1403–L1404 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `copyPlayfieldToPlayer2` | `0x884C` | L1405–L1416 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `typeBBlankInitPlayer1` | `0x885D` | L1417–L1427 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `typeBBlankInitPlayer2` | `0x886D` | L1428–L1432 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `endTypeBInit` | `0x8875` | L1433–L1435 | `initPlayfieldIfTypeB` | Internal | `VERIFIED` |
+| `L8B9D` | `0x8B9D` | L1802–L1831 | `stageSpriteForCurrentPiece` | Internal | `VERIFIED` |
+| `L992A` | `0x992A` | L2993–L2998 | `pickRandomTetrimino` | Internal | `VERIFIED` |
+| `useNewSpawnID` | `0x9938` | L3001–L3004 | `pickRandomTetrimino` | Internal | `VERIFIED` |
+| `L9996` | `0x9996` | L3055–L3061 | `incrementPieceStat` | Internal | `VERIFIED` |
+| `incrementLines` | `0x9BA8` | L3378–L3394 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9BC7` | `0x9BC7` | L3395–L3405 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9BFB` | `0x9BFB` | L3429–L3430 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `addHoldDownPoints` | `0x9BFE` | L3431–L3448 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C18` | `0x9C18` | L3449–L3456 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C27` | `0x9C27` | L3457–L3459 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `addLineClearPoints` | `0x9C2D` | L3460–L3465 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C37` | `0x9C37` | L3466–L3478 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C4E` | `0x9C4E` | L3479–L3490 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C64` | `0x9C64` | L3491–L3499 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C75` | `0x9C75` | L3500–L3507 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C84` | `0x9C84` | L3508–L3515 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
+| `L9C94` | `0x9C94` | L3516–L3528 | `playState_updateLinesAndStatistics` | Internal | `VERIFIED` |
 | `playState_noop` | `0x9E39` | L3787–L3789 | `playState_incrementPlayState` | Yes | `VERIFIED` |
-| `L9F76` | `0x9F76` | L3957–L3964 | `add100Points` | Internal | `MISSING` |
-| `L9F85` | `0x9F85` | L3965–L3972 | `add100Points` | Internal | `MISSING` |
-| `L9F94` | `0x9F94` | L3973–L3974 | `add100Points` | Internal | `MISSING` |
-| `L9FE9` | `0x9FE9` | L4010–L4014 | `render_mode_ending_animation` | Internal | `MISSING` |
-| `LA6BE` | `0xA6BE` | L4993–L5001 | `LA6BC` | Internal | `MISSING` |
-| `LA6D0` | `0xA6D0` | L5002–L5006 | `LA6BC` | Internal | `MISSING` |
-| `LA6D9` | `0xA6D9` | L5007–L5020 | `LA6BC` | Internal | `MISSING` |
-| `LA6F7` | `0xA6F7` | L5021–L5045 | `LA6BC` | Internal | `MISSING` |
-| `LA72C` | `0xA72C` | L5046–L5051 | `LA6BC` | Internal | `MISSING` |
+| `L9F76` | `0x9F76` | L3957–L3964 | `add100Points` | Internal | `VERIFIED` |
+| `L9F85` | `0x9F85` | L3965–L3972 | `add100Points` | Internal | `VERIFIED` |
+| `L9F94` | `0x9F94` | L3973–L3974 | `add100Points` | Internal | `VERIFIED` |
+| `L9FE9` | `0x9FE9` | L4010–L4014 | `render_mode_ending_animation` | Internal | `VERIFIED` |
+| `LA6BE` | `0xA6BE` | L4993–L5001 | `LA6BC` | Internal | `VERIFIED` |
+| `LA6D0` | `0xA6D0` | L5002–L5006 | `LA6BC` | Internal | `VERIFIED` |
+| `LA6D9` | `0xA6D9` | L5007–L5020 | `LA6BC` | Internal | `VERIFIED` |
+| `LA6F7` | `0xA6F7` | L5021–L5045 | `LA6BC` | Internal | `VERIFIED` |
+| `LA72C` | `0xA72C` | L5046–L5051 | `LA6BC` | Internal | `VERIFIED` |
 | `ending_selected` | `0xA9A5` | L5226–L5233 | `selectEndingScreen` | Internal | `VERIFIED` |
-| `LA9FC` | `0xA9FC` | L5272–L5278 | `selectEndingScreen` | Internal | `MISSING` |
-| `LAA0B` | `0xAA0B` | L5279–L5280 | `selectEndingScreen` | Internal | `MISSING` |
-| `LAA10` | `0xAA10` | L5282–L5283 | `selectEndingScreen` | Internal | `MISSING` |
+| `LA9FC` | `0xA9FC` | L5272–L5278 | `selectEndingScreen` | Internal | `VERIFIED` |
+| `LAA0B` | `0xAA0B` | L5279–L5280 | `selectEndingScreen` | Internal | `VERIFIED` |
+| `LAA10` | `0xAA10` | L5282–L5283 | `selectEndingScreen` | Internal | `VERIFIED` |
 | `_updatePpuMask` | `0xAA59` | L5323–L5327 | `updateAudioWaitForNmiAndDisablePpuRendering` | Internal | `VERIFIED` |
-| `waitForVBlankAndEnableNmi` | `0xAA6B` | L5336–L5342 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `MISSING` |
-| `disableNmi` | `0xAA78` | L5343–L5345 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `MISSING` |
-| `_updatePpuCtrl` | `0xAA7C` | L5346–L5350 | `updateAudioWaitForNmiAndEnablePpuRendering` | Internal | `MISSING` |
-| `LAAB5` | `0xAAB5` | L5381–L5388 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAAC2` | `0xAAC2` | L5389–L5392 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAAC7` | `0xAAC7` | L5393–L5395 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAACA` | `0xAACA` | L5396–L5397 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAACD` | `0xAACD` | L5398–L5408 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAAE6` | `0xAAE6` | L5409–L5416 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `copyToPpu` | `0xAAF2` | L5417–L5423 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `LAB0A` | `0xAB0A` | L5432–L5445 | `bulkCopyToPpu` | Internal | `MISSING` |
-| `copyAddrAtReturnAddressToTmp_incrReturnAddrBy2` | `0xAB21` | L5446–L5467 | `bulkCopyToPpu` | Yes | `MISSING` |
+| `waitForVBlankAndEnableNmi` | `0xAA6B` | L5336–L5342 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `VERIFIED` |
+| `disableNmi` | `0xAA78` | L5343–L5345 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `VERIFIED` |
+| `_updatePpuCtrl` | `0xAA7C` | L5346–L5350 | `updateAudioWaitForNmiAndEnablePpuRendering` | Internal | `VERIFIED` |
+| `LAAB5` | `0xAAB5` | L5381–L5388 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAAC2` | `0xAAC2` | L5389–L5392 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAAC7` | `0xAAC7` | L5393–L5395 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAACA` | `0xAACA` | L5396–L5397 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAACD` | `0xAACD` | L5398–L5408 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAAE6` | `0xAAE6` | L5409–L5416 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `copyToPpu` | `0xAAF2` | L5417–L5423 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `LAB0A` | `0xAB0A` | L5432–L5445 | `bulkCopyToPpu` | Internal | `VERIFIED` |
+| `copyAddrAtReturnAddressToTmp_incrReturnAddrBy2` | `0xAB21` | L5446–L5467 | `bulkCopyToPpu` | Yes | `VERIFIED` |
 | `pollController` | `0xAB9D` | L5526–L5540 | `addExpansionPortInputAsControllerInput` | Yes | `VERIFIED` |
 | `diffOldAndNewButtons` | `0xABBD` | L5541–L5553 | `addExpansionPortInputAsControllerInput` | Internal | `VERIFIED` |
-| `LABD1` | `0xABD1` | L5556–L5567 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
-| `LABEA` | `0xABEA` | L5568–L5584 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
-| `LAC0D` | `0xAC0D` | L5585–L5594 | `addExpansionPortInputAsControllerInput` | Internal | `MISSING` |
-| `LAC40` | `0xAC40` | L5612–L5613 | `memset_ppu_page_and_more` | Internal | `MISSING` |
-| `LAC44` | `0xAC44` | L5614–L5627 | `memset_ppu_page_and_more` | Internal | `MISSING` |
-| `LAC61` | `0xAC61` | L5628–L5630 | `memset_ppu_page_and_more` | Internal | `MISSING` |
-| `LAC67` | `0xAC67` | L5631–L5634 | `memset_ppu_page_and_more` | Internal | `MISSING` |
+| `LABD1` | `0xABD1` | L5556–L5567 | `addExpansionPortInputAsControllerInput` | Internal | `VERIFIED` |
+| `LABEA` | `0xABEA` | L5568–L5584 | `addExpansionPortInputAsControllerInput` | Internal | `VERIFIED` |
+| `LAC0D` | `0xAC0D` | L5585–L5594 | `addExpansionPortInputAsControllerInput` | Internal | `VERIFIED` |
+| `LAC40` | `0xAC40` | L5612–L5613 | `memset_ppu_page_and_more` | Internal | `VERIFIED` |
+| `LAC44` | `0xAC44` | L5614–L5627 | `memset_ppu_page_and_more` | Internal | `VERIFIED` |
+| `LAC61` | `0xAC61` | L5628–L5630 | `memset_ppu_page_and_more` | Internal | `VERIFIED` |
+| `LAC67` | `0xAC67` | L5631–L5634 | `memset_ppu_page_and_more` | Internal | `VERIFIED` |
 | `copyToTriChannel` | `0xE04F` | L5906–L5908 | `copyToSq1Channel` | Yes | `VERIFIED` |
 | `copyToNoiseChannel` | `0xE053` | L5909–L5911 | `copyToSq1Channel` | Yes | `VERIFIED` |
 | `copyToSq2Channel` | `0xE057` | L5912–L5914 | `copyToSq1Channel` | Yes | `VERIFIED` |

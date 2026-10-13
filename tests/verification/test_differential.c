@@ -16,8 +16,16 @@
 #include "game/render.h"
 #include "game/ending.h"
 #include "game/audio.h"
+#include "game/system.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
+#define ROM_ADDR_NMI                    0x8005
+#define ROM_ADDR_LAA82                  0xAA82
+#define ROM_ADDR_MEMSET_PPU_PAGE_AND_MORE 0xAC1C
+#define ROM_ADDR_SET_MMC1_CONTROL       0xACA3
+#define ROM_ADDR_CHANGE_CHR_BANK0       0xACB7
+#define ROM_ADDR_CHANGE_CHR_BANK1       0xACCB
+#define ROM_ADDR_CHANGE_PRG_BANK        0xACDF
 #define ROM_ADDR_RENDER                 0x804B
 #define ROM_ADDR_ENDING_INIT_TYPE_B_VARS 0xA463
 #define ROM_ADDR_ENDING_TYPE_B_CONCERT_PATCH_HEIGHT 0xA4B1
@@ -3314,6 +3322,160 @@ int test_differential_verification(void) {
         assert(memcmp(&nes_6502.ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF], &nes_c.ram[ADDR_MUSIC_DATA_CHAN_PTR_DEREF], 8) == 0);
         assert(memcmp(&nes_6502.ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING], &nes_c.ram[ADDR_MUSIC_CHAN_NOTE_DURATION_REMAINING], 4) == 0);
         assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 85: Differential setMMC1Control ($ACA3) */
+    {
+        uint8_t test_vals[4] = { 0x00, 0x10, 0x0E, 0x1F };
+        for (int i = 0; i < 4; i++) {
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_SET_MMC1_CONTROL, test_vals[i], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SET_MMC1_CONTROL, 100);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            setMMC1Control(&nes_c, test_vals[i]);
+
+            assert(nes_6502.mmc1_control == nes_c.mmc1_control);
+            assert(nes_6502.mmc1_shift_count == nes_c.mmc1_shift_count);
+        }
+    }
+
+    /* Test 86: Differential changeCHRBank0 ($ACB7) */
+    {
+        uint8_t test_vals[4] = { 0x00, 0x01, 0x02, 0x1F };
+        for (int i = 0; i < 4; i++) {
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_CHANGE_CHR_BANK0, test_vals[i], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHANGE_CHR_BANK0, 100);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            changeCHRBank0(&nes_c, test_vals[i]);
+
+            assert(nes_6502.mmc1_chr0 == nes_c.mmc1_chr0);
+            assert(nes_6502.mmc1_shift_count == nes_c.mmc1_shift_count);
+        }
+    }
+
+    /* Test 87: Differential changeCHRBank1 ($ACCB) */
+    {
+        uint8_t test_vals[4] = { 0x00, 0x01, 0x02, 0x1F };
+        for (int i = 0; i < 4; i++) {
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_CHANGE_CHR_BANK1, test_vals[i], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHANGE_CHR_BANK1, 100);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            changeCHRBank1(&nes_c, test_vals[i]);
+
+            assert(nes_6502.mmc1_chr1 == nes_c.mmc1_chr1);
+            assert(nes_6502.mmc1_shift_count == nes_c.mmc1_shift_count);
+        }
+    }
+
+    /* Test 88: Differential changePRGBank ($ACDF) */
+    {
+        uint8_t test_vals[4] = { 0x00, 0x01, 0x02, 0x0F };
+        for (int i = 0; i < 4; i++) {
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_CHANGE_PRG_BANK, test_vals[i], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_CHANGE_PRG_BANK, 100);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            changePRGBank(&nes_c, test_vals[i]);
+
+            assert(nes_6502.mmc1_prg == nes_c.mmc1_prg);
+            assert(nes_6502.mmc1_shift_count == nes_c.mmc1_shift_count);
+        }
+    }
+
+    /* Test 89: Differential memset_ppu_page_and_more ($AC1C) */
+    {
+        /* Case 1: Nametable $2000 */
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MEMSET_PPU_PAGE_AND_MORE, 0x20, 0xFF, 0x00, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MEMSET_PPU_PAGE_AND_MORE, 20000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        memset_ppu_page_and_more(&nes_c, 0x20, 0xFF, 0x00);
+
+        assert(nes_6502.ppu_addr == nes_c.ppu_addr);
+        assert(nes_6502.ram[ADDR_TMP1] == nes_c.ram[ADDR_TMP1]);
+        assert(nes_6502.ram[ADDR_TMP2] == nes_c.ram[ADDR_TMP2]);
+        assert(nes_6502.ram[ADDR_TMP3] == nes_c.ram[ADDR_TMP3]);
+        assert(nes_6502.ram[ADDR_CURRENT_PPU_CTRL] == nes_c.ram[ADDR_CURRENT_PPU_CTRL]);
+
+        /* Case 2: Pattern table (< $20) */
+        nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MEMSET_PPU_PAGE_AND_MORE, 0x10, 0x55, 0x02, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MEMSET_PPU_PAGE_AND_MORE, 10000);
+        assert(ok);
+
+        nes_c = rom_nes;
+        memset_ppu_page_and_more(&nes_c, 0x10, 0x55, 0x02);
+
+        assert(nes_6502.ppu_addr == nes_c.ppu_addr);
+    }
+
+    /* Test 90: Differential LAA82 ($AA82) */
+    {
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LAA82, 0x24, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LAA82, 20000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        LAA82(&nes_c, 0x24);
+
+        assert(nes_6502.ppu_addr == nes_c.ppu_addr);
+        assert(nes_6502.ram[ADDR_CURRENT_PPU_CTRL] == nes_c.ram[ADDR_CURRENT_PPU_CTRL]);
+    }
+
+    /* Test 91: Differential nmi ($8005) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_RENDER_MODE] = 0; /* render_mode_legal_and_title */
+        nes_6502.ram[ADDR_SLEEP_COUNTER] = 4;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0x20;
+        nes_6502.ram[ADDR_FRAME_COUNTER + 1] = 0x01;
+        nes_6502.ram[ADDR_RNG_SEED] = 0x89;
+        nes_6502.ram[ADDR_RNG_SEED + 1] = 0x88;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 12;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_NMI, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_NMI, 5000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_RENDER_MODE] = 0;
+        nes_c.ram[ADDR_SLEEP_COUNTER] = 4;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0x20;
+        nes_c.ram[ADDR_FRAME_COUNTER + 1] = 0x01;
+        nes_c.ram[ADDR_RNG_SEED] = 0x89;
+        nes_c.ram[ADDR_RNG_SEED + 1] = 0x88;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 12;
+
+        nmi(&nes_c);
+
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_SLEEP_COUNTER] == nes_c.ram[ADDR_SLEEP_COUNTER]);
+        assert(nes_6502.ram[ADDR_FRAME_COUNTER] == nes_c.ram[ADDR_FRAME_COUNTER]);
+        assert(nes_6502.ram[ADDR_FRAME_COUNTER + 1] == nes_c.ram[ADDR_FRAME_COUNTER + 1]);
+        assert(nes_6502.ram[ADDR_RNG_SEED] == nes_c.ram[ADDR_RNG_SEED]);
+        assert(nes_6502.ram[ADDR_RNG_SEED + 1] == nes_c.ram[ADDR_RNG_SEED + 1]);
+        assert(nes_6502.ram[ADDR_VERTICAL_BLANK_INTERVAL] == nes_c.ram[ADDR_VERTICAL_BLANK_INTERVAL]);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

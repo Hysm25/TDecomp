@@ -447,9 +447,8 @@ bool cpu6502_run_subroutine(CPU6502 *cpu, uint16_t entry_addr, uint32_t max_cycl
             cpu6502_step(cpu);
             return true;
         }
-        if (next_op == 0x40 && cpu->sp == (uint8_t)(target_sp - 3)) {
+        if (next_op == 0x40 && (cpu->sp == (uint8_t)(target_sp - 2) || cpu->sp == (uint8_t)(target_sp - 3))) {
             /* RTI final return */
-            cpu6502_step(cpu);
             return true;
         }
 

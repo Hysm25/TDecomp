@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **156** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **171** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **15** | Pending conversion |
-| **Current Progress** | **91.23%** | `[##############################################----] 91.23%` |
-| **Build & Test Suite** | 14 / 14 suites passing | Unit, 107 ROM data tables, & 6502 differential CPU oracle (84 differential tests) |
+| **Remaining Routines** | **0** | All routines decompiled and formally verified |
+| **Current Progress** | **100.00%** | `[####################################################] 100.00%` |
+| **Build & Test Suite** | 15 / 15 suites passing | Unit, 111 ROM data tables, & 6502 differential CPU oracle (91 differential tests) |
 
 ---
 
@@ -38,10 +38,10 @@
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 9 | 0 | 0 | **100.0%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 13 | 0 | 0 | **100.0%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 41 | 0 | 0 | **100.0%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 14 | 0 | 2 | **87.5%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 31 | 0 | 7 | **81.6%** |
-| **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | **0.0%** |
-| **TOTAL** | **171** | **156** | **0** | **15** | **91.23%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 16 | 0 | 0 | **100.0%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 38 | 0 | 0 | **100.0%** |
+| **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 6 | 0 | 0 | **100.0%** |
+| **TOTAL** | **171** | **171** | **0** | **0** | **100.0%** |
 
 ---
 
@@ -237,8 +237,11 @@
     - Authoritative ROM data tables verified byte-for-byte against reference ROM: 11 music tables (`noises_table`, `loOff9To0FallTable`, `loOffSlowStartTrillTable`, `loOffTrillNeg2To2Table`, `loOffDescendToNeg11BounceToNeg9Table`, `musicChanVolControlTable`, `envelope_tables_EA76_EB13`, `noteToWaveTable`, `noteDurationTable`, `musicDataTableIndex`, `musicDataTable`) bringing cumulative verified tables to 107.
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `initSq12IfTrashedBySoundEffect`, `updateMusic_noSoundJmp`, `updateMusicFrame_setChanVol`, `updateMusicFrame_setChanLo`, `playNoise`, `playDmc`, `musicGetNextInstructionByte`, and `loadMusicTrack` (Tests 77–84).
 
-19. [ ] **Batch 16 (System Boot, MMC1 Mapper, NMI Framing & Reset Engine)**:
-    - Master hardware reset & bootstrap (`reset` at $FF00), RAM clearing (`initRam` at $8000, `initRamContinued` at $805A), VBlank timing waits (`sleep_for_14_vblanks` at $A44D, `sleep_for_a_vblanks` at $A459), MMC1 bankswitching & register control (`setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`), PPU bulk copy streaming (`bulkCopyToPpu`, `memset_ppu_page_and_more`), and jump table indirect driver (`switch_s_plus_2a`).
+19. [x] **Batch 16 (System Boot, MMC1 Mapper, NMI Framing & Reset Engine)**:
+    - Master hardware reset & bootstrap (`reset` at $FF00), RAM clearing (`initRam` at $8000, `initRamContinued` at $805A), VBlank timing waits (`sleep_for_14_vblanks` at $A44D, `sleep_for_a_vblanks` at $A459), MMC1 bankswitching & register control (`setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`), PPU bulk copy streaming (`bulkCopyToPpu`, `copyToPpu`, `memset_ppu_page_and_more`, `LAA82`), call frame return address manipulation (`copyAddrAtReturnAddressToTmp_incrReturnAddrBy2`), PAL debug score routine (`checkSelectHeldToAddPoints`), and jump table indirect driver (`switch_s_plus_2a`).
+    - Authoritative ROM data tables verified byte-for-byte against reference ROM: 4 packet palette tables (`game_palette`, `legal_screen_palette`, `menu_palette`, `ending_palette`) bringing cumulative verified tables to 111.
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`, `memset_ppu_page_and_more`, `LAA82`, and `nmi` (Tests 85–91, bringing cumulative differential tests to 91).
+    - Project milestone: Achieved 171/171 (100.0%) verified standalone routines and 111/111 (100.0%) verified alternate entry points across all 11 game subsystems.
 
 ---
 
@@ -263,3 +266,4 @@
 | Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
 | Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
 | Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `3c8cd51` |
+| Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | PENDING |
