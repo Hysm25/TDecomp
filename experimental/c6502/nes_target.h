@@ -56,7 +56,23 @@
 #define ZP_SOUND_RNG_LO (*(volatile uint8_t*)0x00EB)
 #define ZP_SOUND_RNG_HI (*(volatile uint8_t*)0x00EC)
 
+/* High Score & Gameplay Zero-Page Variables */
+#define ZP_PLAYER1_LEVEL        (*(volatile uint8_t*)0x0064)
+#define ZP_PLAYER1_SCORE_LO     (*(volatile uint8_t*)0x0073)
+#define ZP_PLAYER1_SCORE_MID    (*(volatile uint8_t*)0x0074)
+#define ZP_PLAYER1_SCORE_HI     (*(volatile uint8_t*)0x0075)
+#define ZP_GENERAL_COUNTER      (*(volatile uint8_t*)0x00A8)
+#define ZP_GENERAL_COUNTER2     (*(volatile uint8_t*)0x00A9)
+#define ZP_GENERAL_COUNTER3     (*(volatile uint8_t*)0x00AA)
+#define ZP_GAME_TYPE            (*(volatile uint8_t*)0x00C1)
+#define ZP_HIGH_SCORE_RAW_POS   (*(volatile uint8_t*)0x00D5)
+
 /* Internal Audio RAM */
-#define RAM_SOUND_RNG_TMP (*(volatile uint8_t*)0x06FF)
+#define RAM_SOUND_RNG_TMP       (*(volatile uint8_t*)0x06FF)
+
+/* High Score Table RAM ($0700 - $074F) */
+#define RAM_HIGH_SCORE_NAMES    ((volatile uint8_t*)0x0700)
+#define RAM_HIGH_SCORE_SCORES   ((volatile uint8_t*)0x0730)
+#define RAM_HIGH_SCORE_LEVELS   ((volatile uint8_t*)0x0748)
 
 #endif /* TDECOMP_NES_TARGET_H */

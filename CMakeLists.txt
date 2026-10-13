@@ -94,8 +94,14 @@ if(Python3_FOUND)
         COMMENT "Building and verifying experimental C-integrated NES ROM"
     )
 
+    add_custom_target(rom_bank
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py bank --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Auditing and verifying bank-level C recompilation in experimental NES ROM"
+    )
+
     add_custom_target(rom
-        DEPENDS rom_baseline rom_poc rom_experimental
-        COMMENT "Full ROM build suite: baseline ROM, C POC, and experimental C-integrated ROM"
+        DEPENDS rom_baseline rom_poc rom_experimental rom_bank
+        COMMENT "Full ROM build suite: baseline ROM, C POC, experimental C-integrated ROM, and bank-level experimental ROM"
     )
 endif()

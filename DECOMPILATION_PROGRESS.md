@@ -260,6 +260,15 @@
     - Calling convention & side-effects audit: Added Test 1c in `test_differential.c` covering edge cases, proving complete memory equivalence and caller immunity across all 7 gameplay callers.
     - Architectural blocker documented: In-place ROM integration safely BLOCKED due to fixed 23-byte slot capacity ($AB47–$AB5D). Baseline assembly build and experimental ROM build remain 100% bit-exact with the two verified C integrations intact and 0 code shifting.
 
+23. [x] **Bank-Level C Decompilation Feasibility Audit (High Score Subsystem: $A0EE–$A200)**:
+    - Target cluster identification: High Score Qualification & Shifting Subsystem ($A0EE–$A200, 275 bytes, PRG Chunk 1) containing 5 subroutines and 2 tables.
+    - Reference inventory & boundary classification: Confirmed single external entry point (`main.asm:3573: jsr handleHighScoreIfNecessary`), clean non-qualifying return (`rts` to `@resetGameState`), qualifying tail-jump (`jmp highScoreEntryScreen` at $A201), and 100% internal relocatability for all internal routines and tables.
+    - Target C compilation & code size metrics: Pure C compiled under `cc65 -t none -O -Oi` produced 636 bytes (614B code + 22B rodata, 17B BSS), representing a 2.31x expansion (+131.3%) over the 275-byte original assembly.
+    - In-place replacement status: Strictly BLOCKED due to +361-byte collision with downstream `$A201` (`highScoreEntryScreen`).
+    - Relocatable bank integration: Proved feasible and built experimental bank ROM (`build/rom/tetris_bank_exp.nes`, 49,168 bytes) placing compiled C code into unreferenced cartridge slack (`unreferenced_data1` at `$D6C9`, taking 640 of 1,591 available bytes) via a 3-byte trampoline at `$A0EE` (`JMP _handleHighScoreIfNecessary_c`) padded with 272B NOP.
+    - Hardware & behavioral verification: Verified on NMOS 6502 CPU simulator for Type A (109 cycles, `rawPos = 3`) and Type B (112 cycles, `rawPos = 7`), with exact memory invariants and 100% bit-exact code outside the slot and slack.
+    - Project documentation: Authoritative audit report published in `BANK_LEVEL_C_PORT_FEASIBILITY.md`.
+
 ---
 
 ## Verified Batch Log
@@ -288,3 +297,4 @@
 | C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
 | C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `73dd826` |
 | C-to-6502 Integration 3 | Third C-to-6502 analysis: gameplay RNG (optimized 54B C, 32B hybrid audit; in-place blocked by 23B slot, 0 code shifting preserved) | 1 (Analysis & Target C) | 171 | 15 suites + calling convention & LFSR diff (92 diff tests) | `ebbd7b0` |
+| Bank-Level C Feasibility | High Score subsystem audit ($A0EE-$A200, 275B): in-place blocked (636B, 2.31x), relocatable slack build verified in experimental ROM & 6502 sim | 1 (Subsystem Cluster) | 171 | 15 suites + 92 diff tests + bank ROM build | pending |

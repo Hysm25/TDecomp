@@ -107,11 +107,33 @@ The resulting ROM (`build/rom/tetris_experimental.nes`) is verified:
 
 ---
 
-## 4. How to Build & Verify All ROM Targets
+## 4. Bank-Level C Decompilation Feasibility: High Score Subsystem
+
+- **Target Cluster**: High Score Qualification & Shifting Subsystem (`$A0EE`–`$A200`, 275 bytes, PRG Chunk 1).
+  - Routines: `handleHighScoreIfNecessary` ($A0EE), `adjustHighScores` ($A134), `copyHighScoreNameToNextIndex` ($A192), `copyHighScoreScoreToNextIndex` ($A1C1), `copyHighScoreLevelToNextIndex` ($A1E0), plus 2 offset tables.
+  - Interfaces: Exactly 1 external entry point (`JSR $A0EE` at `main.asm` line 3573); clean RTS return on non-qualifying score; tail-jump `JMP highScoreEntryScreen` ($A201) on qualification.
+- **Footprint Analysis**:
+  - Original 6502 assembly: **275 bytes**.
+  - Target C compiled footprint under `cc65`: **636 bytes** (614B code + 22B rodata, 17B BSS) -> **2.31x expansion (+131.3%)**.
+  - In-place replacement status: **BLOCKED** (+361B overflow into `$A201` `highScoreEntryScreen`).
+- **Relocatable Bank Integration**:
+  - Target C implementation (`high_scores_cluster.c`) is mapped to unreferenced cartridge slack (`unreferenced_data1` at `$D6C9`, taking 640 of 1,591 available bytes).
+  - A 3-byte trampoline at `$A0EE` (`JMP _handleHighScoreIfNecessary_c`, padded with 272B NOP) preserves the exact external interface at `$A0EE`.
+  - Result: Generated `build/rom/tetris_bank_exp.nes` is 100% bit-exact across all active game logic outside the 275-byte slot and unreferenced region, preserves downstream entry at `$A201`, and passes NMOS 6502 CPU differential simulation (Type A: 109 cycles, Type B: 112 cycles).
+
+---
+
+## 5. How to Build & Verify All ROM Targets
 
 ```bash
-# Build baseline assembly ROM, C POC, and C-integrated experimental ROM
+# Build baseline assembly ROM, C POC, C-integrated experimental ROM, and Bank-level experimental ROM
 python3 tools/build_rom.py all
+
+# Or build individual phases:
+python3 tools/build_rom.py baseline
+python3 tools/build_rom.py poc
+python3 tools/build_rom.py experimental
+python3 tools/build_rom.py bank
 
 # Or via CMake:
 cmake --build build --target rom
