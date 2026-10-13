@@ -261,6 +261,51 @@ static void test_playfield_type_b_init(void) {
     }
 }
 
+static void test_copy_playfield_row_to_vram(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* 1. 1-Player mode: row 0 (base $20C6 + 6 = $20CC) */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_PLAYFIELD_ADDR] = 0x00;
+    nes.ram[ADDR_PLAYFIELD_ADDR + 1] = 0x04;
+    for (int i = 0; i < 10; i++) {
+        nes.ram[ADDR_PLAYFIELD + i] = (uint8_t)(i + 1);
+    }
+    nes.ram[ADDR_VRAM_ROW] = 0;
+    copyPlayfieldRowToVRAM(&nes);
+    assert(nes.ppu_addr == 0x20CC);
+    assert(nes.ram[ADDR_VRAM_ROW] == 1);
+
+    /* 2. 2-Player mode Player 1: row 5 (base $2166 - 2 = $2164) */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+    nes.ram[ADDR_PLAYFIELD_ADDR + 1] = 0x04;
+    nes.ram[ADDR_VRAM_ROW] = 5;
+    copyPlayfieldRowToVRAM(&nes);
+    assert(nes.ppu_addr == 0x2164);
+    assert(nes.ram[ADDR_VRAM_ROW] == 6);
+
+    /* 3. 2-Player mode Player 2: row 5 (base $2166 + $0C = $2172) */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+    nes.ram[ADDR_PLAYFIELD_ADDR + 1] = 0x05;
+    nes.ram[ADDR_VRAM_ROW] = 5;
+    copyPlayfieldRowToVRAM(&nes);
+    assert(nes.ppu_addr == 0x2172);
+    assert(nes.ram[ADDR_VRAM_ROW] == 6);
+
+    /* 4. Row clamp: vramRow 19 -> 0x20 */
+    nes.ram[ADDR_VRAM_ROW] = 19;
+    copyPlayfieldRowToVRAM(&nes);
+    assert(nes.ram[ADDR_VRAM_ROW] == 0x20);
+
+    /* 5. Return immediately when vramRow >= 0x15 */
+    nes.ppu_addr = 0x1234;
+    nes.ram[ADDR_VRAM_ROW] = 0x20;
+    copyPlayfieldRowToVRAM(&nes);
+    assert(nes.ram[ADDR_VRAM_ROW] == 0x20);
+    assert(nes.ppu_addr == 0x1234);
+}
+
 int test_playfield_subsystem(void) {
     test_playfield_lock_valid();
     test_playfield_lock_invalid_game_over();
@@ -271,6 +316,7 @@ int test_playfield_subsystem(void) {
     test_playfield_game_over_curtain();
     test_playfield_receive_garbage();
     test_playfield_type_b_init();
+    test_copy_playfield_row_to_vram();
 
     printf("  [PASS] test_playfield_subsystem\n");
     return 0;

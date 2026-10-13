@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 46,
+    "verified_routines": 82,
     "decompiled_untested": 0,
-    "missing_routines": 125,
-    "progress_percentage": 26.9
+    "missing_routines": 89,
+    "progress_percentage": 47.95
   },
   "routines": [
     {
@@ -541,8 +541,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: in-game play/demo render engine, line clear animation dispatch, dirty render flags, tetris flash/SFX, and scroll flush"
     },
     {
       "name": "twoDigsToPPU",
@@ -569,8 +569,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: playfield row VRAM streaming, player mode offsets, and 0x20 row clamp"
     },
     {
       "name": "updateLineClearingAnimation",

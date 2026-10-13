@@ -45,6 +45,9 @@
 #define ADDR_ROM_HIGH_SCORE_NAME_POS_TO_X   0xA33E
 #define ADDR_ROM_TYPEB_SUCCESS_GRAPHIC      0xA42E
 #define ADDR_ROM_DEFAULT_HIGH_SCORES_TABLE  0xAD67
+#define ADDR_ROM_PIECE_TO_PPU_STAT_ADDR     0x96AA
+#define ADDR_ROM_LEVEL_DISPLAY_TABLE        0x96B8
+#define ADDR_ROM_VRAM_PLAYFIELD_ROWS        0x96EA
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -342,6 +345,27 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (32 ROM data tables verified bit-for-bit)\n");
+    /* Test 33: pieceToPpuStatAddr (14 bytes at $96AA) */
+    for (int i = 0; i < 14; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PIECE_TO_PPU_STAT_ADDR + i));
+        assert(pieceToPpuStatAddr[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 34: levelDisplayTable (30 bytes at $96B8) */
+    for (int i = 0; i < 30; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LEVEL_DISPLAY_TABLE + i));
+        assert(levelDisplayTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 35: vramPlayfieldRows (40 bytes at $96EA) */
+    for (int i = 0; i < 40; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_VRAM_PLAYFIELD_ROWS + i));
+        assert(vramPlayfieldRows[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (35 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

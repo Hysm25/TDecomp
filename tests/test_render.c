@@ -152,6 +152,15 @@ int test_render_subsystem(void) {
         render(&nes);
         assert(nes.ppu_ctrl == 0xFC);
 
+        /* Mode 3: Play and Demo */
+        nes.ram[ADDR_RENDER_MODE] = RENDER_MODE_PLAY_AND_DEMO;
+        nes.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes.ram[ADDR_P1_VRAM_ROW] = 0;
+        nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = 0;
+        nes.ram[ADDR_COMPLETED_LINES] = 0;
+        render(&nes);
+        assert(nes.ram[ADDR_P1_VRAM_ROW] == 4);
+
         /* Mode 4: Ending */
         nes.ram[ADDR_RENDER_MODE] = RENDER_MODE_ENDING;
         nes.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
@@ -160,6 +169,93 @@ int test_render_subsystem(void) {
         assert(nes.ram[ADDR_GENERAL_COUNTER] == 0x42);
 
         printf("  [PASS] render master dispatcher for modes 0..4\n");
+    }
+
+    /* Test 9: render_mode_play_and_demo ($94EE) full functionality */
+    {
+        NES_State nes;
+        nes_init(&nes);
+
+        /* Subcase A: 1-Player normal rendering with all dirty render flags */
+        nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes.ram[ADDR_P1_VRAM_ROW] = 0;
+        nes.ram[ADDR_PLAYFIELD_ADDR] = 0x00;
+        nes.ram[ADDR_PLAYFIELD_ADDR + 1] = 0x04;
+        nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = RENDER_LINES | RENDER_LEVEL | RENDER_SCORE | RENDER_STATS;
+        nes.ram[ADDR_P1_LINES] = 0x25;
+        nes.ram[ADDR_P1_LINES + 1] = 0x01;
+        nes.ram[ADDR_P1_LEVEL_NUMBER] = 9;
+        nes.ram[ADDR_P1_SCORE] = 0x50;
+        nes.ram[ADDR_P1_SCORE + 1] = 0x23;
+        nes.ram[ADDR_P1_SCORE + 2] = 0x01;
+        for (int i = 0; i < 14; i++) {
+            nes.ram[ADDR_STATS_BY_TYPE + i] = (uint8_t)(i + 1);
+        }
+        nes.ram[ADDR_COMPLETED_LINES] = 0;
+        nes.ram[ADDR_PPU_SCROLL_X] = 0x55;
+        nes.ram[ADDR_PPU_SCROLL_Y] = 0xAA;
+
+        render_mode_play_and_demo(&nes);
+
+        assert(nes.ram[ADDR_P1_VRAM_ROW] == 4);
+        assert(nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] == 0);
+        assert(nes.ram[ADDR_PPU_SCROLL_X] == 0);
+        assert(nes.ram[ADDR_PPU_SCROLL_Y] == 0);
+
+        /* Subcase B: Line clear animation branch (player1_playState == 4) */
+        nes.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_LINE_CLEAR_ANIM;
+        nes.ram[ADDR_P1_ROW_Y] = 0;
+        nes.ram[ADDR_FRAME_COUNTER] = 0;
+        nes.ram[ADDR_P1_COMPLETED_ROW] = 15;
+        nes.ram[ADDR_P1_COMPLETED_ROW + 1] = 0xFF;
+        nes.ram[ADDR_P1_COMPLETED_ROW + 2] = 0xFF;
+        nes.ram[ADDR_P1_COMPLETED_ROW + 3] = 0xFF;
+        nes.ram[ADDR_P1_VRAM_ROW] = 5;
+
+        render_mode_play_and_demo(&nes);
+
+        assert(nes.ram[ADDR_P1_VRAM_ROW] == 0);
+        assert(nes.ram[ADDR_P1_ROW_Y] == 1);
+
+        /* Subcase C: 2-Player mode line rendering */
+        nes_init(&nes);
+        nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes.ram[ADDR_P2_PLAY_STATE] = 1;
+        nes.ram[ADDR_P1_VRAM_ROW] = 0;
+        nes.ram[ADDR_P2_VRAM_ROW] = 0;
+        nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] = RENDER_LINES;
+        nes.ram[ADDR_P1_LINES] = 0x10;
+        nes.ram[ADDR_P1_LINES + 1] = 0x00;
+        nes.ram[ADDR_P2_LINES] = 0x20;
+        nes.ram[ADDR_P2_LINES + 1] = 0x00;
+
+        render_mode_play_and_demo(&nes);
+
+        assert(nes.ram[ADDR_P1_VRAM_ROW] == 4);
+        assert(nes.ram[ADDR_P2_VRAM_ROW] == 4);
+        assert(nes.ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] == 0);
+
+        /* Subcase D: Tetris 4-line flash and SFX trigger */
+        nes_init(&nes);
+        nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes.ram[ADDR_P1_PLAY_STATE] = 1;
+        nes.ram[ADDR_COMPLETED_LINES] = 4;
+        nes.ram[ADDR_FRAME_COUNTER] = 0; /* (frame & 7) == 0 -> SFX_TETRIS */
+        nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] = 0;
+
+        render_mode_play_and_demo(&nes);
+
+        assert(nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_TETRIS);
+
+        /* Frame 4: (frame & 3) == 0, but (frame & 7) == 4 -> flash without SFX */
+        nes.ram[ADDR_FRAME_COUNTER] = 4;
+        nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] = 0;
+        render_mode_play_and_demo(&nes);
+        assert(nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == 0);
+
+        printf("  [PASS] render_mode_play_and_demo full functionality and framing\n");
     }
 
     return failures;

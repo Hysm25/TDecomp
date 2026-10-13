@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **67** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **82** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **104** | Pending conversion |
-| **Completion Percentage** | **39.18%** | Standalone routine completion rate |
+| **Remaining Routines** | **89** | Pending conversion |
+| **Completion Percentage** | **47.95%** | Standalone routine completion rate |
 
 ---
 
@@ -28,15 +28,15 @@
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
 | **CORE_LOGIC** | 38 | 10 | 0 | 28 | 26.3% |
-| **GAMEPLAY_STATE** | 14 | 11 | 0 | 3 | 78.6% |
+| **GAMEPLAY_STATE** | 14 | 14 | 0 | 0 | 100.0% |
 | **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
-| **MENUS_UI** | 13 | 6 | 0 | 7 | 46.2% |
+| **MENUS_UI** | 13 | 8 | 0 | 5 | 61.5% |
 | **PLAYER_INPUT** | 4 | 4 | 0 | 0 | 100.0% |
-| **PLAYFIELD** | 9 | 7 | 0 | 2 | 77.8% |
-| **RENDER** | 16 | 2 | 0 | 14 | 12.5% |
+| **PLAYFIELD** | 9 | 8 | 0 | 1 | 88.9% |
+| **RENDER** | 16 | 9 | 0 | 7 | 56.2% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
-| **TETRIMINO** | 16 | 11 | 0 | 5 | 68.8% |
+| **TETRIMINO** | 16 | 13 | 0 | 3 | 81.2% |
 
 ---
 
@@ -206,7 +206,7 @@
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
 | `initPlayfieldIfTypeB` | `0x87DC` | L1339–L1343 | JSR | `VERIFIED` | Verified: Type B mode check and garbage playfield initialization verified |
-| `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `MISSING` |  |
+| `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `VERIFIED` | Verified: Playfield row VRAM streaming, player mode offsets, and 0x20 row clamp differential proven against 6502 ROM (Test 54) |
 | `updateLineClearingAnimation` | `0x977F` | L2757–L2827 | JSR | `VERIFIED` | Verified: 5-step center-out line clearing animation framing verified |
 | `noop_disabledVramRowIncr` | `0x9874` | L2878–L2895 | JSR | `VERIFIED` | Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM |
 | `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Jump Table | `VERIFIED` | Verified: Game over curtain cascade filling playfield with curtain tiles verified |
@@ -221,7 +221,7 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `render` | `0x804B` | L290–L296 | JSR | `VERIFIED` | Verified: Master render dispatcher jump table for modes 0..4 differential proven against 6502 ROM (Test 50) |
 | `loadSpriteIntoOamStaging` | `0x8C27` | L1861–L1903 | JSR | `VERIFIED` | Verified: Table-driven OAM sprite staging with contiguous sprite data and 90-entry lookup differential proven against 6502 ROM (Test 43) |
-| `render_mode_play_and_demo` | `0x94EE` | L2457–L2671 | Jump Table | `MISSING` |  |
+| `render_mode_play_and_demo` | `0x94EE` | L2457–L2671 | Jump Table | `VERIFIED` | Verified: In-game play/demo render engine, line clear animation dispatch, dirty render flags, tetris flash/SFX, and scroll flush differential proven against 6502 ROM (Test 55) |
 | `twoDigsToPPU` | `0x9712` | L2691–L2703 | JSR | `VERIFIED` | Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM |
 | `updatePaletteForLevel` | `0x9808` | L2833–L2870 | JSR | `VERIFIED` | Verified: Modulo-10 level color palette copying to PPUADDR $3F08 and $3F18 using colorTable differential proven against 6502 ROM (Test 46) |
 | `render_mode_ending_animation` | `0x9F95` | L3975–L4009 | Jump Table | `VERIFIED` | Verified: Type A and Type B ending score display to PPU and scroll flush differential proven against 6502 ROM (Test 49) |

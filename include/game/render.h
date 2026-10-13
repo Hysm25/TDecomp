@@ -17,6 +17,12 @@ extern const uint8_t colorTable[40];
 /* Authoritative OAM content lookup and sprite data table ($8C6C to $9443, 2008 bytes) */
 extern const uint8_t oamContentLookupAndSprites[2008];
 
+/* Authoritative PPU stat address lookup for piece types 0..6 (14 bytes at $96AA) */
+extern const uint8_t pieceToPpuStatAddr[14];
+
+/* Authoritative 2-digit BCD level display table for levels 0..29 (30 bytes at $96B8) */
+extern const uint8_t levelDisplayTable[30];
+
 /*
  * Copies OAM staging buffer ($0200..$02FF) to PPU OAM via DMA ($4014).
  * Writes 0 to OAMADDR ($2003) and 2 to OAMDMA ($4014).

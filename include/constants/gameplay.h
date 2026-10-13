@@ -94,6 +94,7 @@ extern "C" {
 #define TITLE_SCREEN_TIMEOUT_HI     0x05
 #define SFX_MENU_MOVE               0x01
 #define SFX_MENU_SELECT             0x02
+#define SFX_TETRIS                  0x09
 #define MENU_CURSOR_MASK_NTSC       0x03
 #define MENU_CURSOR_MASK_PAL        0x01
 #define MENU_CURSOR_MASK            MENU_CURSOR_MASK_NTSC

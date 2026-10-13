@@ -1,6 +1,28 @@
 #include "game/render.h"
 #include "game/highscore.h"
+#include "game/playfield.h"
 #include <string.h>
+
+/*
+ * Authoritative PPU stat address lookup for piece types 0..6 (14 bytes at $96AA).
+ * Big-endian pairs (.dbyt in main.asm): high byte followed by low byte.
+ * Source address: $96AA (main.asm lines 2672-2674).
+ */
+const uint8_t pieceToPpuStatAddr[14] = {
+    0x21, 0x86, 0x21, 0xC6, 0x22, 0x06, 0x22, 0x46,
+    0x22, 0x86, 0x22, 0xC6, 0x23, 0x06
+};
+
+/*
+ * Authoritative 2-digit BCD level display table for levels 0..29 (30 bytes at $96B8).
+ * Source address: $96B8 (main.asm lines 2675-2679).
+ */
+const uint8_t levelDisplayTable[30] = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
+    0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23,
+    0x24, 0x25, 0x26, 0x27, 0x28, 0x29
+};
 
 /*
  * Authoritative color palette table per level modulo 10 (40 bytes at $984C).
@@ -329,11 +351,145 @@ void render_mode_ending_animation(NES_State *nes) {
 
 /*
  * Render Mode 3: Play and demo screen render handler.
+ * Transfers dirty playfield rows or line clearing animation tiles to PPU nametables,
+ * updates on-screen lines, level number, score, and piece statistics,
+ * flashes the border palette and triggers SFX on tetris (4 completed lines),
+ * and resets PPU scroll to (0, 0).
  * Source address: $94EE (main.asm lines 2457-2671).
  */
 void render_mode_play_and_demo(NES_State *nes) {
     if (!nes) return;
-    /* Implemented in subsequent batch */
+
+    /* Player 1 playfield */
+    if (nes->ram[ADDR_P1_PLAY_STATE] == PLAYSTATE_LINE_CLEAR_ANIM) {
+        nes->ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(ADDR_PLAYFIELD);
+        nes->ram[ADDR_ROW_Y] = nes->ram[ADDR_P1_ROW_Y];
+        nes->ram[ADDR_COMPLETED_ROW] = nes->ram[ADDR_P1_COMPLETED_ROW];
+        nes->ram[ADDR_COMPLETED_ROW + 1] = nes->ram[ADDR_P1_COMPLETED_ROW + 1];
+        nes->ram[ADDR_COMPLETED_ROW + 2] = nes->ram[ADDR_P1_COMPLETED_ROW + 2];
+        nes->ram[ADDR_COMPLETED_ROW + 3] = nes->ram[ADDR_P1_COMPLETED_ROW + 3];
+        nes->ram[ADDR_PLAY_STATE] = nes->ram[ADDR_P1_PLAY_STATE];
+
+        updateLineClearingAnimation(nes);
+
+        nes->ram[ADDR_P1_ROW_Y] = nes->ram[ADDR_ROW_Y];
+        nes->ram[ADDR_P1_PLAY_STATE] = nes->ram[ADDR_PLAY_STATE];
+        nes->ram[ADDR_P1_VRAM_ROW] = 0x00;
+    } else {
+        nes->ram[ADDR_VRAM_ROW] = nes->ram[ADDR_P1_VRAM_ROW];
+        nes->ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(ADDR_PLAYFIELD);
+        copyPlayfieldRowToVRAM(nes);
+        copyPlayfieldRowToVRAM(nes);
+        copyPlayfieldRowToVRAM(nes);
+        copyPlayfieldRowToVRAM(nes);
+        nes->ram[ADDR_P1_VRAM_ROW] = nes->ram[ADDR_VRAM_ROW];
+    }
+
+    /* Player 2 playfield (if 2 players) */
+    if (nes->ram[ADDR_NUMBER_OF_PLAYERS] == 2) {
+        if (nes->ram[ADDR_P2_PLAY_STATE] == PLAYSTATE_LINE_CLEAR_ANIM) {
+            nes->ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(ADDR_PLAYFIELD_P2);
+            nes->ram[ADDR_ROW_Y] = nes->ram[ADDR_P2_ROW_Y];
+            nes->ram[ADDR_COMPLETED_ROW] = nes->ram[ADDR_P2_COMPLETED_ROW];
+            nes->ram[ADDR_COMPLETED_ROW + 1] = nes->ram[ADDR_P2_COMPLETED_ROW + 1];
+            nes->ram[ADDR_COMPLETED_ROW + 2] = nes->ram[ADDR_P2_COMPLETED_ROW + 2];
+            nes->ram[ADDR_COMPLETED_ROW + 3] = nes->ram[ADDR_P2_COMPLETED_ROW + 3];
+            nes->ram[ADDR_PLAY_STATE] = nes->ram[ADDR_P2_PLAY_STATE];
+
+            updateLineClearingAnimation(nes);
+
+            nes->ram[ADDR_P2_ROW_Y] = nes->ram[ADDR_ROW_Y];
+            nes->ram[ADDR_P2_PLAY_STATE] = nes->ram[ADDR_PLAY_STATE];
+            nes->ram[ADDR_P2_VRAM_ROW] = 0x00;
+        } else {
+            nes->ram[ADDR_VRAM_ROW] = nes->ram[ADDR_P2_VRAM_ROW];
+            nes->ram[ADDR_PLAYFIELD_ADDR + 1] = HIGH_BYTE(ADDR_PLAYFIELD_P2);
+            copyPlayfieldRowToVRAM(nes);
+            copyPlayfieldRowToVRAM(nes);
+            copyPlayfieldRowToVRAM(nes);
+            copyPlayfieldRowToVRAM(nes);
+            nes->ram[ADDR_P2_VRAM_ROW] = nes->ram[ADDR_VRAM_ROW];
+        }
+    }
+
+    /* Lines rendering */
+    if (nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_LINES) {
+        if (nes->ram[ADDR_NUMBER_OF_PLAYERS] == 2) {
+            nes_write8(nes, REG_PPUADDR, 0x20);
+            nes_write8(nes, REG_PPUADDR, 0x68);
+            nes_write8(nes, REG_PPUDATA, nes->ram[ADDR_P1_LINES + 1]);
+            twoDigsToPPU(nes, nes->ram[ADDR_P1_LINES]);
+
+            nes_write8(nes, REG_PPUADDR, 0x20);
+            nes_write8(nes, REG_PPUADDR, 0x7A);
+            nes_write8(nes, REG_PPUDATA, nes->ram[ADDR_P2_LINES + 1]);
+            twoDigsToPPU(nes, nes->ram[ADDR_P2_LINES]);
+        } else {
+            nes_write8(nes, REG_PPUADDR, 0x20);
+            nes_write8(nes, REG_PPUADDR, 0x73);
+            nes_write8(nes, REG_PPUDATA, nes->ram[ADDR_P1_LINES + 1]);
+            twoDigsToPPU(nes, nes->ram[ADDR_P1_LINES]);
+        }
+        nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] &= (uint8_t)~RENDER_LINES;
+    }
+
+    /* Level rendering (1-player mode only) */
+    if ((nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_LEVEL) &&
+        (nes->ram[ADDR_NUMBER_OF_PLAYERS] != 2)) {
+        uint8_t lvl = nes->ram[ADDR_P1_LEVEL_NUMBER];
+        uint8_t display_lvl = (lvl < sizeof(levelDisplayTable)) ? levelDisplayTable[lvl] : lvl;
+        nes->ram[ADDR_GENERAL_COUNTER] = display_lvl;
+        nes_write8(nes, REG_PPUADDR, 0x22);
+        nes_write8(nes, REG_PPUADDR, 0xBA);
+        twoDigsToPPU(nes, nes->ram[ADDR_GENERAL_COUNTER]);
+        updatePaletteForLevel(nes);
+        nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] &= (uint8_t)~RENDER_LEVEL;
+    }
+
+    /* Score rendering (1-player mode only) */
+    if ((nes->ram[ADDR_NUMBER_OF_PLAYERS] != 2) &&
+        (nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_SCORE)) {
+        nes_write8(nes, REG_PPUADDR, 0x21);
+        nes_write8(nes, REG_PPUADDR, 0x18);
+        twoDigsToPPU(nes, nes->ram[ADDR_P1_SCORE + 2]);
+        twoDigsToPPU(nes, nes->ram[ADDR_P1_SCORE + 1]);
+        twoDigsToPPU(nes, nes->ram[ADDR_P1_SCORE]);
+        nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] &= (uint8_t)~RENDER_SCORE;
+    }
+
+    /* Stats rendering (1-player mode only) */
+    if ((nes->ram[ADDR_NUMBER_OF_PLAYERS] != 2) &&
+        (nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] & RENDER_STATS)) {
+        nes->ram[ADDR_TMP_CURRENT_PIECE] = 0;
+        do {
+            uint8_t piece = nes->ram[ADDR_TMP_CURRENT_PIECE];
+            uint8_t x = (uint8_t)(piece << 1);
+            nes_write8(nes, REG_PPUADDR, pieceToPpuStatAddr[x]);
+            nes_write8(nes, REG_PPUADDR, pieceToPpuStatAddr[x + 1]);
+            nes_write8(nes, REG_PPUDATA, nes->ram[ADDR_STATS_BY_TYPE + x + 1]);
+            twoDigsToPPU(nes, nes->ram[ADDR_STATS_BY_TYPE + x]);
+            nes->ram[ADDR_TMP_CURRENT_PIECE]++;
+        } while (nes->ram[ADDR_TMP_CURRENT_PIECE] != 7);
+        nes->ram[ADDR_OUT_OF_DATE_RENDER_FLAGS] &= (uint8_t)~RENDER_STATS;
+    }
+
+    /* Tetris flash, sound effect, and scroll reset */
+    nes_write8(nes, REG_PPUADDR, 0x3F);
+    nes_write8(nes, REG_PPUADDR, 0x0E);
+    uint8_t flash_color = 0x00;
+    if (nes->ram[ADDR_COMPLETED_LINES] == 4) {
+        if ((nes->ram[ADDR_FRAME_COUNTER] & 0x03) == 0) {
+            flash_color = 0x30;
+            if ((nes->ram[ADDR_FRAME_COUNTER] & 0x07) == 0) {
+                nes->ram[ADDR_SOUND_EFFECT_SLOT1_INIT] = SFX_TETRIS;
+            }
+        }
+    }
+    nes_write8(nes, REG_PPUDATA, flash_color);
+    nes->ram[ADDR_PPU_SCROLL_X] = 0;
+    nes_write8(nes, REG_PPUSCROLL, 0x00);
+    nes->ram[ADDR_PPU_SCROLL_Y] = 0;
+    nes_write8(nes, REG_PPUSCROLL, 0x00);
 }
 
 /*

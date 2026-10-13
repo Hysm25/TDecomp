@@ -4,6 +4,7 @@
 #include "common.h"
 #include "nes.h"
 #include "constants/gameplay.h"
+#include "constants/hardware.h"
 #include "constants/memory.h"
 #include "game/tetrimino.h"
 #include "math/rng.h"
@@ -59,8 +60,19 @@ void initPlayfieldIfTypeB(NES_State *nes);
  */
 void initPlayfieldForTypeB(NES_State *nes);
 
+/*
+ * Copies one 10-tile playfield row from CPU RAM to PPU VRAM nametable.
+ * Calculates PPU address based on vramRow and numberOfPlayers / player playfield,
+ * transfers 10 bytes from (playfieldAddr),y to PPUDATA, increments vramRow,
+ * and clamps vramRow to 0x20 when all 20 rows (0..19) are copied.
+ * Returns immediately if vramRow >= 0x15.
+ * Source address: $9725 (main.asm lines 2704-2756).
+ */
+void copyPlayfieldRowToVRAM(NES_State *nes);
+
 /* Authoritative Data Tables from PRG ROM */
 extern const uint8_t multBy10Table[20];
+extern const uint8_t vramPlayfieldRows[40];
 extern const uint8_t garbageLinesTable[5];
 extern const uint8_t leftColumnsTable[5];
 extern const uint8_t rightColumnsTable[5];

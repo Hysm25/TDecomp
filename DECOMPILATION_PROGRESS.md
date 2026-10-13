@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **80** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **82** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **91** | Pending conversion |
-| **Current Progress** | **46.78%** | `[#######################---------------------------] 46.78%` |
-| **Build & Test Suite** | 12 / 12 suites passing | Unit, 32 ROM data tables, & 6502 differential CPU oracle (53 differential tests) |
+| **Remaining Routines** | **89** | Pending conversion |
+| **Current Progress** | **47.95%** | `[########################--------------------------] 47.95%` |
+| **Build & Test Suite** | 12 / 12 suites passing | Unit, 35 ROM data tables, & 6502 differential CPU oracle (55 differential tests) |
 
 ---
 
@@ -35,13 +35,13 @@
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 4 | 0 | 0 | **100.0%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 14 | 0 | 0 | **100.0%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 13 | 0 | 3 | **81.2%** |
-| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
+| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 8 | 0 | 1 | **88.9%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 8 | 0 | 5 | **61.5%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 8 | 0 | 8 | **50.0%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 9 | 0 | 7 | **56.2%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 10 | 0 | 28 | **26.3%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **80** | **0** | **91** | **46.78%** |
+| **TOTAL** | **171** | **82** | **0** | **89** | **47.95%** |
 
 ---
 
@@ -188,8 +188,14 @@
     - Authoritative data tables bit-exact verified against reference ROM: `orientationToSpriteTable` ($8BE5, 19 bytes), `colorTable` ($984C, 40 bytes), `oamContentLookupAndSprites` ($8C6C, 2008 bytes).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyOamStagingToOam`, `copyCurrentScrollAndCtrlToPPU`, `loadSpriteIntoOamStaging`, `stageSpriteForCurrentPiece`, `stageSpriteForNextPiece`, `updatePaletteForLevel`, `render_mode_legal_and_title_screens`, `render_mode_menu_screens`, `render_mode_ending_animation`, `render`, `gameModeState_updatePlayer1`, `gameModeState_updatePlayer2`, and `playState_bTypeGoalCheck_ret` (Tests 41–53).
 
-15. [ ] **Batch 12 (Audio & Sound Effects)**:
-    - APU sound effects and music sequencing.
+15. [x] **Batch 12 (Playfield Row Streaming & In-Game Play/Demo Render Engine)**:
+    - Decompiled `copyPlayfieldRowToVRAM` ($9725): 10-tile playfield row VRAM transfer with 1P / 2P Player 1 / 2P Player 2 column offsets and $20 row clamp.
+    - Decompiled `render_mode_play_and_demo` ($94EE): In-game play and demo render engine orchestrating PlayState 4 line clearing animation dispatch or 4x `copyPlayfieldRowToVRAM` calls, lines update (1P: $2073, 2P: $2068/$207A), level display update ($22BA) with palette update, score display ($2118), 7 piece statistics ($2186..$2306), tetris 4-line clear palette flash and SFX trigger (`SFX_TETRIS` 0x09), and scroll flush to (0, 0).
+    - Authoritative data tables bit-exact verified against reference ROM: `pieceToPpuStatAddr` ($96AA, 14 bytes), `levelDisplayTable` ($96B8, 30 bytes), `vramPlayfieldRows` ($96EA, 40 bytes).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyPlayfieldRowToVRAM` (1P, 2P Player 1, 2P Player 2, clamp, no-op) and `render_mode_play_and_demo` (1P dirty flags, line clear animation branch, 2P line rendering, tetris flash/SFX) (Tests 54–55).
+
+16. [ ] **Batch 13 (Ending Sequence & Animations)**:
+    - Ending animations (Type A and Type B), cathedral sprite staging, and concert patches.
 
 ---
 
@@ -211,3 +217,4 @@
 | Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `c24f9c0` |
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
 | Batch 11 | PPU Rendering, Palette, OAM Sprite Staging & Player Game Loops | 13 | 80 | 12 suites / 32 ROM tables + 53 6502 diff | `f9bb670` |
+| Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | Pending |

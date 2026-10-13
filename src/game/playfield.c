@@ -11,6 +11,15 @@ const uint8_t multBy10Table[20] = {
     0xA0, 0xAA, 0xB4, 0xBE
 };
 
+/* vramPlayfieldRows: 20 rows PPU base addresses, little-endian (.word in main.asm) ($96EA in PRG ROM) */
+const uint8_t vramPlayfieldRows[40] = {
+    0xC6, 0x20, 0xE6, 0x20, 0x06, 0x21, 0x26, 0x21,
+    0x46, 0x21, 0x66, 0x21, 0x86, 0x21, 0xA6, 0x21,
+    0xC6, 0x21, 0xE6, 0x21, 0x06, 0x22, 0x26, 0x22,
+    0x46, 0x22, 0x66, 0x22, 0x86, 0x22, 0xA6, 0x22,
+    0xC6, 0x22, 0xE6, 0x22, 0x06, 0x23, 0x26, 0x23
+};
+
 /* garbageLinesTable: garbage lines sent to opponent in 2-player mode ($9B53 in PRG ROM) */
 const uint8_t garbageLinesTable[5] = {
     0x00, 0x00, 0x01, 0x02, 0x04
@@ -298,5 +307,52 @@ void initPlayfieldForTypeB(NES_State *nes) {
     uint8_t limit2 = typeBBlankInitCountByHeightTable[h2];
     for (int i = 0; i < limit2 && i < PLAYFIELD_SIZE; i++) {
         nes_write8(nes, ADDR_PLAYFIELD_P2 + i, TILE_EMPTY);
+    }
+}
+
+/*
+ * Copies one 10-tile playfield row from CPU RAM to PPU VRAM nametable.
+ * Calculates PPU address based on vramRow and numberOfPlayers / player playfield,
+ * transfers 10 bytes from (playfieldAddr),y to PPUDATA, increments vramRow,
+ * and clamps vramRow to 0x20 when all 20 rows (0..19) are copied.
+ * Returns immediately if vramRow >= 0x15.
+ * Source address: $9725 (main.asm lines 2704-2756).
+ */
+void copyPlayfieldRowToVRAM(NES_State *nes) {
+    if (!nes) return;
+
+    uint8_t row = nes->ram[ADDR_VRAM_ROW];
+    uint8_t cmp_res = (uint8_t)(row - 0x15);
+    if ((cmp_res & 0x80) == 0) {
+        return;
+    }
+
+    uint8_t y = multBy10Table[row];
+    uint8_t hi = vramPlayfieldRows[(row << 1) + 1];
+    nes_write8(nes, REG_PPUADDR, hi);
+
+    uint8_t lo = vramPlayfieldRows[row << 1];
+    if (nes->ram[ADDR_NUMBER_OF_PLAYERS] == 1) {
+        lo = (uint8_t)(lo + 0x06);
+    } else {
+        if (nes->ram[ADDR_PLAYFIELD_ADDR + 1] == 0x05) {
+            lo = (uint8_t)(lo + 0x0C);
+        } else {
+            lo = (uint8_t)(lo - 0x02);
+        }
+    }
+    nes_write8(nes, REG_PPUADDR, lo);
+
+    uint16_t pf_base = nes_read16(nes, ADDR_PLAYFIELD_ADDR);
+    for (uint8_t i = 0; i < 10; i++) {
+        uint8_t tile = nes_read8(nes, (uint16_t)(pf_base + y));
+        nes_write8(nes, REG_PPUDATA, tile);
+        y++;
+    }
+
+    row++;
+    nes->ram[ADDR_VRAM_ROW] = row;
+    if (((uint8_t)(row - 0x14) & 0x80) == 0) {
+        nes->ram[ADDR_VRAM_ROW] = 0x20;
     }
 }
