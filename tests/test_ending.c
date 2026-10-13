@@ -269,3 +269,8 @@ void run_ending_subsystem_tests(void) {
     test_ending_animation_b_bonus_countdown();
     printf("--- All Ending Subsystem Tests Passed ---\n\n");
 }
+
+int test_ending_subsystem(void) {
+    run_ending_subsystem_tests();
+    return 0;
+}

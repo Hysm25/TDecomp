@@ -151,6 +151,8 @@ bool load_reference_rom(NES_State *nes, const char *custom_path) {
                     } else {
                         free(buf);
                     }
+                } else {
+                    fclose(f);
                 }
             } else {
                 fclose(f);
@@ -158,15 +160,22 @@ bool load_reference_rom(NES_State *nes, const char *custom_path) {
         }
     }
 
+    const char *env_path = getenv("TDECOMP_ROM_PATH");
+    if (env_path && env_path[0] != '\0') {
+        if (load_reference_rom(nes, env_path)) {
+            return true;
+        }
+    }
+
     const char *paths[] = {
         "Tetris (USA).nes",
         "../Tetris (USA).nes",
         "../../Tetris (USA).nes",
-        "/root/TDecomp/Tetris (USA).nes",
+        "../../../Tetris (USA).nes",
         "TetrisNESDisasm/tetris.nes",
         "../TetrisNESDisasm/tetris.nes",
         "../../TetrisNESDisasm/tetris.nes",
-        "/root/TDecomp/TetrisNESDisasm/tetris.nes",
+        "../../../TetrisNESDisasm/tetris.nes",
         NULL
     };
 
@@ -189,6 +198,8 @@ bool load_reference_rom(NES_State *nes, const char *custom_path) {
                     } else {
                         free(buf);
                     }
+                } else {
+                    fclose(f);
                 }
             } else {
                 fclose(f);

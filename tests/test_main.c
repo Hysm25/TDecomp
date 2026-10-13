@@ -10,7 +10,7 @@ extern int test_state_subsystem(void);
 extern int test_menu_subsystem(void);
 extern int test_highscore_subsystem(void);
 extern int test_render_subsystem(void);
-extern void run_ending_subsystem_tests(void);
+extern int test_ending_subsystem(void);
 extern int test_audio_subsystem(void);
 extern int test_system_subsystem(void);
 extern int test_differential_verification(void);
@@ -29,7 +29,7 @@ int main(void) {
     failures += test_menu_subsystem();
     failures += test_highscore_subsystem();
     failures += test_render_subsystem();
-    run_ending_subsystem_tests();
+    failures += test_ending_subsystem();
     failures += test_audio_subsystem();
     failures += test_system_subsystem();
 

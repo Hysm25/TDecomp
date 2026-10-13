@@ -23,19 +23,24 @@ A clean, verified, and modular C decompilation of original NES Tetris (USA), mat
 - `ROUTINE_INVENTORY.md`: Comprehensive census of all callable routines and data tables.
 
 ## Current Project Status
-- **Standalone Routines Verified:** 46 / 171 (26.90%)
-- **Test Suites:** 10 / 10 passing (unit tests across all decompiled subsystems)
-- **Authoritative Data Tables:** 20 ROM data tables verified bit-exact against reference ROM
-- **6502 Differential CPU Oracle:** 28 differential test blocks proving decompiled C routines equivalent to original 6502 PRG ROM machine code execution
+- **Standalone Routines Verified:** 171 / 171 (100.0%)
+- **Alternate Entry Points Verified:** 111 / 111 (100.0%)
+- **Total PRG Symbols Tracked:** 567
+- **Test Suites:** 15 / 15 passing (unit tests across all decompiled subsystems)
+- **Authoritative ROM Data Tables:** 111 tables verified bit-exact against reference ROM
+- **6502 Differential CPU Oracle:** 91 differential tests proving decompiled C routines equivalent to original 6502 PRG ROM execution
 - **Subsystem Progress:**
   - `MATH_RNG` (Pseudo-Random Generation): **100.0%** (2 / 2)
-  - `PLAYFIELD` (Grid, Line Clears, Garbage): **77.8%** (7 / 9)
-  - `PLAYER_INPUT` (DAS, Joypad, Autorepeat): **75.0%** (3 / 4)
-  - `TETRIMINO` (Geometry, Movement, Spawns): **68.8%** (11 / 16)
-  - `MENUS_UI` (Legal, Title, Menus): **46.2%** (6 / 13)
-  - `GAMEPLAY_STATE` (State Machine, Framing): **42.9%** (6 / 14)
-  - `CORE_LOGIC` (Context Switch, Dispatchers): **21.1%** (8 / 38)
-  - `MATH_BCD` (Score & Line Math): **8.3%** (1 / 12)
+  - `MATH_BCD` (Score & Line Math): **100.0%** (12 / 12)
+  - `PLAYER_INPUT` (DAS, Joypad, Autorepeat): **100.0%** (4 / 4)
+  - `GAMEPLAY_STATE` (State Machine, Timers): **100.0%** (14 / 14)
+  - `TETRIMINO` (Geometry, Movement, Spawns): **100.0%** (16 / 16)
+  - `PLAYFIELD` (Grid, Line Clears, Garbage): **100.0%** (9 / 9)
+  - `MENUS_UI` (Legal, Title, Menus, High Scores): **100.0%** (13 / 13)
+  - `AUDIO` (Sound Effects, Music Engine, APU Drivers): **100.0%** (41 / 41)
+  - `RENDER` (PPU, OAM, Palettes, Nametables): **100.0%** (16 / 16)
+  - `CORE_LOGIC` (Context Switch, Dispatchers, Buffers): **100.0%** (38 / 38)
+  - `SYSTEM` (Reset, NMI, IRQ, VBlank, MMC1 Mapper): **100.0%** (6 / 6)
 
 See [DECOMPILATION_PROGRESS.md](DECOMPILATION_PROGRESS.md) for full progress details and roadmap.
 

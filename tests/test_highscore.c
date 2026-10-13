@@ -273,6 +273,7 @@ int test_highscore_subsystem(void) {
         nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_RIGHT;
         bool done = highScoreEntryScreen_step(&nes);
         assert(!done);
+        (void)done;
         assert(nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_MOVE);
         assert(nes.ram[ADDR_HIGH_SCORE_NAME_OFFSET_LETTER] == 1);
 
@@ -322,6 +323,7 @@ int test_highscore_subsystem(void) {
         nes.ram[ADDR_NEWLY_PRESSED_P1] = BUTTON_START;
         done = highScoreEntryScreen_step(&nes);
         assert(done);
+        (void)done;
         assert(nes.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_MENU_SELECT);
     }
     printf("  [PASS] test_high_score_entry_screen_navigation\n");

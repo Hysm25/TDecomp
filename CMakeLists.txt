@@ -9,16 +9,11 @@ project(tdecomp C)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -pedantic -Wno-unused-parameter")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -pedantic")
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type" FORCE)
 endif()
-
-# Core include directories
-include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
 
 # Core decompiled library sources
 set(TDECOMP_CORE_SOURCES
@@ -38,15 +33,14 @@ set(TDECOMP_CORE_SOURCES
 )
 
 add_library(tdecomp_core STATIC ${TDECOMP_CORE_SOURCES})
+target_include_directories(tdecomp_core PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 # Test suite
 option(BUILD_TESTING "Build tests" ON)
 if(BUILD_TESTING)
     enable_testing()
-
-    include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/tests
-    )
 
     set(TDECOMP_TEST_SOURCES
         tests/test_main.c
@@ -70,6 +64,11 @@ if(BUILD_TESTING)
 
     add_executable(tdecomp_tests ${TDECOMP_TEST_SOURCES})
     target_link_libraries(tdecomp_tests PRIVATE tdecomp_core)
+    target_include_directories(tdecomp_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+    )
+    # Ensure assertions remain active in test runner regardless of build type
+    target_compile_options(tdecomp_tests PRIVATE -UNDEBUG)
 
     add_test(NAME tdecomp_tests COMMAND tdecomp_tests)
 endif()
