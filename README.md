@@ -11,7 +11,7 @@ TDecomp is a clean, modular C decompilation of NES Tetris (USA), providing a por
 - **Git**: with submodule support
 - **Make** or **Ninja** build system
 - **Python**: version 3.8+ (optional, for routine census tooling)
-- **Emscripten** (`emcc`): version 3.0+ (optional, for WebAssembly compilation)
+- **raylib**: version 4.5+ (optional; automatically resolved via FetchContent if not installed on system)
 
 ---
 
@@ -60,42 +60,42 @@ cmake --build build --target verify
 
 ---
 
-## WebAssembly Full ROM Execution
+## Native Desktop Application (raylib)
 
-TDecomp includes a WebAssembly emulator integration allowing the original, complete `Tetris (USA).nes` ROM to execute directly in web browsers with cycle-accurate 60 FPS video, 2A03 APU audio synthesis, and controller input.
+TDecomp features a native desktop application powered by [raylib](https://www.raylib.com/) and driven directly by the verified decompiled C11 engine (`libtdecomp_core.a`). The frontend provides authentic gameplay rendering, authentic level palettes, Delayed Auto Shift (DAS) mechanics, score/line accounting, and procedural sound effects without embedding an NES emulator or requiring an external `.nes` ROM at runtime.
 
-### Compile WebAssembly Emulator
-
-```bash
-make -C web
-```
-
-Compiles the MIT-licensed `binjnes` C emulation core to `web/binjnes.js` and `web/binjnes.wasm`.
-
-### Run Automated ROM Verification (Node.js)
+### Launch Desktop Application
 
 ```bash
-node web/test_rom.js
+./build/tdecomp
 ```
 
-Verifies the original reference ROM (`Tetris (USA).nes`), executes the 6502 CPU and 2C02 PPU through the legal screen, title screen, menus, and active gameplay, and validates 2A03 APU audio buffer generation.
-
-### Launch Browser Emulator
-
-Start a local HTTP server from the project root:
+### Command-Line Options
 
 ```bash
-python3 -m http.server 8080 --directory web
+# Start directly at a specific level (0 to 19)
+./build/tdecomp --level 9
+
+# Run headless simulation verification (no display or audio required)
+./build/tdecomp --headless --test-frames 180
+
+# Run without procedural audio
+./build/tdecomp --no-audio
 ```
 
-Open `http://localhost:8080` in your web browser:
-- **Automatic ROM Detection**: If `Tetris (USA).nes` or `tetris.nes` is placed in `web/`, it boots immediately.
-- **User-Supplied ROM**: A drag-and-drop file picker allows loading your own `.nes` ROM file with SHA-1 integrity verification.
-- **Display & Audio**: Renders the authentic 256×240 NES framebuffer with integer-ratio pixel scaling and Web Audio API sound.
-- **Controls**:
-  - Keyboard: <kbd>&larr;</kbd> / <kbd>&rarr;</kbd> Left/Right, <kbd>&darr;</kbd> Down, <kbd>Z</kbd> B (Rotate CCW), <kbd>X</kbd> or <kbd>&uarr;</kbd> A (Rotate CW), <kbd>Enter</kbd> Start, <kbd>Shift</kbd> / <kbd>Tab</kbd> Select, <kbd>Space</kbd> Pause, <kbd>R</kbd> Reset.
-  - Gamepads: Automatic Gamepad API detection for USB / Bluetooth controllers.
-  - Touch: On-screen D-Pad and action buttons for mobile devices.
+### Controls
+
+| Action | Primary Key | Secondary Key | Controller / NES Equivalent |
+| :--- | :--- | :--- | :--- |
+| **Shift Left / Right** | <kbd>&larr;</kbd> / <kbd>&rarr;</kbd> | <kbd>A</kbd> / <kbd>D</kbd> | D-Pad Left / Right |
+| **Soft Drop** | <kbd>&darr;</kbd> | <kbd>S</kbd> | D-Pad Down |
+| **Rotate CCW** | <kbd>Z</kbd> | <kbd>J</kbd> | Button B |
+| **Rotate CW** | <kbd>X</kbd> | <kbd>K</kbd> / <kbd>&uarr;</kbd> | Button A |
+| **Start / Pause** | <kbd>Enter</kbd> | <kbd>Space</kbd> | Button Start |
+| **Toggle Next Piece** | <kbd>Tab</kbd> | <kbd>Shift</kbd> | Button Select |
+| **Quick Restart** | <kbd>R</kbd> | — | Reset |
+| **Mute Audio** | <kbd>M</kbd> | — | Audio Toggle |
+| **Quit** | <kbd>Esc</kbd> | — | Window Close |
 
 ---
 
@@ -124,7 +124,7 @@ TDecomp/
 ├── include/                    # Public C headers (NES state & subsystem APIs)
 ├── src/                        # C source implementations (libtdecomp_core.a)
 ├── tests/                      # Unit tests & 6502 differential CPU verification
-├── web/                        # WebAssembly port (C bridge, JS API, and browser demo)
+├── native/                     # Native Raylib desktop frontend (adapter, renderer, audio)
 ├── tools/                      # Disassembly routine census script (inventory_routines.py)
 └── TetrisNESDisasm/            # Reference disassembly submodule
 ```
@@ -148,6 +148,6 @@ This project is built upon the research and reverse engineering of the NES Tetri
 - **[TetrisNESDisasm](https://github.com/CelestialAmber/TetrisNESDisasm)**: Disassembly created and maintained by Amber Brault (CelestialAmber) and contributors.
 - **[taus](https://github.com/ejona86/taus)**: Disassembly data, info files, and research by ejona86.
 - **[nes-util](https://github.com/qalle2/nes-util)**: CHR conversion utilities by qalle2.
-- **[binjnes](https://github.com/binji/binjnes)**: Cycle-accurate NES emulation core in C by Ben Smith (binji), licensed under MIT and adapted for WebAssembly full ROM execution.
+- **[raylib](https://www.raylib.com/)**: Simple and easy-to-use library to enjoy videogames programming, used for the native desktop frontend.
 
 Tetris is a registered trademark of Tetris Holding, LLC. NES is a registered trademark of Nintendo of America Inc. This project is an independent educational and research decompilation not affiliated with or endorsed by Nintendo or Tetris Holding, LLC.

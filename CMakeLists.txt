@@ -57,6 +57,8 @@ if(BUILD_TESTING)
         tests/test_ending.c
         tests/test_audio.c
         tests/test_system.c
+        native/game_adapter.c
+        tests/test_native_adapter.c
         tests/verification/cpu6502.c
         tests/verification/rom_data.c
         tests/verification/test_differential.c
@@ -66,6 +68,7 @@ if(BUILD_TESTING)
     target_link_libraries(tdecomp_tests PRIVATE tdecomp_core)
     target_include_directories(tdecomp_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/native
     )
     # Ensure assertions remain active in test runner regardless of build type
     target_compile_options(tdecomp_tests PRIVATE -UNDEBUG)
@@ -77,4 +80,57 @@ if(BUILD_TESTING)
         DEPENDS tdecomp_tests
         COMMENT "Run test suite"
     )
+endif()
+
+# Native Raylib Desktop Application
+option(BUILD_NATIVE_APP "Build native raylib desktop application" ON)
+if(BUILD_NATIVE_APP)
+    find_package(raylib 4.5 QUIET)
+    if(NOT raylib_FOUND)
+        find_package(PkgConfig QUIET)
+        if(PKG_CONFIG_FOUND)
+            pkg_check_modules(RAYLIB QUIET raylib)
+        endif()
+    endif()
+
+    if(NOT raylib_FOUND AND NOT RAYLIB_FOUND)
+        include(FetchContent)
+        FetchContent_Declare(
+            raylib
+            GIT_REPOSITORY https://github.com/raysan5/raylib.git
+            GIT_TAG 5.0
+        )
+        FetchContent_MakeAvailable(raylib)
+    endif()
+
+    set(TDECOMP_APP_SOURCES
+        native/main.c
+        native/game_adapter.c
+        native/renderer.c
+        native/audio.c
+    )
+
+    add_executable(tdecomp ${TDECOMP_APP_SOURCES})
+    target_include_directories(tdecomp PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/native
+    )
+    target_link_libraries(tdecomp PRIVATE tdecomp_core)
+
+    if(TARGET raylib)
+        target_link_libraries(tdecomp PRIVATE raylib)
+    elseif(raylib_FOUND)
+        target_link_libraries(tdecomp PRIVATE raylib)
+    elseif(RAYLIB_FOUND)
+        target_include_directories(tdecomp PRIVATE ${RAYLIB_INCLUDE_DIRS})
+        target_link_libraries(tdecomp PRIVATE ${RAYLIB_LIBRARIES})
+    else()
+        target_link_libraries(tdecomp PRIVATE raylib)
+    endif()
+
+    if(WIN32)
+        target_link_libraries(tdecomp PRIVATE winmm gdi32)
+    elseif(UNIX AND NOT APPLE)
+        target_link_libraries(tdecomp PRIVATE m pthread dl)
+    endif()
 endif()

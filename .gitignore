@@ -10,11 +10,6 @@ bin/
 *.dylib
 *.dll
 *.exe
-*.wasm
-web/binjnes.js
-web/binjnes.wasm
-web/tdecomp.js
-web/tdecomp.wasm
 scan_includes
 scan_includes.exe
 tools/cTools/scan_includes

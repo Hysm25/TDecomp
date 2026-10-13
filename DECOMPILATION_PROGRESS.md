@@ -17,7 +17,7 @@
 | **Alternate Entry Points** | **111 / 111 (100%)** | Secondary entry points and shared fall-throughs mapped |
 | **Authoritative Data Tables** | **260 / 260 (100%)** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567 / 567 (100%)** | Complete symbol census of PRG ROM |
-| **Unit Test Suites** | **13 / 13 passing** | Subsystem test suites covering game logic, math, audio, and video |
+| **Unit Test Suites** | **14 / 14 passing** | Subsystem test suites covering game logic, math, audio, video, and native adapter |
 | **ROM Table Verifications** | **111 / 111 matched** | Byte-for-byte matching against reference ROM data tables |
 | **6502 Differential Tests** | **90 / 90 passing** | Equivalent execution proven against NMOS 6502 CPU simulator |
 
@@ -70,7 +70,7 @@ When `Tetris (USA).nes` is not present, ROM-dependent tests output `SKIPPED: ref
 | **Batches 14–15** | Audio Subsystem | APU channel drivers, sound effect slots 0–3, music engine, sequence interpreter |
 | **Batch 16** | System Boot & Mapper | Reset vector ($FF00), RAM clearing, MMC1 bankswitch registers, PPU bulk copying |
 | **Simplification** | Minimal C Project | Removed experimental cc65 ROM tooling (archived to `archive/rom-experiments`), streamlined CMake & documentation |
-| **WASM Port** | Full ROM Browser Execution | WebAssembly NES emulator (`web/emulator/`), 60 FPS 256×240 framebuffer, 2A03 APU audio synthesis, and minimal host page |
+| **Native Raylib Port** | Desktop Game & Presentation | Native Raylib desktop frontend (`native/`), clean `GameAdapter` interface to `libtdecomp_core.a`, authentic level palettes & rendering, procedural audio, and headless CI verification |
 
 ---
 
