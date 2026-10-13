@@ -39,13 +39,15 @@ const uint8_t highScoreIndexToHighScoreScoresOffset[8] = {
 
 #pragma code-name ("C_HS")
 
+static uint8_t shift_fromIdx;
+
 /*
- * Shifts high score entries down by one slot starting from fromIdx.
- * fromIdx == 1: shifts entry 1 down to entry 2.
- * fromIdx == 0: shifts entry 0 down to entry 1.
+ * Shifts high score entries down by one slot starting from shift_fromIdx.
+ * shift_fromIdx == 1: shifts entry 1 down to entry 2.
+ * shift_fromIdx == 0: shifts entry 0 down to entry 1.
  * Supports both Type A (offset +0) and Type B (offset +24 name / +12 score / +4 level).
  */
-static void __fastcall__ shiftDown(uint8_t fromIdx) {
+static void shiftDown(void) {
     uint8_t nameBase = (ZP_GAME_TYPE != 0) ? 24 : 0;
     uint8_t scoreBase = (ZP_GAME_TYPE != 0) ? 12 : 0;
     uint8_t levelBase = (ZP_GAME_TYPE != 0) ? 4 : 0;
@@ -53,19 +55,19 @@ static void __fastcall__ shiftDown(uint8_t fromIdx) {
     uint8_t srcName, srcScore, srcLevel;
 
     /* Shift 6-character name */
-    srcName = nameBase + fromIdx * 6;
+    srcName = nameBase + (shift_fromIdx != 0 ? 6 : 0);
     for (i = 5; i >= 0; i--) {
         highScoreNames[srcName + 6 + i] = highScoreNames[srcName + i];
     }
 
     /* Shift 3-byte BCD score */
-    srcScore = scoreBase + fromIdx * 3;
+    srcScore = scoreBase + (shift_fromIdx != 0 ? 3 : 0);
     highScoreScoresA[srcScore + 3] = highScoreScoresA[srcScore];
     highScoreScoresA[srcScore + 4] = highScoreScoresA[srcScore + 1];
     highScoreScoresA[srcScore + 5] = highScoreScoresA[srcScore + 2];
 
     /* Shift 1-byte level number */
-    srcLevel = levelBase + fromIdx;
+    srcLevel = levelBase + shift_fromIdx;
     highScoreLevels[srcLevel + 1] = highScoreLevels[srcLevel];
 }
 
@@ -121,9 +123,11 @@ qualify:
         uint8_t nameOff, scoreOff, y;
 
         if (slot < 2) {
-            shiftDown(1);
+            shift_fromIdx = 1;
+            shiftDown();
             if (slot == 0) {
-                shiftDown(0);
+                shift_fromIdx = 0;
+                shiftDown();
             }
         }
 

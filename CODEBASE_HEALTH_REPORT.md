@@ -100,7 +100,7 @@ Both retained tools in `tools/` serve specific, non-redundant functions in the p
 
 | Tool Script | File Location | Purpose & Function | Invocation & CMake Targets |
 | :--- | :--- | :--- | :--- |
-| **`build_rom.py`** | `tools/build_rom.py` | Central NES ROM orchestrator. Handles baseline assembly rebuilds, cc65 target C compilation, out-of-tree staged assembly integration, bit-exact PRG/CHR payload diffing against `Tetris (USA).nes`, and behavioral NMOS 6502 CPU simulation. | `python3 tools/build_rom.py [all\|baseline\|poc\|experimental\|bank]`<br>CMake: `rom`, `rom_baseline`, `rom_poc`, `rom_experimental`, `rom_bank` |
+| **`build_rom.py`** | `tools/build_rom.py` | Central NES ROM orchestrator. Handles baseline assembly rebuilds, cc65 target C compilation, out-of-tree staged assembly integration, bit-exact PRG/CHR payload diffing against `Tetris (USA).nes`, and behavioral NMOS 6502 CPU simulation. | `python3 tools/build_rom.py [all\|baseline\|poc\|experimental\|bank\|checksums]`<br>CMake: `rom`, `rom_baseline`, `rom_poc`, `rom_experimental`, `rom_bank`, `rom_bank_exp`, `verify` |
 | **`inventory_routines.py`** | `tools/inventory_routines.py` | Disassembly symbol parser and routine census synchronizer. Parses `TetrisNESDisasm/main.asm` and `tetris.lbl`, categorizes symbols into 11 subsystems, cross-checks `src/` implementations, and outputs `ROUTINE_INVENTORY.md` and `routine_inventory.json`. | `python3 tools/inventory_routines.py` |
 
 ---
@@ -153,11 +153,12 @@ Source Formatting Check       git diff --check                            PASS  
    - PRG & CHR payloads: **100.0% BIT-EXACT** across all 32KB PRG & 16KB CHR (0 bytes shifted).
    - NMOS 6502 CPU Simulation: Full DMA transfer and APU mute sequence verified with exact register states.
 3. **Bank-Level Experimental ROM (`build/rom/tetris_bank_exp.nes`)**:
-   - High Score cluster ($A0EE–$A200, 275 bytes) compiled from target C (`high_scores_cluster.c`, 636 bytes).
-   - Relocated into unreferenced PRG slack at `$D6C9` via a 3-byte trampoline at `$A0EE`.
+   - High Score cluster ($A0EE–$A200, 275 bytes) compiled from target C (`high_scores_cluster.c`, 638 bytes).
+   - Relocated into unreferenced PRG slack at `$D6C9` via a 3-byte trampoline at `$A0EE` (`JMP $D802`).
    - Downstream code at `$A201` (`highScoreEntryScreen`) is **100.0% BIT-EXACT and undamaged**.
    - Active PRG code outside the 275-byte slot and unreferenced data matches reference ROM **100.0% bit-for-bit**.
-   - NMOS 6502 CPU Simulation: Type A (109 cycles, `rawPos = 3`) and Type B (112 cycles, `rawPos = 7`) non-qualifying score traversals pass with clean RTS to caller.
+   - **CPU Simulator Only**: Behavioral execution verified on embedded NMOS 6502 CPU simulator only, not in an emulator. Tested across 20 edge cases (tied scores, min/max score/level) and 100 randomized runs with fixed seed `0x12345678`, confirming 100% memory and state equivalence.
+   - **Relocation Area Safety**: Audited `$D6C9`–`$DCFF` across PRG pointer tables, indirect jump instructions, and MMC1 banking; confirmed 100% unused slack.
 
 ---
 

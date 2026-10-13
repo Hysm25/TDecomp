@@ -120,13 +120,54 @@
 #define ROM_ADDR_DIFF_OLD_AND_NEW_BUTTONS 0xABBD
 #define ROM_ADDR_MEMSET_PAGE            0xAC6A
 #define ROM_ADDR_SOUND_RNG              0xE09E
+#define ROM_ADDR_HIGH_SCORE_ENTRY_SCREEN 0xA201
+
+static bool run_high_score_sim(CPU6502 *cpu, uint32_t max_cycles, bool *qualified, uint64_t *cycles_out) {
+    uint8_t target_sp = cpu->sp;
+    /* Push sentinel return address: 0x0000 */
+    cpu->sp--;
+    cpu->nes->ram[0x0100 + cpu->sp] = 0x00;
+    cpu->sp--;
+    cpu->nes->ram[0x0100 + cpu->sp] = 0x00;
+
+    cpu->pc = ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY;
+    cpu->halted = false;
+    cpu->cycles = 0;
+
+    uint32_t steps = 0;
+    while (!cpu->halted && steps < max_cycles) {
+        if (cpu->pc == ROM_ADDR_HIGH_SCORE_ENTRY_SCREEN) {
+            if (qualified) *qualified = true;
+            if (cycles_out) *cycles_out = cpu->cycles;
+            return true;
+        }
+        uint8_t next_op = cpu->nes->prg_rom[cpu->pc - 0x8000];
+        if (next_op == 0x60 && cpu->sp == (uint8_t)(target_sp - 2)) {
+            cpu6502_step(cpu);
+            if (qualified) *qualified = false;
+            if (cycles_out) *cycles_out = cpu->cycles;
+            return true;
+        }
+        cpu6502_step(cpu);
+        steps++;
+    }
+    return false;
+}
+
+static uint32_t diff_hs_rng_state = 0x12345678;
+static uint32_t diff_hs_rand(void) {
+    diff_hs_rng_state ^= diff_hs_rng_state << 13;
+    diff_hs_rng_state ^= diff_hs_rng_state >> 17;
+    diff_hs_rng_state ^= diff_hs_rng_state << 5;
+    return diff_hs_rng_state;
+}
 
 int test_differential_verification(void) {
     NES_State rom_nes;
     nes_init(&rom_nes);
 
     if (!load_reference_rom(&rom_nes, NULL)) {
-        printf("  [WARN] Reference ROM not found. Differential tests skipped.\n");
+        printf("SKIPPED: reference ROM not found\n");
         return 0;
     }
 
@@ -3608,6 +3649,177 @@ int test_differential_verification(void) {
             assert(nes_exp.apu_regs[REG_DMC_RAW - 0x4000] == 0x00);
 
             printf("  [PASS] test_experimental_c_rom (Compiled C copyOamStagingToOam & muteAudio verified in 6502 CPU)\n");
+        }
+    }
+
+    /* Test: Bank-Level Relocatable Experimental ROM Differential Verification (High Score Cluster) */
+    {
+        const char *bank_paths[] = {
+            "build/rom/tetris_bank_exp.nes",
+            "rom/tetris_bank_exp.nes",
+            "../build/rom/tetris_bank_exp.nes"
+        };
+        NES_State nes_bank;
+        bool bank_loaded = false;
+        for (size_t p = 0; p < sizeof(bank_paths)/sizeof(bank_paths[0]); ++p) {
+            if (load_reference_rom(&nes_bank, bank_paths[p])) {
+                bank_loaded = true;
+                break;
+            }
+        }
+        if (bank_loaded) {
+            typedef struct DiffHSTestCase {
+                const char *name;
+                uint8_t game_type;
+                uint8_t p1_score_hi;
+                uint8_t p1_score_mid;
+                uint8_t p1_score_lo;
+                uint8_t p1_level;
+            } DiffHSTestCase;
+
+            DiffHSTestCase edge_cases[] = {
+                {"Type A Non-qualifying", 0, 0x00, 0x05, 0x00, 5},
+                {"Type A Qualifying 1st", 0, 0x08, 0x00, 0x00, 9},
+                {"Type A Qualifying 2nd", 0, 0x04, 0x00, 0x00, 8},
+                {"Type A Qualifying 3rd", 0, 0x02, 0x00, 0x00, 7},
+                {"Type A Tied 1st", 0, 0x05, 0x00, 0x00, 9},
+                {"Type A Tied 2nd", 0, 0x03, 0x00, 0x00, 8},
+                {"Type A Tied 3rd", 0, 0x01, 0x00, 0x00, 7},
+                {"Type A Min Score (000000)", 0, 0x00, 0x00, 0x00, 0},
+                {"Type A Max Score (999999)", 0, 0x99, 0x99, 0x99, 29},
+                {"Type A Max Level (255)", 0, 0x06, 0x00, 0x00, 255},
+
+                {"Type B Non-qualifying", 1, 0x00, 0x01, 0x00, 2},
+                {"Type B Qualifying 1st", 1, 0x00, 0x30, 0x00, 9},
+                {"Type B Qualifying 2nd", 1, 0x00, 0x15, 0x00, 8},
+                {"Type B Qualifying 3rd", 1, 0x00, 0x08, 0x00, 7},
+                {"Type B Tied 1st", 1, 0x00, 0x20, 0x00, 9},
+                {"Type B Tied 2nd", 1, 0x00, 0x10, 0x00, 8},
+                {"Type B Tied 3rd", 1, 0x00, 0x05, 0x00, 7},
+                {"Type B Min Score", 1, 0x00, 0x00, 0x00, 0},
+                {"Type B Max Score", 1, 0x99, 0x99, 0x99, 29},
+                {"Type B Max Level", 1, 0x00, 0x25, 0x00, 255},
+            };
+
+            for (size_t i = 0; i < sizeof(edge_cases)/sizeof(edge_cases[0]); i++) {
+                DiffHSTestCase *tc = &edge_cases[i];
+                NES_State s_orig = rom_nes;
+                NES_State s_bank = nes_bank;
+
+                for (int n = 0; n < 48; n++) {
+                    s_orig.ram[0x0700 + n] = s_bank.ram[0x0700 + n] = (uint8_t)('A' + (n % 26));
+                }
+
+                s_orig.ram[0x0730] = s_bank.ram[0x0730] = 0x05;
+                s_orig.ram[0x0731] = s_bank.ram[0x0731] = 0x00;
+                s_orig.ram[0x0732] = s_bank.ram[0x0732] = 0x00;
+                s_orig.ram[0x0733] = s_bank.ram[0x0733] = 0x03;
+                s_orig.ram[0x0734] = s_bank.ram[0x0734] = 0x00;
+                s_orig.ram[0x0735] = s_bank.ram[0x0735] = 0x00;
+                s_orig.ram[0x0736] = s_bank.ram[0x0736] = 0x01;
+                s_orig.ram[0x0737] = s_bank.ram[0x0737] = 0x00;
+                s_orig.ram[0x0738] = s_bank.ram[0x0738] = 0x00;
+
+                s_orig.ram[0x073C] = s_bank.ram[0x073C] = 0x00;
+                s_orig.ram[0x073D] = s_bank.ram[0x073D] = 0x20;
+                s_orig.ram[0x073E] = s_bank.ram[0x073E] = 0x00;
+                s_orig.ram[0x073F] = s_bank.ram[0x073F] = 0x00;
+                s_orig.ram[0x0740] = s_bank.ram[0x0740] = 0x10;
+                s_orig.ram[0x0741] = s_bank.ram[0x0741] = 0x00;
+                s_orig.ram[0x0742] = s_bank.ram[0x0742] = 0x00;
+                s_orig.ram[0x0743] = s_bank.ram[0x0743] = 0x05;
+                s_orig.ram[0x0744] = s_bank.ram[0x0744] = 0x00;
+
+                for (int l = 0; l < 8; l++) {
+                    s_orig.ram[0x0748 + l] = s_bank.ram[0x0748 + l] = (uint8_t)(l + 1);
+                }
+
+                s_orig.ram[0x00C1] = s_bank.ram[0x00C1] = tc->game_type;
+                s_orig.ram[0x0075] = s_bank.ram[0x0075] = tc->p1_score_hi;
+                s_orig.ram[0x0074] = s_bank.ram[0x0074] = tc->p1_score_mid;
+                s_orig.ram[0x0073] = s_bank.ram[0x0073] = tc->p1_score_lo;
+                s_orig.ram[0x0064] = s_bank.ram[0x0064] = tc->p1_level;
+
+                CPU6502 cpu1, cpu2;
+                cpu6502_init(&cpu1, &s_orig);
+                cpu6502_init(&cpu2, &s_bank);
+                cpu6502_set_state(&cpu1, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 0, 0, 0, 0, 0xFD);
+                cpu6502_set_state(&cpu2, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 0, 0, 0, 0, 0xFD);
+
+                bool q1 = false, q2 = false;
+                uint64_t c1 = 0, c2 = 0;
+                bool ok1 = run_high_score_sim(&cpu1, 10000, &q1, &c1);
+                bool ok2 = run_high_score_sim(&cpu2, 10000, &q2, &c2);
+
+                assert(ok1 && ok2);
+                assert(q1 == q2);
+                assert(s_orig.ram[0x00D5] == s_bank.ram[0x00D5]);
+                assert(memcmp(&s_orig.ram[0x0700], &s_bank.ram[0x0700], 0x50) == 0);
+                (void)c1; (void)c2;
+            }
+
+            /* 100 randomized differential runs with fixed seed */
+            diff_hs_rng_state = 0x12345678;
+            for (int run = 0; run < 100; run++) {
+                NES_State s_orig = rom_nes;
+                NES_State s_bank = nes_bank;
+
+                uint8_t gtype = diff_hs_rand() & 1;
+                s_orig.ram[0x00C1] = s_bank.ram[0x00C1] = gtype;
+
+                for (int n = 0; n < 48; n++) {
+                    uint8_t ch = (uint8_t)(diff_hs_rand() % 40);
+                    s_orig.ram[0x0700 + n] = s_bank.ram[0x0700 + n] = ch;
+                }
+
+                uint32_t sc3 = diff_hs_rand() % 100000;
+                uint32_t sc2 = sc3 + (diff_hs_rand() % 100000);
+                uint32_t sc1 = sc2 + (diff_hs_rand() % 100000);
+
+                uint16_t sc_base = (gtype == 0) ? 0x0730 : 0x073C;
+                s_orig.ram[sc_base + 0] = s_bank.ram[sc_base + 0] = (uint8_t)(sc1 >> 16);
+                s_orig.ram[sc_base + 1] = s_bank.ram[sc_base + 1] = (uint8_t)(sc1 >> 8);
+                s_orig.ram[sc_base + 2] = s_bank.ram[sc_base + 2] = (uint8_t)(sc1 & 0xFF);
+
+                s_orig.ram[sc_base + 3] = s_bank.ram[sc_base + 3] = (uint8_t)(sc2 >> 16);
+                s_orig.ram[sc_base + 4] = s_bank.ram[sc_base + 4] = (uint8_t)(sc2 >> 8);
+                s_orig.ram[sc_base + 5] = s_bank.ram[sc_base + 5] = (uint8_t)(sc2 & 0xFF);
+
+                s_orig.ram[sc_base + 6] = s_bank.ram[sc_base + 6] = (uint8_t)(sc3 >> 16);
+                s_orig.ram[sc_base + 7] = s_bank.ram[sc_base + 7] = (uint8_t)(sc3 >> 8);
+                s_orig.ram[sc_base + 8] = s_bank.ram[sc_base + 8] = (uint8_t)(sc3 & 0xFF);
+
+                for (int l = 0; l < 8; l++) {
+                    uint8_t lvl = (uint8_t)(diff_hs_rand() & 0xFF);
+                    s_orig.ram[0x0748 + l] = s_bank.ram[0x0748 + l] = lvl;
+                }
+
+                uint32_t p1_score = diff_hs_rand() % 350000;
+                s_orig.ram[0x0075] = s_bank.ram[0x0075] = (uint8_t)(p1_score >> 16);
+                s_orig.ram[0x0074] = s_bank.ram[0x0074] = (uint8_t)(p1_score >> 8);
+                s_orig.ram[0x0073] = s_bank.ram[0x0073] = (uint8_t)(p1_score & 0xFF);
+                uint8_t p1_level = (uint8_t)(diff_hs_rand() & 0xFF);
+                s_orig.ram[0x0064] = s_bank.ram[0x0064] = p1_level;
+
+                CPU6502 cpu1, cpu2;
+                cpu6502_init(&cpu1, &s_orig);
+                cpu6502_init(&cpu2, &s_bank);
+                cpu6502_set_state(&cpu1, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 0, 0, 0, 0, 0xFD);
+                cpu6502_set_state(&cpu2, ROM_ADDR_HANDLE_HIGH_SCORE_IF_NECESSARY, 0, 0, 0, 0, 0xFD);
+
+                bool q1 = false, q2 = false;
+                uint64_t c1 = 0, c2 = 0;
+                bool ok1 = run_high_score_sim(&cpu1, 10000, &q1, &c1);
+                bool ok2 = run_high_score_sim(&cpu2, 10000, &q2, &c2);
+
+                assert(ok1 && ok2);
+                assert(q1 == q2);
+                assert(s_orig.ram[0x00D5] == s_bank.ram[0x00D5]);
+                assert(memcmp(&s_orig.ram[0x0700], &s_bank.ram[0x0700], 0x50) == 0);
+                (void)c1; (void)c2;
+            }
+
+            printf("  [PASS] test_bank_experimental_c_rom (High Score cluster differential 6502 verification: 20 edge cases + 100 random runs)\n");
         }
     }
 

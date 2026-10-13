@@ -8,7 +8,7 @@ This directory contains standalone Python tools supporting the TDecomp build, ve
 
 | Tool Script | Primary Purpose | Invocation / Entry Point | CMake Integration | Output Artifacts |
 | :--- | :--- | :--- | :--- | :--- |
-| `build_rom.py` | Authoritative NES ROM build pipeline, C-to-6502 compilation, experimental ROM linking, payload verification, and CPU simulation. | `python3 tools/build_rom.py [target] [--output-dir DIR]` | Targets: `rom`, `rom_baseline`, `rom_poc`, `rom_experimental`, `rom_bank` | `build/rom/tetris_baseline.nes`<br>`build/rom/tetris_experimental.nes`<br>`build/rom/tetris_bank_exp.nes` |
+| `build_rom.py` | Authoritative NES ROM build pipeline, C-to-6502 compilation, experimental ROM linking, payload verification, and CPU simulation. | `python3 tools/build_rom.py [target] [--output-dir DIR]` | Targets: `rom`, `rom_baseline`, `rom_poc`, `rom_experimental`, `rom_bank`, `rom_bank_exp`, `verify` | `build/rom/tetris_baseline.nes`<br>`build/rom/tetris_experimental.nes`<br>`build/rom/tetris_bank_exp.nes` |
 | `inventory_routines.py` | Disassembly symbol parser, routine census, entry-point classification, and decompilation progress synchronizer. | `python3 tools/inventory_routines.py` | Direct script invocation | `ROUTINE_INVENTORY.md`<br>`routine_inventory.json` |
 
 ---
@@ -35,13 +35,15 @@ This directory contains standalone Python tools supporting the TDecomp build, ve
   - Segments PRG Chunk 1 around `copyOamStagingToOam` ($AB5E, 11 bytes) and PRG Chunk 2 around `muteAudio` ($E271, 22 bytes) with zero code shifting.
   - Verifies caller alignment at `$801B` (`jsr $AB5E`), `$E1E8` (`jsr $E271`), and `$E247` (`jsr $E271`).
   - Runs step-by-step NMOS 6502 CPU simulator behavioral verification of both routines.
-- **`bank`**:
+- **`bank`** / **`bank_exp`**:
   - Performs bank-level C decompilation feasibility audit on the High Score subsystem (`high_scores_cluster.c`, $A0EE–$A200, 275 bytes).
-  - Measures compiled C footprint (636 bytes, 2.31x expansion) and documents in-place slot collision (+361B overflow into $A201).
-  - Builds relocatable experimental bank ROM (`tetris_bank_exp.nes`, 49,168 bytes) mapping target C code to unreferenced cartridge slack (`$D6C9` in `unreferenced_data1`) with a 3-byte trampoline at `$A0EE`.
-  - Verifies NMOS 6502 CPU differential execution across Type A (109 cycles) and Type B (112 cycles) modes with clean returns.
+  - Measures compiled C footprint (638 bytes, 2.32x expansion) and documents in-place slot collision (+363B overflow into $A201).
+  - Builds relocatable experimental bank ROM (`tetris_bank_exp.nes`, 49,168 bytes; built via CMake `rom_bank` or alias `rom_bank_exp`) mapping target C code to unreferenced cartridge slack (`$D6C9` in `unreferenced_data1`) with a 3-byte trampoline at `$A0EE`.
+  - Verifies NMOS 6502 CPU differential execution (verified on CPU simulator only, not in emulator).
+- **`checksums`**:
+  - Prints a formatted verification table displaying SHA-1 hashes and file sizes for reference ROM and all rebuilt/experimental ROM artifacts.
 - **`all`** (default):
-  - Runs all four phases sequentially.
+  - Runs all four build phases sequentially.
 
 #### Usage
 ```bash
@@ -52,7 +54,8 @@ python3 tools/build_rom.py all
 python3 tools/build_rom.py baseline
 python3 tools/build_rom.py poc
 python3 tools/build_rom.py experimental
-python3 tools/build_rom.py bank
+python3 tools/build_rom.py bank         # or: python3 tools/build_rom.py bank_exp
+python3 tools/build_rom.py checksums    # prints SHA-1 checksum table
 
 # Custom output directory
 python3 tools/build_rom.py all --output-dir /path/to/rom_out

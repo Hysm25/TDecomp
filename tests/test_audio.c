@@ -243,7 +243,10 @@ void test_music_init_sq12_and_mute(void) {
 void test_music_load_track(void) {
     NES_State nes;
     nes_init(&nes);
-    load_reference_rom(&nes, NULL);
+    if (!load_reference_rom(&nes, NULL)) {
+        printf("  SKIPPED: reference ROM not found\n");
+        return;
+    }
 
     /* Request Track 1 */
     nes.ram[ADDR_CURRENT_AUDIO_SLOT] = 1;

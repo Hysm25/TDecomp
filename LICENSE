@@ -1,0 +1,38 @@
+MIT License
+
+Copyright (c) 2026 TDecomp Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+### Attribution and Third-Party Notices
+
+This project relies on and builds upon the authoritative disassembly of NES Tetris:
+- **TetrisNESDisasm**: https://github.com/CelestialAmber/TetrisNESDisasm
+  Disassembly created and maintained by Amber Brault (CelestialAmber) and contributors.
+- **taus**: https://github.com/ejona86/taus
+  Original disassembly data, info files, and research by ejona86.
+- **nes-util**: https://github.com/qalle2/nes-util
+  CHR PNG converting tools by qalle2.
+
+Tetris is a registered trademark of Tetris Holding, LLC. NES is a registered
+trademark of Nintendo of America Inc. This project is an independent educational
+and reverse-engineering project and is not affiliated with, endorsed by, or
+sponsored by Nintendo or Tetris Holding, LLC.

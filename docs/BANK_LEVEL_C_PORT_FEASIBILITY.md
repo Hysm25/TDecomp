@@ -213,37 +213,84 @@ flowchart TD
 
 ---
 
-## 7. Verification Results & Evidence
+## 7. Verification Results & Cycle Benchmarks
 
 The relocatable bank architecture was built and verified using `tools/build_rom.py bank`:
 
 1. **Exact ROM Geometry**:
-   - Output ROM: `build/rom/tetris_bank_exp.nes`
+   - Output ROM: `build/rom/tetris_bank_exp.nes` (built via CMake target `rom_bank` or alias `rom_bank_exp`)
    - File Size: `49,168 bytes` (16B header + 32KB PRG + 16KB CHR)
 2. **Binary Interface Verification**:
-   - Trampoline at `$A0EE`: `4C 06 D8` (`JMP $D806`, targeting target C entry point).
+   - Trampoline at `$A0EE`: `4C 02 D8` (`JMP $D802`, targeting target C entry point).
    - Downstream code at `$A201` (`highScoreEntryScreen`): **100.0% BIT-EXACT** to reference ROM.
    - Surrounding code (`$8000`–`$A0ED`, `$A201`–`$D6C8`, `$DD00`–`$FFFF`): **100.0% BIT-EXACT** to reference ROM.
    - CHR ROM (16,384 bytes): **100.0% BIT-EXACT** to reference ROM.
-3. **NMOS 6502 CPU Differential Simulation**:
-   - `Type A Non-qualifying traversal`: 109 cycles, `rawPos = 3`, clean RTS to caller.
-   - `Type B Non-qualifying traversal`: 112 cycles, `rawPos = 7`, clean RTS to caller.
-   - Memory invariants, zero-page scratch, and leaderboard RAM integrity verified.
-4. **Toolchain Integration**:
-   - Fully automated in CMake via `make rom_bank` / `cmake --build build --target rom_bank`.
-   - Included in comprehensive build test `python3 tools/build_rom.py all`.
+3. **Execution Environment Disclaimer**:
+   - **Verified on CPU Simulator Only**: All behavioral verifications below were conducted strictly using an embedded NMOS 6502 CPU simulator (`tests/verification/cpu6502.c`), not in an interactive emulator (`fceux`, `nestopia`, `mesen`) or on real NES hardware.
+4. **Differential Execution & Cycle Benchmark**:
+   Tested across all edge cases (full table, tied scores, min/max score, min/max level, distinct names) and 100 randomized runs with fixed seed `0x12345678`:
+
+| Test Case | Original Assembly Outcome | Target C Outcome | Original Cycles | Target C Cycles | Ratio |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Type A Non-qualifying** | NO-QUAL (RTS) | NO-QUAL (RTS) | 53 cyc | 73 cyc | 1.4x |
+| **Type A Qualifying 1st** | QUALIFIED ($A201) | QUALIFIED ($A201) | 318 cyc | 895 cyc | 2.8x |
+| **Type A Qualifying 2nd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 209 cyc | 560 cyc | 2.7x |
+| **Type A Qualifying 3rd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 97 cyc | 220 cyc | 2.3x |
+| **Type A Tied 1st** | QUALIFIED ($A201) | QUALIFIED ($A201) | 324 cyc | 931 cyc | 2.9x |
+| **Type A Tied 2nd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 215 cyc | 596 cyc | 2.8x |
+| **Type A Tied 3rd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 103 cyc | 256 cyc | 2.5x |
+| **Type A Min Score (000000)** | NO-QUAL (RTS) | NO-QUAL (RTS) | 53 cyc | 73 cyc | 1.4x |
+| **Type A Max Score (999999)** | QUALIFIED ($A201) | QUALIFIED ($A201) | 318 cyc | 895 cyc | 2.8x |
+| **Type A Max Level (255)** | QUALIFIED ($A201) | QUALIFIED ($A201) | 318 cyc | 895 cyc | 2.8x |
+| **Type B Non-qualifying** | NO-QUAL (RTS) | NO-QUAL (RTS) | 69 cyc | 130 cyc | 1.9x |
+| **Type B Qualifying 1st** | QUALIFIED ($A201) | QUALIFIED ($A201) | 348 cyc | 920 cyc | 2.6x |
+| **Type B Qualifying 2nd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 231 cyc | 600 cyc | 2.6x |
+| **Type B Qualifying 3rd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 111 cyc | 275 cyc | 2.5x |
+| **Type B Tied 1st** | QUALIFIED ($A201) | QUALIFIED ($A201) | 350 cyc | 938 cyc | 2.7x |
+| **Type B Tied 2nd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 233 cyc | 618 cyc | 2.7x |
+| **Type B Tied 3rd** | QUALIFIED ($A201) | QUALIFIED ($A201) | 113 cyc | 293 cyc | 2.6x |
+| **Type B Min Score** | NO-QUAL (RTS) | NO-QUAL (RTS) | 69 cyc | 130 cyc | 1.9x |
+| **Type B Max Score** | QUALIFIED ($A201) | QUALIFIED ($A201) | 344 cyc | 902 cyc | 2.6x |
+| **Type B Max Level** | QUALIFIED ($A201) | QUALIFIED ($A201) | 348 cyc | 920 cyc | 2.6x |
+
+- **RAM State Invariants**: All 80 bytes of high score RAM (`highScoreNames` $0700–$072F, `highScoreScoresA` $0730–$0747, and `highScoreLevels` $0748–$074F) match byte-for-byte across 100% of test cases.
+- **Randomized Validation**: 100 random test iterations (fixed seed `0x12345678`) passed with 0 mismatches.
+5. **Toolchain Integration**:
+   - Automated via CMake targets: `rom_bank` and `rom_bank_exp` (both build `tetris_bank_exp.nes`).
+   - Verified via `cmake --build build --target verify` and `ctest --test-dir build`.
 
 ---
 
-## 8. Feasibility Verdict & Recommended Next Steps
+## 8. Relocation Area ($D6C9) Safety & Slack Audit
+
+To ensure placing compiled C code into `$D6C9` does not collide with hidden data, pointers, or mapper behavior, a rigorous audit of the region was performed:
+
+1. **16-bit Pointer Table Analysis**:
+   - A full scan of all 16-bit little-endian words across the 32KB PRG ROM was conducted to find any values falling within `$D6C9`–`$DCFF`.
+   - All candidate matches were verified to be instruction operand bytes crossing instruction boundaries or static binary graphics/nametable data (e.g. `type_b_lvl9_ending_nametable` at `$CB70`). Zero jump table entries or data table pointers target `$D6C9`–`$DCFF`.
+2. **Indirect JMP & Dispatch Table Audit**:
+   - Only two indirect jump instructions exist in the entire game:
+     * `jmp (tmp1)` at line 5668 (`switch_s_plus_2a`): Pulls the caller's return address to index an inline `.addr` table located immediately after the JSR. None of these tables reference `$D6C9`.
+     * `jmp (AUDIOTMP3)` at line 6097 (`updateSoundEffectSlotShared`): Computes jump targets within the audio driver page (`$E0xx`).
+   - No runtime dispatchers or indirect jumps target `$D6C9`–`$DCFF`.
+3. **MMC1 Mapper & Bank Switching Check**:
+   - NES Tetris is configured at boot with `PRG_32K_BANK`, permanently mapping the entire 32KB PRG ROM (`$8000`–`$FFFF`) into CPU address space.
+   - The game never switches PRG banks during gameplay (bank switching is used exclusively for 4KB CHR tile switching).
+4. **Payload Contents of `unreferenced_data1.bin`**:
+   - The 1,591-byte block consists of 788 zero bytes, 784 `0xFF` bytes, and 19 filler bytes. It contains no executable opcodes, headers, or referenced data structures.
+   - **Conclusion**: The relocation area at `$D6C9` is genuinely 100% unused slack, making it safe for relocatable C integration.
+
+---
+
+## 9. Feasibility Verdict & Recommended Next Steps
 
 ### Verdict
 Bank-level C decompilation without requiring byte-for-byte assembly matching is **PROVEN FEASIBLE**, subject to the following principles:
-- **In-place replacement inside tightly packed banks is infeasible** due to cc65's 2.3x–2.4x code expansion factor.
+- **In-place replacement inside tightly packed banks is infeasible** due to cc65's 2.3x–2.9x code expansion factor.
 - **Relocatable replacement using cartridge slack and assembly trampolines is completely viable**. NES cartridges typically possess unreferenced slack (NES Tetris has 2.9 KB), which comfortably accommodates decompiled C subsystems while preserving all external interfaces and zero code shifting.
 
-### Recommended Next Experiment
+### Recommended Next Steps
 1. **Interactive Leaderboard Entry Verification**:
-   Verify qualification and name-entry handoff when a player scores higher than existing entries in both Type A and Type B modes.
+   Verify qualification and name-entry handoff in an interactive emulator once an SDL frontend or emulator test harness is available.
 2. **Audio Subsystem Relocation Audit**:
    Evaluate whether unreferenced slack block 2 (`unreferenced_data4`, 1,301 bytes at `$F9EB`) can accommodate decompiled audio envelope or sound effect routines currently in PRG Chunk 2.

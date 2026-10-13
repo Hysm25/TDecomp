@@ -690,15 +690,19 @@ unreferenced_data1:
         .incbin "data/unreferenced_data1.bin"
 .endif"""
 
-    replacement_unref = """.segment        "C_HS"
+    code_size = 4  # hs_stubs.s CODE segment size
+    consumed = total_c_size + code_size
+    remaining_slack = 1591 - consumed
+
+    replacement_unref = f""".segment        "C_HS"
 .segment        "RODATA"
 .segment        "CODE"
 .segment        "unreferenced_data1": absolute
 unreferenced_data1:
         ; 1591 total bytes available in unreferenced_data1 ($D6C9 - $DCFF)
-        ; C_HS (614B) + RODATA (22B) + CODE (4B) = 640B consumed
-        ; Remaining slack: 1591 - 640 = 951 bytes
-        .res    951, $FF
+        ; C_HS ({c_code_size}B) + RODATA ({c_rodata_size}B) + CODE ({code_size}B) = {consumed}B consumed
+        ; Remaining slack: 1591 - {consumed} = {remaining_slack} bytes
+        .res    {remaining_slack}, $FF
 """
     if target_unref not in post_block:
         print("[ERROR] unreferenced_data1 block not found in post_block", file=sys.stderr)
@@ -805,13 +809,40 @@ SEGMENTS {
 
     return True
 
+def print_checksums(output_dir):
+    """Prints SHA-1 and MD5 checksums for all generated and reference ROMs."""
+    roms = [
+        ("Reference ROM (Tetris (USA).nes)", REF_ROM_PATH),
+        ("Baseline Assembly ROM (tetris_baseline.nes)", os.path.join(output_dir, "tetris_baseline.nes")),
+        ("Experimental C ROM (tetris_experimental.nes)", os.path.join(output_dir, "tetris_experimental.nes")),
+        ("Bank Experimental ROM (tetris_bank_exp.nes)", os.path.join(output_dir, "tetris_bank_exp.nes")),
+    ]
+
+    print("\n--- ROM Checksum Verification Table ---")
+    print(f"{'Artifact':<46} | {'Size':<12} | {'SHA-1 Hash':<40}")
+    print("-" * 105)
+    for label, path in roms:
+        if os.path.isfile(path):
+            with open(path, "rb") as f:
+                data = f.read()
+            sha1 = hashlib.sha1(data).hexdigest()
+            print(f"{label:<46} | {len(data):>5} bytes | {sha1}")
+        else:
+            print(f"{label:<46} | {'MISSING':<12} | {'(not found)':<40}")
+    print("-" * 105)
+    return True
+
 def main():
     parser = argparse.ArgumentParser(description="TDecomp ROM Build & Verification Tool")
-    parser.add_argument("target", choices=["all", "baseline", "poc", "experimental", "bank"], nargs="?", default="all",
-                        help="Build target: 'baseline', 'poc', 'experimental', 'bank', or 'all'")
+    parser.add_argument("target", choices=["all", "baseline", "poc", "experimental", "bank", "bank_exp", "checksums"], nargs="?", default="all",
+                        help="Build target: 'baseline', 'poc', 'experimental', 'bank'/'bank_exp', 'checksums', or 'all'")
     parser.add_argument("--output-dir", default=os.path.join(REPO_ROOT, "build", "rom"),
                         help="Output directory for build artifacts")
     args = parser.parse_args()
+
+    if args.target == "checksums":
+        print_checksums(args.output_dir)
+        return 0
 
     print("==================================================")
     print(" TDecomp ROM Build & Decompilation Feasibility")
@@ -837,7 +868,7 @@ def main():
         if not build_experimental_rom(args.output_dir, ca65, ld65, cc65):
             success = False
 
-    if args.target in ("all", "bank"):
+    if args.target in ("all", "bank", "bank_exp"):
         print("\n--- Phase 4: Bank-Level C Decompilation Feasibility & Bank Integration ---")
         if not build_bank_level_feasibility(args.output_dir, ca65, ld65, cc65):
             success = False

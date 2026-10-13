@@ -3,9 +3,11 @@
 ## Project Overview
 
 - **Project:** NES Tetris (USA) Decompilation
-- **Source of Truth:** `TetrisNESDisasm/main.asm` (NES 6502 Assembly, NROM/MMC1)
-- **Reference ROM:** `Tetris (USA).nes` (SHA-1: `3026d28b63d94c921fe58364f8b0659d10b5a0ac`, PRG payload verified bit-exact)
-- **Target Specification:** Strict C11 (`-std=c11 -Wall -Wextra -Werror -pedantic`), modular, portable to Linux, Windows, macOS, Android.
+- **Source of Truth:** `TetrisNESDisasm/main.asm` (NES 6502 Assembly, Mapper 1 / MMC1)
+- **Reference ROM:** `Tetris (USA).nes` (SHA-1: `3026d28b63d94c921fe58364f8b0659d10b5a0ac`, PRG & CHR payloads verified bit-exact)
+- **Two Distinct Tracks:**
+  1. **Host C Reference Port (`src/`)**: Portable C11 (`-std=c11 -Wall -Wextra -Werror -pedantic`), modular, tested on Linux (x86_64) via CTest and embedded 6502 CPU simulator.
+  2. **Target C Integrated into NES ROM (`experimental/c6502/`)**: Bare-metal C compiled via `cc65` to native 6502 machine code and reintegrated into active NES ROMs (`tetris_experimental.nes`, `tetris_bank_exp.nes`).
 - **Git Repository:** `Hysm25/TDecomp` on `origin/main`
 
 ---
@@ -22,7 +24,7 @@
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
 | **Remaining Routines** | **0** | All routines decompiled and formally verified |
 | **Current Progress** | **100.00%** | `[####################################################] 100.00%` |
-| **Build & Test Suite** | 15 / 15 suites passing | Unit, 111 ROM data tables, & 6502 differential CPU oracle (91 differential tests) |
+| **Build & Test Suite** | 15 / 15 suites passing | Unit, 111 ROM data tables, & 6502 differential CPU oracle (92+ diff tests) |
 
 ---
 
