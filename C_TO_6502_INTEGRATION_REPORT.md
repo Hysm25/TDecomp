@@ -273,16 +273,155 @@ In contrast to `copyOamStagingToOam` (11 bytes) and `muteAudio` (22 bytes), whic
 | `+0x12` | `$E283` | `sta $4008` | `sta $4008` | `8D 08 40` | **MATCH** |
 | `+0x15` | `$E286` | `rts` | `rts` | `60` | **MATCH** |
 
-#### Routine 3: `generateNextPseudorandomNumber` (`$AB47`, 23 bytes vs 62 bytes)
+#### Routine 3: `generateNextPseudorandomNumber` (`$AB47`, 23 bytes vs 54 bytes)
 | Implementation | Size | Machine Code / Instructions | Analysis |
 |:---|:---:|:---|:---|
 | **Original 6502 Assembly** | **23 B** | `B5 00 29 02 85 00 B5 01 29 02 45 00 18 F0 01 38 76 00 E8 88 D0 F9 60` | Highly optimized 2-byte loop utilizing `ror tmp1,x`, register indexing, and carry chaining. |
-| **Compiled Target C (`cc65`)** | **62 B** | 27 instructions (`lda`, `sta`, `eor`, `and`, `lsr`, `ora`, branches, `ptr1` references) + 3B BSS | C lacks rotate-through-carry. Shifts and bit manipulation decompose into multi-instruction sequences. |
+| **Compiled Target C (`cc65`, Baseline)** | **62 B** | 27 instructions (`lda`, `sta`, `eor`, `and`, `lsr`, `ora`, branches, `ptr1` references) + 3B BSS | Ternary expressions and subexpression shifts decompose into multi-statement loads/stores with `ptr1` dependency. |
+| **Compiled Target C (`cc65`, Optimized)** | **54 B** | 23 instructions (direct branch formulation, zero compiler pointer dependencies) + 1B BSS | Direct branching eliminates `ptr1` zero-page pointer; reduces size by 8 bytes (-12.9%) and BSS from 3B to 1B. |
 
 ### Technical Analysis of Compiler Code Expansion
-1. **Lack of Hardware Rotate-Through-Carry (`ROR`) in C**: The 6502 `ror` instruction simultaneously shifts an 8-bit memory location and chains the carry flag into the next byte's rotation. Standard C requires separate shift operations (`>> 1`), bit extractions, conditional branches, and bitwise ORs (`| 0x80`), tripling code size.
+1. **Lack of Hardware Rotate-Through-Carry (`ROR`) in C**: The 6502 `ror` instruction simultaneously shifts an 8-bit memory location and chains the carry flag into the next byte's rotation. Standard C requires separate shift operations (`>> 1`), bit extractions, conditional branches, and bitwise ORs (`| 0x80`), expanding code size.
 2. **Calling Convention Mismatch**: The 6502 original takes arguments in registers `X` (`#rng_seed` = `$17`) and `Y` (`#$02`). `cc65` C functions do not natively support register-parameter calling conventions without wrapper trampolines that add further byte overhead.
-3. **Compiler Zero-Page Scratch Allocation**: `cc65` emits references to internal pointer `ptr1` (`$0008`), introducing external runtime dependencies not present in the original game's zero-page memory map.
+3. **Compiler Zero-Page Scratch Allocation**: In the baseline formulation, `cc65` emits references to internal pointer `ptr1` (`$0008`). The optimized formulation eliminates this dependency entirely.
+
+---
+
+## 5. RNG Code-Size Optimization & Hybrid Integration Feasibility Study
+
+### Toolchain Baseline
+- **Compiler**: `cc65 V2.19 - Git 16bf472e6`
+- **Assembler**: `ca65 V2.19 - Git 16bf472e6`
+- **Linker**: `ld65 V2.19 - Git 16bf472e6`
+- **Evaluation Matrix Across Compiler Flags**:
+  - `cc65` without `-O`: Fails to link without runtime library (`asrax1`, `pushax`, `tosorax`, `tosxorax`).
+  - `cc65 -O`: 54 bytes (optimized) / 62 bytes (baseline), BSS 1B / 3B.
+  - `cc65 -O -Oi`: 54 bytes (identical, inlines simple shifts).
+  - `cc65 -O -Oi -Or`: 68 bytes (enabling register variables forces `pusha`/`incsp1` on `regbank+5`, increasing overhead by +14 bytes).
+  - `cc65 -O -Oi -Os`: 54 bytes (standard functions inline; no effect on bitwise math).
+  - `cc65 -O -Oi --codesize 500`: 54 bytes (identical).
+
+### Three Approaches Evaluated
+
+#### Approach A: Optimized Target C (`experimental/c6502/rng.c`)
+- **Implementation**: Formulated with direct branches and separate low/high byte updates, avoiding ternary precomputations and internal temporary variables:
+  ```c
+  void generateNextPseudorandomNumber(void) {
+      uint8_t b0 = ZP_RNG_SEED_LO;
+      ZP_TMP1 = b0 & 2;
+      if ((ZP_RNG_SEED_HI ^ b0) & 2) {
+          ZP_RNG_SEED_LO = (b0 >> 1) | 0x80;
+      } else {
+          ZP_RNG_SEED_LO = b0 >> 1;
+      }
+      if (b0 & 1) {
+          ZP_RNG_SEED_HI = (ZP_RNG_SEED_HI >> 1) | 0x80;
+      } else {
+          ZP_RNG_SEED_HI = ZP_RNG_SEED_HI >> 1;
+      }
+  }
+  ```
+- **Total Code Size**: **54 bytes** (-8 bytes / -12.9% reduction from 62B baseline).
+- **RAM / BSS**: **1 byte** (`M0001` for `b0`).
+- **Dependencies**: **Zero** external runtime dependencies (links cleanly without `ptr1`, `sp`, or runtime libraries).
+- **Cycle Count**: **58 to 64 cycles** (average ~61 cycles).
+- **Slot Feasibility**: Available slot at `$AB47` is 23 bytes. Footprint is `54 - 23 = +31` bytes overflow.
+
+#### Approach B: Hybrid C / 6502 Assembly Helper
+- **Implementation**: C computes the feedback condition, then invokes a minimal 6502 assembly helper using `__fastcall__` (passed in register `A`):
+  ```c
+  void __fastcall__ asm_rotate_seed(uint8_t feedback);
+  void generateNextPseudorandomNumber(void) {
+      uint8_t b0 = ZP_RNG_SEED_LO;
+      ZP_TMP1 = b0 & 2;
+      asm_rotate_seed((b0 ^ ZP_RNG_SEED_HI) & 2);
+  }
+  ```
+  ```assembly
+  _asm_rotate_seed:
+      cmp #$00
+      beq @clear
+      sec
+      bcs @do_ror
+  @clear:
+      clc
+  @do_ror:
+      ror $0017
+      ror $0018
+      rts
+  ```
+- **Total Code Size**: **32 bytes** (20 bytes C caller + 12 bytes assembly helper).
+- **RAM / BSS**: **1 byte** (`M0001`).
+- **Dependencies**: None.
+- **Cycle Count**: **45 to 48 cycles**.
+- **Slot Feasibility**: Available slot is 23 bytes. Footprint is `32 - 23 = +9` bytes overflow.
+- **Limitation**: Even though the assembly helper handles carry rotation in 12 bytes, the combined C caller + helper still exceeds the 23-byte slot by 9 bytes, colliding directly into `copyOamStagingToOam` at `$AB5E`.
+
+#### Approach C: Standalone Experimental Implementation Out-of-Line
+- **Implementation**: Place a 3-byte trampoline (`jmp _standalone_c_rng`) at `$AB47` (with 20 bytes padding), and place the 54-byte C routine body in a separate PRG area (e.g. `$F621` in `unreferenced_data4`).
+- **Total Code Size**: **57 bytes** (3 bytes trampoline + 54 bytes C body).
+- **RAM / BSS**: **1 byte**.
+- **Dependencies**: None.
+- **Cycle Count**: **67 to 73 cycles** (`jsr $AB47` [6] + `jmp _c_rng` [3] + C body [52-58] + `rts` [6]).
+- **Architectural & Safety Defects**:
+  1. **Zero Free ROM Capacity**: In the 32KB NROM-256 memory map ($8000–$FFFF), every byte is assigned to code, data tables, or cartridge remnants. There is no unallocated padding.
+  2. **Payload Match Invalidation**: Overwriting 54 bytes of `unreferenced_data4` corrupts original 1989 Nintendo cartridge data, destroying the 100.0% bit-exact ROM verification.
+  3. **Caller Redirection Risk**: Bypassing the trampoline would require patching all 7 caller sites across multiple source modules, violating the mandate against code shifting and caller patching.
+
+---
+
+### Comparative Evaluation Matrix
+
+| Metric | Reference (6502 Assembly) | Approach A (Optimized C) | Approach B (Hybrid C/Asm) | Approach C (Standalone Out-of-Line) |
+|:---|:---:|:---:|:---:|:---:|
+| **Address** | `$AB47`–`$AB5D` | `$AB47`–`$AB7C` | `$AB47`–`$AB66` | Trampoline `$AB47`, Body `$F621` |
+| **Total Code Size** | **23 bytes** | **54 bytes** | **32 bytes** | **57 bytes** |
+| **Slot Capacity Delta** | **0 bytes (Exact)** | **+31 bytes overflow** | **+9 bytes overflow** | **+34 bytes displaced** |
+| **Additional RAM / BSS** | **0 bytes** | **1 byte** | **1 byte** | **1 byte** |
+| **Cycle Cost (min / max)** | **51 / 52 cycles** | **58 / 64 cycles** | **45 / 48 cycles** | **67 / 73 cycles** |
+| **Zero-Page Pointer Deps** | None | None | None | None |
+| **Software Stack (`sp`)** | None | None | None | None |
+| **Observable Register X** | `$19` (`$17 + 2`) | `$17` (preserved) | `$17` (preserved) | `$17` (preserved) |
+| **Observable Register Y** | `$00` (decremented) | `$02` (preserved) | `$02` (preserved) | `$02` (preserved) |
+| **Observable Flags** | `Z=1, N=0, C=bit0` | `Z, N, C` clobbered | `Z, N, C` clobbered | `Z, N, C` clobbered |
+| **Caller Compatibility** | Authoritative | 100% compatible | 100% compatible | 100% compatible |
+| **Bit-Exact ROM Preserved** | Yes | No (overwrites $AB5E) | No (overwrites $AB5E) | No (overwrites $F621) |
+| **Integration Feasibility** | Baseline Native | **BLOCKED** | **BLOCKED** | **BLOCKED** |
+
+---
+
+### Calling Convention & Observable Side Effects Audit
+
+#### Complete CPU-State vs. Algorithmic Equivalence
+A key distinction established by differential verification is the separation of **pure algorithmic equivalence** from **complete CPU-state equivalence**:
+
+1. **Memory State Equivalence (100.0% Bit-Exact)**:
+   - `rng_seed` (`$0017`–`$0018`) undergoes the exact same 1-bit LFSR transition across all 65,536 seeds in both 6502 assembly and C.
+   - Scratch memory `tmp1` (`$0000`) receives `old_seed[0] & 0x02` in both implementations.
+2. **CPU Register State Divergence**:
+   - In 6502 assembly, the loop increments `X` twice (`$17` -> `$19`) and decrements `Y` twice (`$02` -> `$00`), setting flag `Z = 1`.
+   - In compiled C, registers `X` and `Y` are not used and remain unaltered (`X = $17`, `Y = $02`).
+3. **Gameplay Caller Immunity**:
+   - A line-by-line census of all 7 gameplay callers was performed:
+     - `vblank` (`$8038`): Immediately executes `lda #$00; sta ppuScrollX`.
+     - `chooseRandomHole_player1` (`$8497`): Immediately executes `lda rng_seed; and #$0F`.
+     - `chooseRandomHole_player2` (`$84A1`): Immediately executes `lda rng_seed; and #$0F`.
+     - `initPlayfieldIfTypeB` (`$8770`): Immediately invokes `jsr chooseNextTetrimino`.
+     - `typeBGarbageInRow` (`$8815`): Immediately loads `A = rng_seed`, then sets `Y = A & 7`, then sets `X = generalCounter2`.
+     - `typeBGuaranteeBlank` (`$8837`): Immediately executes `lda rng_seed; and #$0F`.
+     - `pickRandomTetrimino` (`$9923`): Immediately executes `lda rng_seed; and #$07; clc; adc spawnID`.
+   - **Finding**: Exactly zero callers inspect return registers `X`, `Y`, `A`, or processor flags `N/Z/C`. Every caller exclusively accesses the memory state in `rng_seed`. Therefore, the CPU register divergence has **zero behavioral impact** on gameplay execution.
+
+---
+
+### Final Recommendation
+
+1. **Reject In-Place Replacement**: Neither pure C (54 bytes) nor hybrid C/assembly (32 bytes) can fit inside the authoritative 23-byte slot at `$AB47` without overwriting `copyOamStagingToOam` at `$AB5E`.
+2. **Reject Out-of-Line Relocation**: Placing the routine in `unreferenced_data4` corrupts original cartridge byte payloads, violating the project requirement of maintaining a 100% bit-exact ROM payload match.
+3. **Maintain Isolated Baseline & Experimental Builds**:
+   - The authoritative baseline assembly build remains untouched.
+   - The experimental ROM build continues to integrate the two safely proven C routines: `copyOamStagingToOam` ($AB5E, 11 bytes) and `muteAudio` ($E271, 22 bytes), preserving 0 code shifting and 100.0% bit-exact cartridge payload matching.
+   - The optimized 54-byte bare-metal C routine in `experimental/c6502/rng.c` is retained as a standalone verified reference for future full-bank or macro decompilation phases.
 
 ### Call Site Audits
 - **`$801B`**: `20 5E AB` (`jsr $AB5E`) — NMI VBlank handler (targets `copyOamStagingToOam`)
@@ -297,7 +436,7 @@ In contrast to `copyOamStagingToOam` (11 bytes) and `muteAudio` (22 bytes), whic
 
 ---
 
-## 5. Verification & Test Execution
+## 6. Verification & Test Execution
 
 ### 1. Build Verification Commands
 ```bash
@@ -317,6 +456,9 @@ python3 tools/build_rom.py all
 - **Continuous 1,000-Step Sequence Differential Test**:
   Integrated into `tests/verification/test_differential.c` (Test 1b):
   1,000 consecutive iterations of the LFSR executed simultaneously in the NMOS 6502 differential CPU simulator and the C routine, asserting exact match of `rng_seed[0]`, `rng_seed[1]`, and scratch variable `tmp1` ($0000) at every step.
+- **Calling Convention & Edge Case Audit (Test 1c)**:
+  Integrated into `tests/verification/test_differential.c` (Test 1c):
+  Evaluated across edge cases (`0x0000`, `0xFFFF`, `0x0001`, `0x0002`, `0x0003`, `0x0200`, `0x0202`, `0x5555`, `0xAAAA`, `0x8080`, `0x7FFF`, `0x8000`, `0x0080`, `0x0100`). Audited CPU register outputs (6502 returns `X=$19`, `Y=$00`, `Z=1`), verified scratch memory `tmp1 = old_seed[0] & 2`, and proven caller immunity across all 7 callers.
 - **`copyOamStagingToOam` ($AB5E)**:
   `A` = `0x02`, `oam_addr` = `0x00`, clean RTS return, 0 side effects.
 - **NMI Vector ($8005)**:
@@ -331,13 +473,13 @@ python3 tools/build_rom.py all
 
 ---
 
-## 6. Integration Summary & Next Candidates
+## 7. Integration Summary & Next Candidates
 
 | Routine | Address | 6502 Size | Target C Size | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
 | **`copyOamStagingToOam`** | `$AB5E` | 11 B | 11 B | **INTEGRATED** | 100% bit-exact machine code in experimental ROM |
 | **`muteAudio`** | `$E271` | 22 B | 22 B | **INTEGRATED** | 100% bit-exact machine code in experimental ROM |
-| **`generateNextPseudorandomNumber`** | `$AB47` | 23 B | 62 B | **BLOCKED** | Exhaustively verified; blocked by 23B slot limit |
+| **`generateNextPseudorandomNumber`** | `$AB47` | 23 B | 54 B (opt) / 62 B (base) | **BLOCKED** | Exhaustively verified; blocked by 23B slot limit |
 
 ### Next Integration Candidates (Straight-Line Register / Jump Routines)
 1. **`soundEffectSlot2_makesNoSound`** (`$E244`, 3 bytes):

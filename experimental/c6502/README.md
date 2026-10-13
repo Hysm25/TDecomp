@@ -71,10 +71,11 @@ Using `cc65 -t none -O -Oi`:
 ### 2. Algorithmic / Shift Routines: Behavioral Equivalence & Slot Feasibility
 - **`generateNextPseudorandomNumber`** (`$AB47`, `rng.c`):
   - Authoritative gameplay LFSR driving piece spawns, Type B garbage, and frame entropy.
-  - In 6502 assembly: 23 bytes ($AB47–$AB5D) using `ror tmp1,x` and carry chaining across 2 bytes.
-  - In bare-metal target C (`rng.c`): Compiles to 62 bytes under `cc65`.
-  - Verification: 100% equivalence across all 65,536 seeds (0 errors) and continuous 1,000-step sequence verified against NMOS 6502 CPU simulator.
-  - In-place ROM Integration: BLOCKED due to fixed 23-byte slot capacity (62B > 23B; in-place replacement would overwrite `$AB5E` `copyOamStagingToOam` and `$AB69` `pollController_actualRead`). Preserved safely without broader code relocation.
+  - In 6502 assembly: 23 bytes ($AB47–$AB5D) using `ror tmp1,x` and carry chaining across 2 bytes (51–52 cycles).
+  - In optimized bare-metal target C (`rng.c`): Compiles to **54 bytes** under `cc65` (reduced from 62 bytes, zero zero-page pointer dependencies, 1 byte BSS).
+  - In hybrid C / 6502 assembly helper: Compiles to **32 bytes** total (20 bytes C + 12 bytes assembly helper).
+  - Verification: 100% equivalence across all 65,536 seeds (0 errors), continuous 1,000-step sequence, and calling convention/edge-case audit in NMOS 6502 CPU simulator.
+  - In-place ROM Integration: **BLOCKED** due to fixed 23-byte slot capacity (54B pure C > 23B slot, 32B hybrid > 23B slot). In-place replacement would overwrite `$AB5E` `copyOamStagingToOam` and `$AB69` `pollController_actualRead`. Both baseline and experimental builds preserved safely without broader code relocation.
 
 - **`unreferenced_soundRng`** ($E09E):
   - In 6502 assembly, shifts use `ror` through the processor Carry flag.

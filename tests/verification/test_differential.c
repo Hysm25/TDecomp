@@ -201,6 +201,53 @@ int test_differential_verification(void) {
         }
     }
 
+    /* Test 1c: Calling convention, edge cases, and observable side effects audit */
+    {
+        uint16_t edge_seeds[] = {
+            0x0000, 0xFFFF, 0x0001, 0x0002, 0x0003, 0x0200, 0x0202,
+            0x5555, 0xAAAA, 0x8080, 0x7FFF, 0x8000, 0x0080, 0x0100
+        };
+        size_t num_edge_seeds = sizeof(edge_seeds) / sizeof(edge_seeds[0]);
+
+        for (size_t i = 0; i < num_edge_seeds; i++) {
+            uint16_t seed = edge_seeds[i];
+
+            /* Setup 6502 state with realistic caller environment */
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_RNG_SEED] = LOW_BYTE(seed);
+            nes_6502.ram[ADDR_RNG_SEED + 1] = HIGH_BYTE(seed);
+            nes_6502.ram[ADDR_TMP1] = 0xAA; /* sentinel scratch */
+
+            cpu6502_init(&cpu, &nes_6502);
+            /* Calling convention: caller provides X = #rng_seed ($17), Y = #$02 */
+            cpu6502_set_state(&cpu, ROM_ADDR_LFSR_PRNG, 0, ADDR_RNG_SEED, 2, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LFSR_PRNG, 1000);
+            assert(ok);
+            (void)ok;
+
+            /* Verify 6502 observable CPU register side effects:
+             * Loop runs 2 times: X increments from $17 to $19, Y decrements from $02 to $00 */
+            assert(cpu.x == (ADDR_RNG_SEED + 2)); /* X = $19 */
+            assert(cpu.y == 0x00);                /* Y = $00 */
+            /* Z flag is set by final dey (Y=0) */
+            assert((cpu.p & 0x02) != 0);           /* Z = 1 */
+
+            /* Setup C state */
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_RNG_SEED] = LOW_BYTE(seed);
+            nes_c.ram[ADDR_RNG_SEED + 1] = HIGH_BYTE(seed);
+            nes_c.ram[ADDR_TMP1] = 0xAA;
+            generateNextPseudorandomNumber(&nes_c, ADDR_RNG_SEED, 2);
+
+            /* Exact RAM state equivalence */
+            assert(nes_6502.ram[ADDR_RNG_SEED] == nes_c.ram[ADDR_RNG_SEED]);
+            assert(nes_6502.ram[ADDR_RNG_SEED + 1] == nes_c.ram[ADDR_RNG_SEED + 1]);
+            assert(nes_6502.ram[ADDR_TMP1] == nes_c.ram[ADDR_TMP1]);
+            /* Scratch variable tmp1 ($0000) matches old_seed[0] & 2 */
+            assert(nes_c.ram[ADDR_TMP1] == (LOW_BYTE(seed) & 0x02));
+        }
+    }
+
     /* Test 2: Differential sound RNG across test seeds */
     {
         uint16_t test_seeds[] = { 0x0003, 0x1234, 0x89AB, 0x5555, 0xAAAA, 0x0200 };

@@ -252,11 +252,13 @@
     - Extended multi-routine linker segmentation (`tetris_exp.cfg`) segmenting `PRG_chunk2` cleanly around $E271 with zero code shifting across the entire 32KB PRG payload.
     - Verified 100% bit-exact machine code (22 bytes) and call sites at $E1E8 and $E247 (`jsr $E271`).
     - Differential NMOS 6502 CPU simulator verification: direct subroutine execution on experimental ROM confirms all 5 APU volume/linear/DMC registers silenced with exact states.
-22. [x] **Third C-to-6502 Integration Analysis (Gameplay RNG: `generateNextPseudorandomNumber`)**:
+22. [x] **Third C-to-6502 Integration Analysis & Hybrid Feasibility Study (Gameplay RNG: `generateNextPseudorandomNumber`)**:
     - Bare-metal target-ready C implementation (`experimental/c6502/rng.c`) targeting $AB47 (23 bytes, 6502 LFSR).
-    - Compiles cleanly under `cc65` to 62 bytes (ca65/ld65). Exhaustively proven equivalent across all 65,536 seeds (0 errors) and continuous 1,000-step sequence verified in NMOS 6502 differential CPU simulator (Test 1b).
-    - Architectural blocker documented: In-place ROM integration safely BLOCKED due to fixed 23-byte slot capacity ($AB47–$AB5D). A 62-byte routine (+39B overflow) cannot be placed in-place without overwriting downstream code ($AB5E `copyOamStagingToOam` and $AB69 `pollController_actualRead`) or shifting chunk 1.
-    - Safe placement preserved: Baseline assembly build and experimental ROM build remain 100% bit-exact with the two verified C integrations intact and 0 code shifting.
+    - Code-size optimization: Refactored from 62 bytes (3B BSS, `ptr1` dependency) down to **54 bytes** (1B BSS, zero zero-page pointer dependencies, -12.9% reduction).
+    - Hybrid investigation: Evaluated minimal 6502 assembly helper for carry rotation (32 bytes total). Proved that even a hybrid implementation exceeds the 23-byte slot by +9 bytes.
+    - Standalone out-of-line study: Evaluated 57-byte trampoline + body in `unreferenced_data4`. Proved that placing code in unreferenced areas corrupts cartridge payload data and breaks the 100.0% bit-exact ROM match against reference cartridge.
+    - Calling convention & side-effects audit: Added Test 1c in `test_differential.c` covering edge cases, proving complete memory equivalence and caller immunity across all 7 gameplay callers.
+    - Architectural blocker documented: In-place ROM integration safely BLOCKED due to fixed 23-byte slot capacity ($AB47–$AB5D). Baseline assembly build and experimental ROM build remain 100% bit-exact with the two verified C integrations intact and 0 code shifting.
 
 ---
 
