@@ -11,6 +11,7 @@ TDecomp is a clean, modular C decompilation of NES Tetris (USA), providing a por
 - **Git**: with submodule support
 - **Make** or **Ninja** build system
 - **Python**: version 3.8+ (optional, for routine census tooling)
+- **Emscripten** (`emcc`): version 3.0+ (optional, for WebAssembly compilation)
 
 ---
 
@@ -59,6 +60,41 @@ cmake --build build --target verify
 
 ---
 
+## WebAssembly Build & Browser Demo
+
+TDecomp includes a WebAssembly port allowing the full C engine to run at 60 FPS directly in web browsers.
+
+### Compile WebAssembly
+
+```bash
+make -C web
+```
+
+Compiles `web/tdecomp.js` and `web/tdecomp.wasm` using strict C11 (`-O2 -std=c11 -Wall -Wextra -Werror -pedantic`).
+
+### Run Test Suite (Node.js)
+
+```bash
+node web/test_wasm.js
+```
+
+### Launch Browser Demo
+
+Start a local HTTP server from the project root:
+
+```bash
+python3 -m http.server 8080 --directory web
+```
+
+Open `http://localhost:8080` in your web browser. The demo features:
+- Authentic NES Tetris piece mechanics, rotation tables, gravity timings, and line clear logic.
+- Type A (marathon) and Type B (25-line goal with starting height).
+- Real-time score, lines, level, and next-piece HUD.
+- Full keyboard controls (&larr;/&rarr; move, &darr; soft drop, Space hard drop, Z rotate CCW, X/&uarr; rotate CW, Enter pause, R restart) and on-screen touch controls.
+- Clean JavaScript API (`web/tdecomp_api.js`) wrapping the WebAssembly module.
+
+---
+
 ## Routine Inventory Census
 
 To audit or regenerate the routine census against the reference disassembly:
@@ -84,6 +120,7 @@ TDecomp/
 ├── include/                    # Public C headers (NES state & subsystem APIs)
 ├── src/                        # C source implementations (libtdecomp_core.a)
 ├── tests/                      # Unit tests & 6502 differential CPU verification
+├── web/                        # WebAssembly port (C bridge, JS API, and browser demo)
 ├── tools/                      # Disassembly routine census script (inventory_routines.py)
 └── TetrisNESDisasm/            # Reference disassembly submodule
 ```

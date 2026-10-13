@@ -70,6 +70,7 @@ When `Tetris (USA).nes` is not present, ROM-dependent tests output `SKIPPED: ref
 | **Batches 14–15** | Audio Subsystem | APU channel drivers, sound effect slots 0–3, music engine, sequence interpreter |
 | **Batch 16** | System Boot & Mapper | Reset vector ($FF00), RAM clearing, MMC1 bankswitch registers, PPU bulk copying |
 | **Simplification** | Minimal C Project | Removed experimental cc65 ROM tooling (archived to `archive/rom-experiments`), streamlined CMake & documentation |
+| **WASM Port** | Browser Integration | Emscripten WebAssembly bridge (`web/`), clean JS API (`tdecomp_api.js`), and 60 FPS HTML5 Canvas playable demo |
 
 ---
 

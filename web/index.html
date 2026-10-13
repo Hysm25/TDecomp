@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDecomp - NES Tetris WebAssembly</title>
+    <style>
+        :root {
+            --bg-color: #0f1016;
+            --panel-bg: #1a1c26;
+            --panel-border: #3b4261;
+            --accent-color: #7aa2f7;
+            --text-color: #c0caf5;
+            --text-dim: #7982a9;
+            --btn-bg: #24283b;
+            --btn-hover: #414868;
+            --danger-color: #f7768e;
+            --success-color: #9ece6a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+            text-shadow: 0 0 10px rgba(122, 162, 247, 0.4);
+        }
+
+        .subtitle {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            background: var(--panel-bg);
+            border: 3px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            align-items: flex-start;
+        }
+
+        /* Playfield canvas */
+        .board-container {
+            position: relative;
+            background: #000;
+            border: 4px solid #fff;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+
+        canvas#board {
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        /* Sidebar HUD */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 180px;
+        }
+
+        .hud-box {
+            background: #000;
+            border: 2px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .hud-label {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .hud-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 2px;
+        }
+
+        .preview-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas#preview {
+            display: block;
+            background: #000;
+            margin-top: 4px;
+            image-rendering: pixelated;
+        }
+
+        /* Controls & Settings */
+        .config-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        select, button {
+            background: var(--btn-bg);
+            color: var(--text-color);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        select:focus, button:focus {
+            outline: 2px solid var(--accent-color);
+        }
+
+        button:hover {
+            background: var(--btn-hover);
+            color: #fff;
+        }
+
+        button.primary-btn {
+            background: #3d59a1;
+            font-weight: bold;
+            width: 100%;
+        }
+
+        button.primary-btn:hover {
+            background: #4e75d4;
+        }
+
+        /* On-screen controller buttons for mobile */
+        .onscreen-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .ctrl-btn {
+            padding: 12px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-align: center;
+            background: var(--btn-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+        }
+
+        .ctrl-btn:active {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .key-hints {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .overlay h2 {
+            font-size: 1.6rem;
+            color: var(--danger-color);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .overlay p {
+            font-size: 0.85rem;
+            color: var(--text-color);
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: space-around;
+            }
+            .hud-box {
+                flex: 1 1 40%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>TDecomp</h1>
+    <div class="subtitle">NES Tetris (USA) WebAssembly C Decompilation Port</div>
+</header>
+
+<div class="main-container">
+    <div class="board-container">
+        <!-- 10x20 playfield, rendered at 24x24 px per cell = 240x480 px -->
+        <canvas id="board" width="240" height="480"></canvas>
+        <div id="game-overlay" class="overlay" style="display: none;">
+            <h2 id="overlay-title">GAME OVER</h2>
+            <p id="overlay-desc">Press Restart to play again</p>
+            <button class="primary-btn" id="overlay-btn" style="width: auto; padding: 8px 24px;">RESTART</button>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="hud-box">
+            <div class="hud-label">SCORE</div>
+            <div class="hud-value" id="hud-score">000000</div>
+        </div>
+
+        <div class="hud-box">
+            <div class="hud-label">LINES</div>
+            <div class="hud-value" id="hud-lines">000</div>
+        </div>
+
+        <div class="hud-box">
+            <div class="hud-label">LEVEL</div>
+            <div class="hud-value" id="hud-level">00</div>
+        </div>
+
+        <div class="hud-box preview-box">
+            <div class="hud-label">NEXT</div>
+            <!-- 4x4 mino preview canvas: 96x96 px -->
+            <canvas id="preview" width="96" height="96"></canvas>
+        </div>
+
+        <div class="config-box">
+            <div class="config-row">
+                <label for="select-level">Level:</label>
+                <select id="select-level">
+                    <option value="0" selected>0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="18">18</option>
+                    <option value="19">19</option>
+                </select>
+            </div>
+            <div class="config-row">
+                <label for="select-type">Type:</label>
+                <select id="select-type">
+                    <option value="0" selected>A-Type</option>
+                    <option value="1">B-Type</option>
+                </select>
+            </div>
+            <button class="primary-btn" id="btn-restart">NEW GAME</button>
+            <button id="btn-pause">PAUSE</button>
+        </div>
+    </div>
+</div>
+
+<div class="onscreen-controls">
+    <button class="ctrl-btn" id="touch-left">LEFT</button>
+    <button class="ctrl-btn" id="touch-hard-drop">HARD DROP</button>
+    <button class="ctrl-btn" id="touch-right">RIGHT</button>
+    <button class="ctrl-btn" id="touch-rot-ccw">ROTATE (Z)</button>
+    <button class="ctrl-btn" id="touch-down">SOFT DROP</button>
+    <button class="ctrl-btn" id="touch-rot-cw">ROTATE (X)</button>
+</div>
+
+<div class="key-hints">
+    Keyboard: &larr; &rarr; Move &bull; &darr; Soft Drop &bull; Space Hard Drop<br>
+    Z Rotate CCW &bull; X / &uarr; Rotate CW &bull; Enter Pause &bull; R Restart
+</div>
+
+<!-- Load Emscripten module and JavaScript wrapper -->
+<script src="tdecomp.js"></script>
+<script src="tdecomp_api.js"></script>
+<script>
+    (async function() {
+        const boardCanvas = document.getElementById('board');
+        const boardCtx = boardCanvas.getContext('2d');
+        const previewCanvas = document.getElementById('preview');
+        const previewCtx = previewCanvas.getContext('2d');
+
+        const hudScore = document.getElementById('hud-score');
+        const hudLines = document.getElementById('hud-lines');
+        const hudLevel = document.getElementById('hud-level');
+        const selectLevel = document.getElementById('select-level');
+        const selectType = document.getElementById('select-type');
+        const btnRestart = document.getElementById('btn-restart');
+        const btnPause = document.getElementById('btn-pause');
+        const overlay = document.getElementById('game-overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayDesc = document.getElementById('overlay-desc');
+        const overlayBtn = document.getElementById('overlay-btn');
+
+        const CELL_SIZE = 24;
+        const BOARD_COLS = 10;
+        const BOARD_ROWS = 20;
+
+        // NES Tetris Level Palettes: [primary, secondary, accent]
+        const LEVEL_PALETTES = [
+            ['#3b6eff', '#ffffff', '#0026a3'], // Level 0: Blue
+            ['#00a800', '#ffffff', '#005800'], // Level 1: Green
+            ['#d800cc', '#ffffff', '#800080'], // Level 2: Magenta
+            ['#0058f8', '#00d8f8', '#0028a0'], // Level 3: Blue / Cyan
+            ['#e85800', '#58f858', '#a82800'], // Level 4: Orange / Green
+            ['#58f858', '#9878f8', '#008800'], // Level 5: Green / Purple
+            ['#d80000', '#787878', '#880000'], // Level 6: Red / Grey
+            ['#6844fc', '#a80020', '#3c249c'], // Level 7: Violet / Maroon
+            ['#0058f8', '#e85800', '#002088'], // Level 8: Blue / Orange
+            ['#e85800', '#fc9838', '#9c3400'], // Level 9: Orange / Amber
+        ];
+
+        let game = null;
+        let isPaused = false;
+        let heldButtonMask = 0;
+        let lastFrameTime = 0;
+        const TARGET_FRAME_MS = 1000 / 60; // 60 FPS
+
+        try {
+            game = await TDecompGame.create(createTDecompModule);
+            console.log('TDecomp WASM module loaded successfully');
+        } catch (e) {
+            console.error('Failed to load WASM module:', e);
+            overlayTitle.textContent = 'LOAD ERROR';
+            overlayDesc.textContent = 'Could not load WebAssembly module';
+            overlay.style.display = 'flex';
+            return;
+        }
+
+        function startNewGame() {
+            const startLevel = parseInt(selectLevel.value, 10) || 0;
+            const gameType = parseInt(selectType.value, 10) || 0;
+            game.init(startLevel, gameType);
+            isPaused = false;
+            btnPause.textContent = 'PAUSE';
+            overlay.style.display = 'none';
+        }
+
+        function togglePause() {
+            if (game.isGameOver()) return;
+            isPaused = !isPaused;
+            btnPause.textContent = isPaused ? 'RESUME' : 'PAUSE';
+            if (isPaused) {
+                overlayTitle.textContent = 'PAUSED';
+                overlayDesc.textContent = 'Press Pause or Enter to continue';
+                overlayBtn.style.display = 'none';
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
+                overlayBtn.style.display = 'inline-block';
+            }
+        }
+
+        function drawCell(ctx, x, y, tileId, level) {
+            const px = x * CELL_SIZE;
+            const py = y * CELL_SIZE;
+
+            if (tileId === 0xEF || tileId === 0xFF) {
+                // Empty cell
+                ctx.fillStyle = '#05070d';
+                ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+                ctx.strokeStyle = '#141824';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(px + 0.5, py + 0.5, CELL_SIZE - 1, CELL_SIZE - 1);
+                return;
+            }
+
+            const pal = LEVEL_PALETTES[level % LEVEL_PALETTES.length];
+            let mainColor = pal[0];
+            let highlight = pal[1];
+            let shadow = pal[2];
+
+            if (tileId === 0x7C) { // Secondary tile
+                mainColor = pal[1];
+                highlight = '#ffffff';
+                shadow = pal[0];
+            } else if (tileId === 0x7D) { // Accent tile
+                mainColor = pal[2];
+                highlight = pal[1];
+                shadow = '#000000';
+            } else if (tileId === 0x4F) { // Curtain tile
+                mainColor = '#606060';
+                highlight = '#999999';
+                shadow = '#303030';
+            }
+
+            // Outer fill
+            ctx.fillStyle = mainColor;
+            ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+
+            // Top and left bevel highlights
+            ctx.fillStyle = highlight;
+            ctx.fillRect(px, py, CELL_SIZE, 3);
+            ctx.fillRect(px, py, 3, CELL_SIZE);
+
+            // Bottom and right shadow bevels
+            ctx.fillStyle = shadow;
+            ctx.fillRect(px, py + CELL_SIZE - 3, CELL_SIZE, 3);
+            ctx.fillRect(px + CELL_SIZE - 3, py, 3, CELL_SIZE);
+
+            // Center square highlight
+            ctx.fillStyle = highlight;
+            ctx.fillRect(px + 6, py + 6, 4, 4);
+        }
+
+        function render() {
+            if (!game) return;
+
+            const level = game.getLevel();
+
+            // 1. Draw Playfield
+            const playfield = game.getPlayfield();
+            for (let row = 0; row < BOARD_ROWS; row++) {
+                for (let col = 0; col < BOARD_COLS; col++) {
+                    const tile = playfield[row * BOARD_COLS + col];
+                    drawCell(boardCtx, col, row, tile, level);
+                }
+            }
+
+            // 2. Draw Active Falling Piece (if in active control state)
+            const playState = game.getPlayState();
+            if (playState === 1 || playState === 2) {
+                const activeMinos = game.getCurrentPieceMinos();
+                for (const mino of activeMinos) {
+                    if (mino.y >= 0 && mino.y < BOARD_ROWS && mino.x >= 0 && mino.x < BOARD_COLS) {
+                        drawCell(boardCtx, mino.x, mino.y, mino.tile, level);
+                    }
+                }
+            }
+
+            // 3. Draw Next Piece Preview
+            previewCtx.fillStyle = '#000000';
+            previewCtx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+
+            const nextPieceId = game.getNextPiece();
+            const previewMinos = game.getPreviewMinos(nextPieceId);
+
+            // Center preview within 4x4 grid (box size 96x96 -> 4 cells of 24px)
+            let minX = 99, maxX = -99, minY = 99, maxY = -99;
+            previewMinos.forEach(m => {
+                if (m.x < minX) minX = m.x;
+                if (m.x > maxX) maxX = m.x;
+                if (m.y < minY) minY = m.y;
+                if (m.y > maxY) maxY = m.y;
+            });
+            const offsetX = Math.floor((4 - (maxX - minX + 1)) / 2) - minX;
+            const offsetY = Math.floor((4 - (maxY - minY + 1)) / 2) - minY;
+
+            previewMinos.forEach(m => {
+                drawCell(previewCtx, m.x + offsetX, m.y + offsetY, m.tile, level);
+            });
+
+            // 4. Update HUD values
+            hudScore.textContent = String(game.getScore()).padStart(6, '0');
+            hudLines.textContent = String(game.getLines()).padStart(3, '0');
+            hudLevel.textContent = String(level).padStart(2, '0');
+
+            // 5. Check Game Over
+            if (game.isGameOver()) {
+                overlayTitle.textContent = 'GAME OVER';
+                overlayDesc.textContent = `Final Score: ${game.getScore()}`;
+                overlayBtn.style.display = 'inline-block';
+                overlay.style.display = 'flex';
+            }
+        }
+
+        function gameLoop(timestamp) {
+            requestAnimationFrame(gameLoop);
+
+            if (!game || isPaused) return;
+
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const elapsed = timestamp - lastFrameTime;
+
+            if (elapsed >= TARGET_FRAME_MS) {
+                lastFrameTime = timestamp - (elapsed % TARGET_FRAME_MS);
+
+                // Step one authentic NES frame
+                if (!game.isGameOver()) {
+                    game.stepFrame(heldButtonMask);
+                }
+                render();
+            }
+        }
+
+        // Keyboard Input Handling
+        window.addEventListener('keydown', (e) => {
+            if (e.repeat) {
+                // Prevent duplicate handling on auto-repeat for rotation & hard drop
+                if (e.key === ' ' || e.key === 'z' || e.key === 'Z' || e.key === 'x' || e.key === 'X' || e.key === 'ArrowUp') {
+                    return;
+                }
+            }
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    heldButtonMask |= BUTTONS.LEFT;
+                    game.actionLeft();
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    heldButtonMask |= BUTTONS.RIGHT;
+                    game.actionRight();
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    heldButtonMask |= BUTTONS.DOWN;
+                    e.preventDefault();
+                    break;
+                case 'ArrowUp':
+                case 'x':
+                case 'X':
+                    heldButtonMask |= BUTTONS.A;
+                    game.actionRotateCW();
+                    e.preventDefault();
+                    break;
+                case 'z':
+                case 'Z':
+                    heldButtonMask |= BUTTONS.B;
+                    game.actionRotateCCW();
+                    e.preventDefault();
+                    break;
+                case ' ':
+                    game.actionHardDrop();
+                    e.preventDefault();
+                    break;
+                case 'Enter':
+                    togglePause();
+                    e.preventDefault();
+                    break;
+                case 'r':
+                case 'R':
+                    startNewGame();
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            switch (e.key) {
+                case 'ArrowLeft':
+                case 'a':
+                case 'A':
+                    heldButtonMask &= ~BUTTONS.LEFT;
+                    break;
+                case 'ArrowRight':
+                case 'd':
+                case 'D':
+                    heldButtonMask &= ~BUTTONS.RIGHT;
+                    break;
+                case 'ArrowDown':
+                case 's':
+                case 'S':
+                    heldButtonMask &= ~BUTTONS.DOWN;
+                    break;
+                case 'ArrowUp':
+                case 'x':
+                case 'X':
+                    heldButtonMask &= ~BUTTONS.A;
+                    break;
+                case 'z':
+                case 'Z':
+                    heldButtonMask &= ~BUTTONS.B;
+                    break;
+            }
+        });
+
+        // Touch / Click Buttons
+        function bindButton(id, onAction, buttonFlag) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            const startHandler = (e) => {
+                e.preventDefault();
+                if (buttonFlag) heldButtonMask |= buttonFlag;
+                if (onAction) onAction();
+            };
+            const endHandler = (e) => {
+                e.preventDefault();
+                if (buttonFlag) heldButtonMask &= ~buttonFlag;
+            };
+            btn.addEventListener('mousedown', startHandler);
+            btn.addEventListener('mouseup', endHandler);
+            btn.addEventListener('touchstart', startHandler, { passive: false });
+            btn.addEventListener('touchend', endHandler, { passive: false });
+        }
+
+        bindButton('touch-left', () => game.actionLeft(), BUTTONS.LEFT);
+        bindButton('touch-right', () => game.actionRight(), BUTTONS.RIGHT);
+        bindButton('touch-down', null, BUTTONS.DOWN);
+        bindButton('touch-rot-cw', () => game.actionRotateCW(), BUTTONS.A);
+        bindButton('touch-rot-ccw', () => game.actionRotateCCW(), BUTTONS.B);
+        bindButton('touch-hard-drop', () => game.actionHardDrop(), 0);
+
+        btnRestart.addEventListener('click', startNewGame);
+        overlayBtn.addEventListener('click', startNewGame);
+        btnPause.addEventListener('click', togglePause);
+
+        // Start initial game & animation loop
+        startNewGame();
+        requestAnimationFrame(gameLoop);
+    })();
+</script>
+</body>
+</html>
