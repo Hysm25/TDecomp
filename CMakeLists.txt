@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-# Termux / Android environment support
+# Environment prefix support for Termux cmake module resolution
 if(NOT DEFINED ENV{PREFIX} AND EXISTS "/data/data/com.termux/files/usr")
     set(ENV{PREFIX} "/data/data/com.termux/files/usr")
 endif()
@@ -71,50 +71,10 @@ if(BUILD_TESTING)
     target_compile_options(tdecomp_tests PRIVATE -UNDEBUG)
 
     add_test(NAME tdecomp_tests COMMAND tdecomp_tests)
-endif()
-
-# ROM Build & Verification Targets
-find_package(Python3 COMPONENTS Interpreter QUIET)
-if(Python3_FOUND)
-    add_custom_target(rom_baseline
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py baseline --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Building and verifying original assembly baseline NES ROM"
-    )
-
-    add_custom_target(rom_poc
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py poc --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Compiling and verifying target C-to-6502 proof-of-concept"
-    )
-
-    add_custom_target(rom_experimental
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py experimental --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Building and verifying experimental C-integrated NES ROM"
-    )
-
-    add_custom_target(rom_bank
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py bank --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Auditing and verifying bank-level C recompilation in experimental NES ROM (tetris_bank_exp.nes)"
-    )
-
-    add_custom_target(rom_bank_exp
-        DEPENDS rom_bank
-        COMMENT "Alias for rom_bank target (builds tetris_bank_exp.nes)"
-    )
-
-    add_custom_target(rom
-        DEPENDS rom_baseline rom_poc rom_experimental rom_bank
-        COMMENT "Full ROM build suite: baseline ROM, C POC, experimental C-integrated ROM, and bank-level experimental ROM"
-    )
 
     add_custom_target(verify
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py all --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        COMMAND ctest --test-dir ${CMAKE_CURRENT_BINARY_DIR} --output-on-failure
-        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py checksums --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMENT "Full verification: building all ROMs, executing ctest, and printing checksum verification table"
+        COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+        DEPENDS tdecomp_tests
+        COMMENT "Run test suite"
     )
 endif()

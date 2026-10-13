@@ -5,9 +5,8 @@
 - **Project:** NES Tetris (USA) Decompilation
 - **Source of Truth:** `TetrisNESDisasm/main.asm` (NES 6502 Assembly, Mapper 1 / MMC1)
 - **Reference ROM:** `Tetris (USA).nes` (SHA-1: `3026d28b63d94c921fe58364f8b0659d10b5a0ac`, PRG & CHR payloads verified bit-exact)
-- **Two Distinct Tracks:**
-  1. **Host C Reference Port (`src/`)**: Portable C11 (`-std=c11 -Wall -Wextra -Werror -pedantic`), modular, tested on Linux (x86_64) via CTest and embedded 6502 CPU simulator.
-  2. **Target C Integrated into NES ROM (`experimental/c6502/`)**: Bare-metal C compiled via `cc65` to native 6502 machine code and reintegrated into active NES ROMs (`tetris_experimental.nes`, `tetris_bank_exp.nes`).
+- **Implementation:** Portable C11 (`src/`, `include/`), strictly compiled (`-std=c11 -Wall -Wextra -Werror -pedantic`), modular, tested on Linux (x86_64) via CTest and embedded 6502 CPU simulator.
+- **Archived Experiments:** Historical bare-metal C-to-6502 ROM compilation work is archived on the `archive/rom-experiments` branch.
 - **Git Repository:** `Hysm25/TDecomp` on `origin/main`
 
 ---
@@ -244,32 +243,11 @@
     - Authoritative ROM data tables verified byte-for-byte against reference ROM: 4 packet palette tables (`game_palette`, `legal_screen_palette`, `menu_palette`, `ending_palette`) bringing cumulative verified tables to 111.
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `setMMC1Control`, `changeCHRBank0`, `changeCHRBank1`, `changePRGBank`, `memset_ppu_page_and_more`, `LAA82`, and `nmi` (Tests 85–91, bringing cumulative differential tests to 91).
     - Project milestone: Achieved 171/171 (100.0%) verified standalone routines and 111/111 (100.0%) verified alternate entry points across all 11 game subsystems.
-20. [x] **First Verified C-to-6502 ROM Integration (`copyOamStagingToOam`)**:
-    - Isolated compilation of target-ready C routine `copyOamStagingToOam` ($AB5E, 11 bytes) using cc65/ca65.
-    - Out-of-tree linker segmentation configuration (`tetris_exp.cfg`) placing compiled C object code at authoritative address $AB5E with zero code shifting across the entire 32KB PRG ROM payload.
-    - Verified 100% bit-exact 6502 machine code matching the 1989 Nintendo cartridge PRG payload.
-    - Differential NMOS 6502 CPU simulator verification: direct subroutine execution and full NMI interrupt handler pass without side effects.
-21. [x] **Second Verified C-to-6502 ROM Integration (`muteAudio`)**:
-    - Isolated compilation of target-ready C routine `muteAudio` ($E271, 22 bytes) using cc65/ca65.
-    - Extended multi-routine linker segmentation (`tetris_exp.cfg`) segmenting `PRG_chunk2` cleanly around $E271 with zero code shifting across the entire 32KB PRG payload.
-    - Verified 100% bit-exact machine code (22 bytes) and call sites at $E1E8 and $E247 (`jsr $E271`).
-    - Differential NMOS 6502 CPU simulator verification: direct subroutine execution on experimental ROM confirms all 5 APU volume/linear/DMC registers silenced with exact states.
-22. [x] **Third C-to-6502 Integration Analysis & Hybrid Feasibility Study (Gameplay RNG: `generateNextPseudorandomNumber`)**:
-    - Bare-metal target-ready C implementation (`experimental/c6502/rng.c`) targeting $AB47 (23 bytes, 6502 LFSR).
-    - Code-size optimization: Refactored from 62 bytes (3B BSS, `ptr1` dependency) down to **54 bytes** (1B BSS, zero zero-page pointer dependencies, -12.9% reduction).
-    - Hybrid investigation: Evaluated minimal 6502 assembly helper for carry rotation (32 bytes total). Proved that even a hybrid implementation exceeds the 23-byte slot by +9 bytes.
-    - Standalone out-of-line study: Evaluated 57-byte trampoline + body in `unreferenced_data4`. Proved that placing code in unreferenced areas corrupts cartridge payload data and breaks the 100.0% bit-exact ROM match against reference cartridge.
-    - Calling convention & side-effects audit: Added Test 1c in `test_differential.c` covering edge cases, proving complete memory equivalence and caller immunity across all 7 gameplay callers.
-    - Architectural blocker documented: In-place ROM integration safely BLOCKED due to fixed 23-byte slot capacity ($AB47–$AB5D). Baseline assembly build and experimental ROM build remain 100% bit-exact with the two verified C integrations intact and 0 code shifting.
-
-23. [x] **Bank-Level C Decompilation Feasibility Audit (High Score Subsystem: $A0EE–$A200)**:
-    - Target cluster identification: High Score Qualification & Shifting Subsystem ($A0EE–$A200, 275 bytes, PRG Chunk 1) containing 5 subroutines and 2 tables.
-    - Reference inventory & boundary classification: Confirmed single external entry point (`main.asm:3573: jsr handleHighScoreIfNecessary`), clean non-qualifying return (`rts` to `@resetGameState`), qualifying tail-jump (`jmp highScoreEntryScreen` at $A201), and 100% internal relocatability for all internal routines and tables.
-    - Target C compilation & code size metrics: Pure C compiled under `cc65 -t none -O -Oi` produced 636 bytes (614B code + 22B rodata, 17B BSS), representing a 2.31x expansion (+131.3%) over the 275-byte original assembly.
-    - In-place replacement status: Strictly BLOCKED due to +361-byte collision with downstream `$A201` (`highScoreEntryScreen`).
-    - Relocatable bank integration: Proved feasible and built experimental bank ROM (`build/rom/tetris_bank_exp.nes`, 49,168 bytes) placing compiled C code into unreferenced cartridge slack (`unreferenced_data1` at `$D6C9`, taking 640 of 1,591 available bytes) via a 3-byte trampoline at `$A0EE` (`JMP _handleHighScoreIfNecessary_c`) padded with 272B NOP.
-    - Hardware & behavioral verification: Verified on NMOS 6502 CPU simulator for Type A (109 cycles, `rawPos = 3`) and Type B (112 cycles, `rawPos = 7`), with exact memory invariants and 100% bit-exact code outside the slot and slack.
-    - Project documentation: Authoritative audit report published in `docs/BANK_LEVEL_C_PORT_FEASIBILITY.md`.
+20. [x] **Archived ROM & 6502 Target Integration Experiments (branch `archive/rom-experiments`)**:
+    - Experimental C-to-6502 in-place replacement and bank-level relocation studies were conducted using `cc65` and `ca65`.
+    - `copyOamStagingToOam` ($AB5E, 11 bytes) and `muteAudio` ($E271, 22 bytes) were integrated bit-exact into experimental ROMs.
+    - Gameplay RNG ($AB47, 23 bytes) and High Score cluster ($A0EE, 275 bytes) were audited for code expansion under cc65 (2.3x–2.9x expansion).
+    - All experimental ROM generation scripts, cc65 configurations, and reports were archived to branch `archive/rom-experiments` to keep the active project focused on the clean host C decompilation.
 
 ---
 
@@ -295,8 +273,5 @@
 | Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
 | Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `3c8cd51` |
 | Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | `d45aa2e` |
-| ROM Build Baseline | Baseline assembly rebuild & C-to-6502 proof-of-concept pipeline | 0 (Infra) | 171 | 15 suites + baseline & POC verification | `6f6c900` |
-| C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
-| C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `73dd826` |
-| C-to-6502 Integration 3 | Third C-to-6502 analysis: gameplay RNG (optimized 54B C, 32B hybrid audit; in-place blocked by 23B slot, 0 code shifting preserved) | 1 (Analysis & Target C) | 171 | 15 suites + calling convention & LFSR diff (92 diff tests) | `ebbd7b0` |
-| Bank-Level C Feasibility | High Score subsystem audit ($A0EE-$A200, 275B): in-place blocked (636B, 2.31x), relocatable slack build verified in experimental ROM & 6502 sim | 1 (Subsystem Cluster) | 171 | 15 suites + 92 diff tests + bank ROM build | `5cb9ef7` |
+| ROM Experiments | cc65 target C compilation & experimental ROM builds (Archived) | 0 (Archived) | 171 | Archived to `archive/rom-experiments` | `2cf576c` |
+| Cleanup & Simplification | Streamline to minimal, clean C decompilation project | 0 | 171 | 15 suites / 111 ROM tables + 90 diff tests | HEAD |
