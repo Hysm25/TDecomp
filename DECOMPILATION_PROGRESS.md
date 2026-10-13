@@ -252,4 +252,4 @@
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
 | Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | `ad44ed4` |
 | Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
-| Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | pending |
+| Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
