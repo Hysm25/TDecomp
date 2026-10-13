@@ -10,6 +10,7 @@ TDecomp is a clean, modular C decompilation of NES Tetris (USA), providing a por
 - **C Compiler**: C11 compliant compiler (`gcc` or `clang`)
 - **Git**: with submodule support
 - **Make** or **Ninja** build system
+- **Python**: version 3.8+ (optional, for routine census tooling)
 
 ---
 
@@ -58,6 +59,18 @@ cmake --build build --target verify
 
 ---
 
+## Routine Inventory Census
+
+To audit or regenerate the routine census against the reference disassembly:
+
+```bash
+python3 tools/inventory_routines.py
+```
+
+This scans `TetrisNESDisasm/main.asm` and updates [ROUTINE_INVENTORY.md](ROUTINE_INVENTORY.md) and [routine_inventory.json](routine_inventory.json).
+
+---
+
 ## Project Structure
 
 ```
@@ -65,13 +78,13 @@ TDecomp/
 ├── CMakeLists.txt              # CMake build configuration
 ├── LICENSE                     # MIT License & attribution notices
 ├── README.md                   # Project documentation
-├── DECOMPILATION_PROGRESS.md   # Subsystem progress tracking
+├── DECOMPILATION_PROGRESS.md   # Subsystem progress & architecture
 ├── ROUTINE_INVENTORY.md        # Assembly symbol census
 ├── routine_inventory.json      # Structured routine census data
 ├── include/                    # Public C headers (NES state & subsystem APIs)
 ├── src/                        # C source implementations (libtdecomp_core.a)
 ├── tests/                      # Unit tests & 6502 differential CPU verification
-├── tools/                      # Disassembly routine census script
+├── tools/                      # Disassembly routine census script (inventory_routines.py)
 └── TetrisNESDisasm/            # Reference disassembly submodule
 ```
 
@@ -82,7 +95,7 @@ TDecomp/
 A commercial reference ROM (`Tetris (USA).nes`, SHA-1: `3026d28b63d94c921fe58364f8b0659d10b5a0ac`) is used to verify data tables and execute differential tests against an embedded 6502 CPU simulator.
 
 - **ROM Not Included**: The reference ROM is not included with this repository and must be obtained independently.
-- **Handling When Absent**: When the reference ROM is not found, ROM-dependent differential tests will output `SKIPPED: reference ROM not found` and exit cleanly (0 failures). All core unit tests run independently without requiring a ROM.
+- **Handling When Absent**: When the reference ROM is not found, ROM-dependent differential tests output `SKIPPED: reference ROM not found` and exit cleanly (0 failures). All core unit tests run independently without requiring a ROM.
 - **Copyright Warning**: Never commit copyrighted NES ROM files or proprietary binary assets to the repository.
 
 ---

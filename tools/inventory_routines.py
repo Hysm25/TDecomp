@@ -586,7 +586,7 @@ def main():
     lines_out = [
         "# NES Tetris Authoritative Routine Inventory & Scope Audit",
         "",
-        "- **Disassembly Source of Truth:** `TetrisNESDisasm/main.asm` (NES 6502 Assembly, NROM/MMC1)",
+        "- **Disassembly Source of Truth:** `TetrisNESDisasm/main.asm` (NES 6502 Assembly, Mapper 1 / MMC1)",
         "- **Reference ROM:** `Tetris (USA).nes` (PRG SHA-1 verified)",
         "- **C Target:** Strict C11 (`-std=c11 -Wall -Wextra -Werror -pedantic`)",
         "",
