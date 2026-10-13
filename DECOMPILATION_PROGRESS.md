@@ -266,4 +266,4 @@
 | Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
 | Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | `66e13ae` |
 | Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `3c8cd51` |
-| Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | PENDING |
+| Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | `d45aa2e` |
