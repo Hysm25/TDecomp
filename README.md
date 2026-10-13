@@ -61,19 +61,68 @@ cmake --build build --target verify
 
 ---
 
+## ROM Import & Asset Extraction
+
+TDecomp strictly requires an authentic commercial `Tetris (USA).nes` ROM to run. The decompiled C engine drives game logic, while authentic pattern graphics, level palettes, piece tables, and audio definitions are extracted directly from the ROM. **Hardcoded replacement assets and invented data are not used; a valid ROM import is strictly required before the game can run.**
+
+### Target ROM Specifications
+
+- **File Name:** `Tetris (USA).nes`
+- **File Size:** 49,168 bytes (16-byte iNES header + 32KB PRG ROM + 16KB CHR ROM)
+- **Mapper:** Mapper 1 (MMC1)
+- **Authoritative SHA-1:** `3026d28b63d94c921fe58364f8b0659d10b5a0ac`
+
+### Extracted Game Data
+
+- **Graphics (CHR Pattern Tables):** 16 KB total across 4 banks of 256 8×8 2bpp tiles (Bank 0: Title/Menu, Bank 1: Type B Ending, Bank 2: Type A Ending, Bank 3: In-game minos, curtain, digits, and frame borders).
+- **Color Palettes:** Authentic 10-level color tables (`colorTable` at `$984C`), in-game palette (`game_palette` at `$ACF3`), menu palette (`menu_palette` at `$AD2B`), and ending palettes.
+- **Piece Data & Movement:** 19-orientation piece geometry (`orientationTable` at `$8A9C`), rotation transitions (`rotationTable` at `$88EE`), gravity drop rates (`framesPerDropTable` at `$898E`), and piece spawn tables.
+- **Sound & Audio Tables:** APU sound effect initialization vectors, sequence data, note frequencies (`noteToWaveTable`), and durations.
+
+### Importing the ROM
+
+#### Option A: Drag & Drop (Desktop GUI or Web Browser)
+- **Desktop:** Launch `./build/tdecomp` and drag `Tetris (USA).nes` directly onto the application window. The game will authenticate the ROM SHA-1, extract assets in real-time, and boot to the title screen.
+- **Browser:** Open the WebAssembly page and click **"Select ROM File"** or drag & drop the ROM onto the canvas. The authenticated ROM is cached in browser `localStorage` across page reloads.
+
+#### Option B: Command-Line Flag (`--rom`)
+```bash
+./build/tdecomp --rom "path/to/Tetris (USA).nes"
+```
+
+#### Option C: Automatic Detection / Environment Variable
+Place `Tetris (USA).nes` in the project root directory, or point the `TDECOMP_ROM_PATH` environment variable to the file:
+```bash
+export TDECOMP_ROM_PATH="/path/to/Tetris (USA).nes"
+./build/tdecomp
+```
+
+#### Option D: Standalone Python Extractor Tool
+To inspect, validate, and dump extracted binary assets into the `assets/` directory:
+```bash
+python3 tools/extract_assets.py "Tetris (USA).nes" --output assets
+```
+
+---
+
 ## Native Desktop Application (raylib)
 
-TDecomp features a native desktop application powered by [raylib](https://www.raylib.com/) and driven directly by the verified decompiled C11 engine (`libtdecomp_core.a`). The frontend provides authentic gameplay rendering, authentic level palettes, Delayed Auto Shift (DAS) mechanics, score/line accounting, and procedural sound effects without embedding an NES emulator or requiring an external `.nes` ROM at runtime.
+TDecomp features a native desktop application powered by [raylib](https://www.raylib.com/) and driven directly by the verified decompiled C11 engine (`libtdecomp_core.a`) using the extracted ROM assets.
 
 ### Launch Desktop Application
 
 ```bash
 ./build/tdecomp
+# or specify ROM explicitly:
+./build/tdecomp --rom "Tetris (USA).nes"
 ```
 
 ### Command-Line Options
 
 ```bash
+# Specify ROM file path
+./build/tdecomp --rom "path/to/Tetris (USA).nes"
+
 # Start directly at a specific level (0 to 19)
 ./build/tdecomp --level 9
 
@@ -102,7 +151,7 @@ TDecomp features a native desktop application powered by [raylib](https://www.ra
 
 ## WebAssembly HTML5 Port (Browser)
 
-TDecomp can be compiled directly to WebAssembly using **Emscripten** and **raylib's HTML5 backend**. It reuses the exact same verified C11 decompilation, game adapter, authentic level palettes, and procedural audio without running an NES emulator or requiring a `.nes` ROM file.
+TDecomp can be compiled directly to WebAssembly using **Emscripten** and **raylib's HTML5 backend**. It reuses the exact same verified C11 decompilation, game adapter, and extracted ROM assets.
 
 ### Build WebAssembly Port
 
@@ -116,20 +165,16 @@ Or via CMake:
 cmake --build build --target web
 ```
 
-Compiles the core engine and raylib frontend to `web/tdecomp.html`, `web/tdecomp.js`, and `web/tdecomp.wasm` (along with `web/index.html`).
+Compiles to `web/tdecomp.html`, `web/tdecomp.js`, and `web/tdecomp.wasm` (along with `web/index.html`).
 
 ### Test WebAssembly Build (Node.js)
 
-To verify the WebAssembly build in headless mode without a browser:
+To run the automated WebAssembly test suite in Node.js (testing missing ROM rejection, bad hash rejection, and valid simulation):
 
 ```bash
 make -C web test
-```
-
-Or run Node.js directly:
-
-```bash
-node web/tdecomp.js --headless --test-frames 120
+# or:
+node web/test_web.js
 ```
 
 ### Play in Web Browser
@@ -142,7 +187,7 @@ python3 -m http.server 8080 --directory web
 make -C web serve
 ```
 
-Open `http://localhost:8080` in any modern web browser. Click the canvas to focus controls and play!
+Open `http://localhost:8080` in any modern web browser. Import your `Tetris (USA).nes` ROM using the file picker or drag & drop, and click the canvas to play!
 
 ---
 
@@ -168,12 +213,12 @@ TDecomp/
 ├── DECOMPILATION_PROGRESS.md   # Subsystem progress & architecture
 ├── ROUTINE_INVENTORY.md        # Assembly symbol census
 ├── routine_inventory.json      # Structured routine census data
-├── include/                    # Public C headers (NES state & subsystem APIs)
-├── src/                        # C source implementations (libtdecomp_core.a)
-├── tests/                      # Unit tests & 6502 differential CPU verification
-├── native/                     # Native Raylib desktop frontend (adapter, renderer, audio)
-├── web/                        # WebAssembly HTML5 port (Makefile, shell template, browser build)
-├── tools/                      # Disassembly routine census script (inventory_routines.py)
+├── include/                    # Public C headers (NES state, subsystem APIs, rom_assets.h)
+├── src/                        # C source implementations (libtdecomp_core.a, rom_assets.c)
+├── tests/                      # Unit tests, ROM extraction tests & 6502 differential CPU verification
+├── native/                     # Native Raylib desktop frontend (main, adapter, renderer, audio)
+├── web/                        # WebAssembly HTML5 port (Makefile, shell, test_web.js, browser bundle)
+├── tools/                      # Census & asset extractor scripts (extract_assets.py, inventory_routines.py)
 └── TetrisNESDisasm/            # Reference disassembly submodule
 ```
 

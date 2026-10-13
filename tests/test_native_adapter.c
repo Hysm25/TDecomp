@@ -2,12 +2,49 @@
 #include <string.h>
 #include <assert.h>
 #include "game_adapter.h"
+#include "rom_assets.h"
 #include "constants/gameplay.h"
 #include "constants/memory.h"
 
-static void test_adapter_initialization(void) {
+static RomAssets s_test_assets;
+
+static void ensure_assets_loaded(void) {
+    if (!s_test_assets.is_loaded) {
+        char err[256];
+        RomStatus st = rom_assets_find_and_load(&s_test_assets, NULL, err, sizeof(err));
+        assert(st == ROM_STATUS_OK && "Reference ROM must be available for native adapter test suite");
+    }
+}
+
+static void test_adapter_rom_required_enforcement(void) {
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+
+    /* Initialize with NULL assets: must be gated in SCREEN_ROM_REQUIRED */
+    game_adapter_init(&adapter, NULL);
+    assert(adapter.screen == SCREEN_ROM_REQUIRED);
+    assert(!adapter.rom_loaded);
+
+    /* Starting game without ROM must be blocked */
+    game_adapter_start_game(&adapter, 0, GAMETYPE_A, 0);
+    assert(adapter.screen == SCREEN_ROM_REQUIRED);
+
+    /* Updating game without ROM must not advance frames */
+    game_adapter_update(&adapter, BUTTON_DOWN);
+    assert(adapter.frame_count == 0);
+
+    /* Importing valid ROM unlocks title screen */
+    ensure_assets_loaded();
+    game_adapter_load_rom_assets(&adapter, &s_test_assets);
+    assert(adapter.screen == SCREEN_TITLE);
+    assert(adapter.rom_loaded);
+
+    printf("  [PASS] test_adapter_rom_required_enforcement (gameplay strictly gated on ROM)\n");
+}
+
+static void test_adapter_initialization(void) {
+    ensure_assets_loaded();
+    GameAdapter adapter;
+    game_adapter_init(&adapter, &s_test_assets);
 
     assert(adapter.screen == SCREEN_TITLE);
     assert(adapter.score == 0);
@@ -21,8 +58,9 @@ static void test_adapter_initialization(void) {
 }
 
 static void test_adapter_game_start(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
 
     game_adapter_start_game(&adapter, 5, GAMETYPE_A, 0);
 
@@ -45,8 +83,9 @@ static void test_adapter_game_start(void) {
 }
 
 static void test_adapter_movement_and_rotation(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
     game_adapter_start_game(&adapter, 0, GAMETYPE_A, 0);
 
     uint8_t start_x = adapter.nes.ram[ADDR_P1_TETRIMINO_X];
@@ -64,8 +103,9 @@ static void test_adapter_movement_and_rotation(void) {
 }
 
 static void test_adapter_soft_drop_and_scoring(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
     game_adapter_start_game(&adapter, 0, GAMETYPE_A, 0);
 
     /* Run 60 frames holding BUTTON_DOWN to soft drop the piece */
@@ -82,8 +122,9 @@ static void test_adapter_soft_drop_and_scoring(void) {
 }
 
 static void test_adapter_pause_toggle(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
     game_adapter_start_game(&adapter, 0, GAMETYPE_A, 0);
 
     assert(adapter.screen == SCREEN_PLAYING);
@@ -108,8 +149,9 @@ static void test_adapter_pause_toggle(void) {
 }
 
 static void test_adapter_menu_navigation(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
 
     assert(adapter.screen == SCREEN_TITLE);
 
@@ -143,8 +185,9 @@ static void test_adapter_menu_navigation(void) {
 }
 
 static void test_adapter_restart(void) {
+    ensure_assets_loaded();
     GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&adapter, &s_test_assets);
     game_adapter_start_game(&adapter, 3, GAMETYPE_A, 0);
 
     /* Play 30 frames */
@@ -166,6 +209,7 @@ static void test_adapter_restart(void) {
 
 int test_native_adapter_subsystem(void) {
     printf("\n--- Testing Native Game Adapter Subsystem ---\n");
+    test_adapter_rom_required_enforcement();
     test_adapter_initialization();
     test_adapter_game_start();
     test_adapter_movement_and_rotation();

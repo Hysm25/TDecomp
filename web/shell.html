@@ -22,7 +22,7 @@
         }
         header {
             text-align: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         h1 {
             color: #ff4757;
@@ -41,6 +41,84 @@
             font-size: 0.9rem;
             margin-top: 4px;
         }
+
+        /* ROM Importer Panel */
+        .rom-panel {
+            max-width: 800px;
+            width: 100%;
+            margin-bottom: 14px;
+            background: #181c26;
+            border: 1px solid #2f3640;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .rom-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .rom-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #f1f2f6;
+        }
+        .rom-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #e74c3c;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .rom-badge.verified {
+            background: #2ed573;
+            color: #0c1017;
+        }
+        .rom-desc {
+            font-size: 0.82rem;
+            color: #8c98a9;
+            line-height: 1.4;
+        }
+        .rom-desc code {
+            background: #232936;
+            color: #eccc68;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .rom-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .rom-upload-btn {
+            background: #3742fa;
+            color: #ffffff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .rom-upload-btn:hover {
+            background: #2f3542;
+        }
+        .rom-drop-hint {
+            font-size: 0.8rem;
+            color: #747d8c;
+        }
+
         .game-container {
             position: relative;
             background: #1e272e;
@@ -69,14 +147,17 @@
             margin-top: 8px;
             min-height: 20px;
         }
+        #status-bar.error {
+            color: #ff4757;
+        }
         .controls-panel {
             max-width: 800px;
             width: 100%;
-            margin-top: 16px;
+            margin-top: 14px;
             background: #181c24;
             border: 1px solid #2f3542;
             border-radius: 6px;
-            padding: 14px 18px;
+            padding: 12px 18px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 10px;
@@ -118,7 +199,23 @@
         <p class="subtitle">Portable C11 Decompilation running via raylib WebAssembly</p>
     </header>
 
-    <div class="game-container">
+    <div class="rom-panel" id="rom-panel">
+        <div class="rom-panel-header">
+            <span class="rom-title">Original ROM Importer</span>
+            <span class="rom-badge" id="rom-badge">ROM Required</span>
+        </div>
+        <p class="rom-desc">
+            An authentic <code>Tetris (USA).nes</code> ROM is strictly required to extract original pattern tables, palettes, and piece definitions.
+            (Expected SHA-1: <code>3026d28b63d94c921fe58364f8b0659d10b5a0ac</code>)
+        </p>
+        <div class="rom-actions">
+            <input type="file" id="rom-file-input" accept=".nes" style="display:none;">
+            <button class="rom-upload-btn" id="rom-upload-btn" onclick="document.getElementById('rom-file-input').click();">Select ROM File</button>
+            <span class="rom-drop-hint">or drag &amp; drop Tetris (USA).nes onto the screen</span>
+        </div>
+    </div>
+
+    <div class="game-container" id="game-container">
         <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
     </div>
 
@@ -141,16 +238,109 @@
     <script>
         var statusElement = document.getElementById('status-bar');
         var canvasElement = document.getElementById('canvas');
+        var containerElement = document.getElementById('game-container');
+        var badgeElement = document.getElementById('rom-badge');
+        var fileInputElement = document.getElementById('rom-file-input');
 
-        // Automatically focus canvas on click to capture key presses
         canvasElement.addEventListener('click', function() {
             canvasElement.focus();
+        });
+
+        function importRomBuffer(arrayBuffer) {
+            if (!Module || !Module.ccall) {
+                console.error("WASM module not initialized yet");
+                return;
+            }
+            var uint8 = new Uint8Array(arrayBuffer);
+            var ptr = Module._malloc(uint8.length);
+            Module.HEAPU8.set(uint8, ptr);
+            var res = Module.ccall('rom_import_data', 'number', ['number', 'number'], [ptr, uint8.length]);
+            Module._free(ptr);
+
+            if (res === 0) {
+                if (badgeElement) {
+                    badgeElement.innerText = "ROM Verified";
+                    badgeElement.classList.add("verified");
+                }
+                if (statusElement) {
+                    statusElement.className = "";
+                    statusElement.innerText = "ROM authenticated successfully! Click screen to focus and play.";
+                }
+                try {
+                    // Cache ROM data in localStorage so refresh automatically restores it
+                    var binary = '';
+                    for (var i = 0; i < uint8.byteLength; i++) {
+                        binary += String.fromCharCode(uint8[i]);
+                    }
+                    localStorage.setItem('tdecomp_rom_b64', btoa(binary));
+                } catch(e) {
+                    console.log("Could not cache ROM in localStorage:", e);
+                }
+                canvasElement.focus();
+            } else {
+                if (badgeElement) {
+                    badgeElement.innerText = "Invalid ROM";
+                    badgeElement.classList.remove("verified");
+                }
+                if (statusElement) {
+                    statusElement.className = "error";
+                    statusElement.innerText = "ROM Error: Validation failed. Expected Tetris (USA).nes SHA-1: 3026d28b63d94c921fe58364f8b0659d10b5a0ac";
+                }
+            }
+        }
+
+        function handleFile(file) {
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                importRomBuffer(e.target.result);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        fileInputElement.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Drag & drop handlers
+        [containerElement, canvasElement, document.getElementById('rom-panel')].forEach(function(el) {
+            if (!el) return;
+            el.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            });
+            el.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
         });
 
         var Module = {
             preRun: [],
             postRun: [function() {
-                if (statusElement) statusElement.innerText = "Click on the game screen to focus and play!";
+                // Try restoring cached ROM from localStorage
+                try {
+                    var cached = localStorage.getItem('tdecomp_rom_b64');
+                    if (cached) {
+                        var binStr = atob(cached);
+                        var len = binStr.length;
+                        var bytes = new Uint8Array(len);
+                        for (var i = 0; i < len; i++) {
+                            bytes[i] = binStr.charCodeAt(i);
+                        }
+                        importRomBuffer(bytes.buffer);
+                        return;
+                    }
+                } catch(e) {}
+
+                if (statusElement) {
+                    statusElement.innerText = "ROM Required: Please import Tetris (USA).nes using the button above.";
+                }
                 canvasElement.focus();
             }],
             print: function(text) {
@@ -167,7 +357,7 @@
                     if (text) {
                         statusElement.innerText = text;
                     } else {
-                        statusElement.innerText = "Game ready! Click canvas to focus and play.";
+                        statusElement.innerText = "Game ready! Import ROM to begin.";
                     }
                 }
             },

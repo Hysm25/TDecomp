@@ -1,10 +1,10 @@
 #include "renderer.h"
-#include "game/render.h"
-#include "game/tetrimino.h"
+#include "rom_assets.h"
 #include "constants/gameplay.h"
+#include "game/tetrimino.h"
 #include <raylib.h>
 #include <stdio.h>
-#include <math.h>
+#include <string.h>
 
 #define WINDOW_WIDTH    800
 #define WINDOW_HEIGHT   720
@@ -37,62 +37,94 @@ static const Color NES_PALETTE[64] = {
     {0xBF, 0xE9, 0xF5, 255}, {0xB3, 0xB3, 0xB3, 255}, {0x00, 0x00, 0x00, 255}, {0x00, 0x00, 0x00, 255}
 };
 
-static Color get_nes_color(uint8_t index) {
+static inline Color get_nes_color(uint8_t index) {
     return NES_PALETTE[index & 0x3F];
 }
 
-void renderer_init(void) {
-    /* No dynamic font allocation required; Raylib default font handles HUD cleanly */
-}
+/* Texture atlases generated from extracted CHR ROM pattern tables */
+static Texture2D s_level_textures[10];
+static bool s_assets_loaded = false;
 
-void renderer_shutdown(void) {
-}
+void renderer_load_rom_assets(const RomAssets *assets) {
+    if (s_assets_loaded) {
+        for (int i = 0; i < 10; i++) {
+            UnloadTexture(s_level_textures[i]);
+        }
+        s_assets_loaded = false;
+    }
 
-/* Draws an authentic NES-style beveled tetromino block cell */
-static void draw_block(int px, int py, int size, uint8_t tile_id, uint8_t level) {
-    uint8_t lvl_mod = (uint8_t)(level % 10);
-    Color primary   = get_nes_color(colorTable[lvl_mod * 4 + 2]);
-    Color secondary = get_nes_color(colorTable[lvl_mod * 4 + 3]);
-    Color white     = (Color){255, 255, 255, 255};
-    Color dark      = (Color){15, 15, 20, 255};
-
-    if (tile_id == TILE_CURTAIN) {
-        /* Curtain tile during game over animation */
-        DrawRectangle(px, py, size, size, (Color){180, 180, 180, 255});
-        DrawRectangle(px + 2, py + 2, size - 4, size - 4, (Color){100, 100, 100, 255});
-        DrawRectangle(px + 4, py + 4, size - 8, size - 8, (Color){220, 220, 220, 255});
+    if (!assets || !assets->is_loaded) {
         return;
     }
 
-    if (tile_id == TILE_1) {
-        /* Tile 1: Solid primary color with white shine corner */
-        DrawRectangle(px, py, size, size, primary);
-        /* Darker shadow edge */
-        DrawRectangle(px + size - 2, py, 2, size, dark);
-        DrawRectangle(px, py + size - 2, size, 2, dark);
-        /* Bevel corner */
-        DrawRectangle(px + 2, py + 2, size - 4, size - 4, primary);
-        /* White shine block */
-        DrawRectangle(px + 3, py + 3, 5, 5, white);
-    } else if (tile_id == TILE_2) {
-        /* Tile 2: Secondary color with checkered / inner primary center */
-        DrawRectangle(px, py, size, size, secondary);
-        DrawRectangle(px + size - 2, py, 2, size, dark);
-        DrawRectangle(px, py + size - 2, size, 2, dark);
-        /* Inner primary box */
-        DrawRectangle(px + 4, py + 4, size - 8, size - 8, primary);
-        DrawRectangle(px + 6, py + 6, size - 12, size - 12, white);
-    } else {
-        /* Tile 3: White base with primary accent */
-        DrawRectangle(px, py, size, size, white);
-        DrawRectangle(px + size - 2, py, 2, size, dark);
-        DrawRectangle(px, py + size - 2, size, 2, dark);
-        DrawRectangle(px + 3, py + 3, size - 6, size - 6, primary);
-        DrawRectangle(px + 6, py + 6, size - 12, size - 12, white);
+    const uint8_t *chr_game_bank = rom_get_chr_bank(assets, CHR_GAME);
+    if (!chr_game_bank) return;
+
+    /* Build 10 hardware texture atlases: one for each authentic level palette pair */
+    for (int lvl = 0; lvl < 10; lvl++) {
+        Image img = GenImageColor(128, 128, (Color){0, 0, 0, 0});
+
+        Color pal[4];
+        pal[0] = (Color){0, 0, 0, 0};                                          /* Transparent */
+        pal[1] = get_nes_color(assets->color_table[lvl * 4 + 1]);               /* White / highlight */
+        pal[2] = get_nes_color(assets->color_table[lvl * 4 + 2]);               /* Primary color */
+        pal[3] = get_nes_color(assets->color_table[lvl * 4 + 3]);               /* Secondary color */
+
+        for (int t = 0; t < 256; t++) {
+            uint8_t pixels[8][8];
+            rom_decode_chr_tile(chr_game_bank, (uint8_t)t, pixels);
+
+            int bx = (t % 16) * 8;
+            int by = (t / 16) * 8;
+
+            for (int y = 0; y < 8; y++) {
+                for (int x = 0; x < 8; x++) {
+                    uint8_t c_idx = pixels[y][x];
+                    Color col = pal[c_idx & 3];
+                    ImageDrawPixel(&img, bx + x, by + y, col);
+                }
+            }
+        }
+
+        s_level_textures[lvl] = LoadTextureFromImage(img);
+        SetTextureFilter(s_level_textures[lvl], TEXTURE_FILTER_POINT);
+        UnloadImage(img);
+    }
+
+    s_assets_loaded = true;
+}
+
+void renderer_init(const RomAssets *assets) {
+    renderer_load_rom_assets(assets);
+}
+
+void renderer_shutdown(void) {
+    if (s_assets_loaded) {
+        for (int i = 0; i < 10; i++) {
+            UnloadTexture(s_level_textures[i]);
+        }
+        s_assets_loaded = false;
     }
 }
 
-/* Draws a retro panel box with bevel border */
+/* Draws an authentic NES-style tetromino block cell directly from extracted CHR pattern data */
+static void draw_block(int px, int py, int size, uint8_t tile_id, uint8_t level) {
+    if (!s_assets_loaded) return;
+
+    uint8_t lvl_mod = (uint8_t)(level % 10);
+    Rectangle src = {
+        (float)((tile_id % 16) * 8),
+        (float)((tile_id / 16) * 8),
+        8.0f,
+        8.0f
+    };
+    Rectangle dst = { (float)px, (float)py, (float)size, (float)size };
+    Vector2 origin = { 0.0f, 0.0f };
+
+    DrawTexturePro(s_level_textures[lvl_mod], src, dst, origin, 0.0f, WHITE);
+}
+
+/* Draws a retro panel box with border */
 static void draw_retro_panel(int x, int y, int w, int h, const char *title) {
     DrawRectangle(x, y, w, h, (Color){18, 20, 28, 255});
     DrawRectangleLinesEx((Rectangle){(float)x, (float)y, (float)w, (float)h}, 2.0f, (Color){50, 60, 85, 255});
@@ -143,18 +175,23 @@ static void draw_hud(const GameAdapter *adapter) {
         ORIENT_T_UP, ORIENT_J_LEFT, ORIENT_Z_VERT, ORIENT_O_FIXED, ORIENT_S_VERT, ORIENT_L_RIGHT, ORIENT_I_HORIZ
     };
 
+    const uint8_t *orient_tbl = (adapter->assets && adapter->assets->is_loaded)
+                              ? adapter->assets->orientation_table
+                              : orientationTable;
+
     for (int p = 0; p < 7; p++) {
         int py = 405 + p * 30;
         DrawText(piece_names[p], 55, py, 16, (Color){255, 90, 90, 255});
 
-        /* Miniature piece preview */
+        /* Miniature piece preview rendered using extracted orientation table */
         uint8_t o = sample_orientations[p];
         for (int m = 0; m < 4; m++) {
-            int8_t my = (int8_t)orientationTable[o * 12 + m * 3 + 0];
-            int8_t mx = (int8_t)orientationTable[o * 12 + m * 3 + 2];
+            int8_t my  = (int8_t)orient_tbl[o * 12 + m * 3 + 0];
+            uint8_t mt = orient_tbl[o * 12 + m * 3 + 1];
+            int8_t mx  = (int8_t)orient_tbl[o * 12 + m * 3 + 2];
             int bx = 110 + mx * 8;
             int by = py + 7 + my * 8;
-            DrawRectangle(bx, by, 7, 7, (Color){200, 180, 240, 255});
+            draw_block(bx, by, 7, mt, adapter->level);
         }
 
         snprintf(buf, sizeof(buf), "%03u", (unsigned int)adapter->stats[p]);
@@ -166,9 +203,9 @@ static void draw_hud(const GameAdapter *adapter) {
     if (adapter->show_next_piece && adapter->next_orientation < ORIENTATION_COUNT) {
         uint8_t no = adapter->next_orientation;
         for (int m = 0; m < 4; m++) {
-            int8_t my = (int8_t)orientationTable[no * 12 + m * 3 + 0];
-            uint8_t mt = orientationTable[no * 12 + m * 3 + 1];
-            int8_t mx = (int8_t)orientationTable[no * 12 + m * 3 + 2];
+            int8_t my  = (int8_t)orient_tbl[no * 12 + m * 3 + 0];
+            uint8_t mt = orient_tbl[no * 12 + m * 3 + 1];
+            int8_t mx  = (int8_t)orient_tbl[no * 12 + m * 3 + 2];
             int bx = 640 + 65 + mx * 18 - 9;
             int by = 70 + 60 + my * 18 - 9;
             draw_block(bx, by, 17, mt, adapter->level);
@@ -247,7 +284,6 @@ static void draw_playfield(const GameAdapter *adapter) {
     if (adapter->line_clear_anim_active) {
         float t = (float)GetTime();
         if ((int)(t * 20.0f) % 2 == 0) {
-            /* Flash bright overlay on cleared rows */
             DrawRectangle(MATRIX_X, MATRIX_Y, MATRIX_W, MATRIX_H, (Color){255, 255, 255, 40});
         }
     }
@@ -260,6 +296,11 @@ static void draw_title_screen(const GameAdapter *adapter) {
     DrawText("TDecomp", WINDOW_WIDTH / 2 - 120, 140, 56, (Color){255, 60, 60, 255});
     DrawText("NES TETRIS", WINDOW_WIDTH / 2 - 95, 210, 32, (Color){255, 220, 100, 255});
     DrawText("PORTABLE C11 DECOMPILATION", WINDOW_WIDTH / 2 - 130, 260, 16, (Color){150, 180, 220, 255});
+
+    /* Verified ROM status badge */
+    DrawRectangle(WINDOW_WIDTH / 2 - 200, 310, 400, 32, (Color){20, 45, 30, 255});
+    DrawRectangleLinesEx((Rectangle){(float)(WINDOW_WIDTH / 2 - 200), 310.0f, 400.0f, 32.0f}, 1.5f, (Color){40, 180, 80, 255});
+    DrawText("ROM AUTHENTICATED (SHA-1: 3026d28b...)", WINDOW_WIDTH / 2 - 170, 318, 14, (Color){120, 240, 140, 255});
 
     float t = (float)GetTime();
     if ((int)(t * 2.5f) % 2 == 0) {
@@ -275,7 +316,6 @@ static void draw_level_select_screen(const GameAdapter *adapter) {
 
     DrawText("SELECT STARTING LEVEL", WINDOW_WIDTH / 2 - 170, 120, 26, (Color){255, 220, 100, 255});
 
-    /* Level grid: row 1 (0..9), row 2 (10..19) */
     char buf[16];
     for (int lvl = 0; lvl < 20; lvl++) {
         int row = lvl / 10;
@@ -331,13 +371,65 @@ static void draw_overlay(const GameAdapter *adapter) {
     }
 }
 
-void renderer_draw(const GameAdapter *adapter) {
+/* Screen rendered when no valid ROM has been imported */
+static void draw_rom_required_screen(const char *error_msg) {
+    DrawRectangle(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, (Color){12, 14, 20, 255});
+
+    /* Warning container box */
+    int bx = 60;
+    int by = 60;
+    int bw = WINDOW_WIDTH - 120;
+    int bh = WINDOW_HEIGHT - 120;
+
+    DrawRectangle(bx, by, bw, bh, (Color){18, 22, 32, 255});
+    DrawRectangleLinesEx((Rectangle){(float)bx, (float)by, (float)bw, (float)bh}, 3.0f, (Color){230, 60, 60, 255});
+
+    /* Flashing warning icon and title */
+    float t = (float)GetTime();
+    Color alert_col = ((int)(t * 3.0f) % 2 == 0) ? (Color){255, 80, 80, 255} : (Color){255, 200, 80, 255};
+    DrawText("ORIGINAL ROM REQUIRED", bx + 160, by + 35, 28, alert_col);
+
+    DrawText("Tetris (USA).nes must be imported before TDecomp can run.", bx + 50, by + 90, 17, (Color){220, 225, 235, 255});
+    DrawText("Authoritative graphics, palettes, piece tables, and audio data", bx + 50, by + 115, 15, (Color){160, 170, 190, 255});
+    DrawText("are strictly extracted from the commercial ROM and not hardcoded.", bx + 50, by + 135, 15, (Color){160, 170, 190, 255});
+
+    /* Expected ROM Specifications Panel */
+    DrawRectangle(bx + 40, by + 175, bw - 80, 130, (Color){24, 28, 42, 255});
+    DrawRectangleLinesEx((Rectangle){(float)(bx + 40), (float)(by + 175), (float)(bw - 80), 130.0f}, 1.5f, (Color){50, 65, 95, 255});
+
+    DrawText("ROM SPECIFICATIONS:", bx + 55, by + 190, 14, (Color){255, 220, 100, 255});
+    DrawText("Target ROM:      Tetris (USA).nes", bx + 55, by + 215, 14, (Color){200, 210, 230, 255});
+    DrawText("Expected Size:   49,168 bytes (16-byte iNES + 32KB PRG + 16KB CHR)", bx + 55, by + 240, 14, (Color){200, 210, 230, 255});
+    DrawText("Expected SHA-1:  3026d28b63d94c921fe58364f8b0659d10b5a0ac", bx + 55, by + 265, 14, (Color){100, 230, 120, 255});
+
+    /* Display error message if present */
+    if (error_msg && error_msg[0] != '\0') {
+        DrawRectangle(bx + 40, by + 320, bw - 80, 65, (Color){45, 18, 22, 255});
+        DrawRectangleLinesEx((Rectangle){(float)(bx + 40), (float)(by + 320), (float)(bw - 80), 65.0f}, 1.5f, (Color){220, 50, 50, 255});
+        DrawText("IMPORT STATUS / ERROR:", bx + 55, by + 330, 13, (Color){255, 100, 100, 255});
+        DrawText(error_msg, bx + 55, by + 352, 13, (Color){240, 200, 200, 255});
+    }
+
+    /* Import Instructions */
+    int iy = by + 400;
+    DrawText("HOW TO IMPORT THE ROM:", bx + 45, iy, 16, (Color){255, 220, 100, 255});
+    DrawText("1. Drag & Drop:  Drag 'Tetris (USA).nes' directly onto this window", bx + 55, iy + 28, 14, (Color){220, 230, 245, 255});
+    DrawText("2. Command Line: Run with '--rom <path/to/Tetris (USA).nes>'", bx + 55, iy + 52, 14, (Color){220, 230, 245, 255});
+    DrawText("3. Extractor:    Run 'python3 tools/extract_assets.py <path/to/rom>'", bx + 55, iy + 76, 14, (Color){220, 230, 245, 255});
+    DrawText("4. Web Port:     Use the file picker or drag & drop above the canvas", bx + 55, iy + 100, 14, (Color){220, 230, 245, 255});
+
+    DrawText("Press Esc to Exit", bx + bw / 2 - 60, by + bh - 40, 14, (Color){130, 140, 160, 255});
+}
+
+void renderer_draw(const GameAdapter *adapter, const char *rom_error_msg) {
     if (!adapter) return;
 
     BeginDrawing();
     ClearBackground((Color){14, 16, 24, 255});
 
-    if (adapter->screen == SCREEN_TITLE) {
+    if (adapter->screen == SCREEN_ROM_REQUIRED || !adapter->rom_loaded) {
+        draw_rom_required_screen(rom_error_msg);
+    } else if (adapter->screen == SCREEN_TITLE) {
         draw_title_screen(adapter);
     } else if (adapter->screen == SCREEN_LEVEL_SELECT) {
         draw_level_select_screen(adapter);

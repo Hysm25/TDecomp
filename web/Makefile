@@ -28,7 +28,8 @@ CORE_SOURCES := \
     $(PROJECT_ROOT)/src/game/render.c \
     $(PROJECT_ROOT)/src/game/ending.c \
     $(PROJECT_ROOT)/src/game/audio.c \
-    $(PROJECT_ROOT)/src/game/system.c
+    $(PROJECT_ROOT)/src/game/system.c \
+    $(PROJECT_ROOT)/src/rom_assets.c
 
 # Native presentation and raylib adapter sources
 APP_SOURCES := \
@@ -56,7 +57,9 @@ LDFLAGS := \
     $(RAYLIB_LIB) \
     -s USE_GLFW=3 \
     -s ALLOW_MEMORY_GROWTH=1 \
-    -s EXPORTED_RUNTIME_METHODS=ccall,cwrap \
+    -s "EXPORTED_FUNCTIONS=['_main','_rom_import_data','_malloc','_free']" \
+    -s EXPORTED_RUNTIME_METHODS=ccall,cwrap,FS \
+    -s FORCE_FILESYSTEM=1 \
     --shell-file shell.html
 
 TARGET := tdecomp.html
@@ -84,8 +87,7 @@ index.html: $(TARGET)
 
 test: $(TARGET)
 	@echo "==> Running automated Node.js WebAssembly verification test..."
-	node tdecomp.js --headless --test-frames 120
-	@echo "==> WebAssembly test passed successfully!"
+	node test_web.js
 
 serve: all
 	@echo "==> Starting local HTTP server at http://localhost:8080..."

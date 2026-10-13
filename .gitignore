@@ -26,6 +26,7 @@ compile_commands.json
 *.nes.dbg
 *.nes.lbl
 *.chr
+assets/
 
 # Test outputs
 test_out/

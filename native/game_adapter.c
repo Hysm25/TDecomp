@@ -67,10 +67,13 @@ static void sync_state(GameAdapter *adapter) {
     if (orient < ORIENTATION_COUNT && adapter->nes.ram[ADDR_P1_PLAY_STATE] == PLAYSTATE_CONTROL_ACTIVE) {
         int px = (int)adapter->nes.ram[ADDR_P1_TETRIMINO_X];
         int py = (int)adapter->nes.ram[ADDR_P1_TETRIMINO_Y];
+        const uint8_t *orient_tbl = (adapter->assets && adapter->assets->is_loaded)
+                                  ? adapter->assets->orientation_table
+                                  : orientationTable;
         for (int m = 0; m < 4; m++) {
-            int8_t my  = (int8_t)orientationTable[orient * 12 + m * 3 + 0];
-            uint8_t mt = orientationTable[orient * 12 + m * 3 + 1];
-            int8_t mx  = (int8_t)orientationTable[orient * 12 + m * 3 + 2];
+            int8_t my  = (int8_t)orient_tbl[orient * 12 + m * 3 + 0];
+            uint8_t mt = orient_tbl[orient * 12 + m * 3 + 1];
+            int8_t mx  = (int8_t)orient_tbl[orient * 12 + m * 3 + 2];
             adapter->active_minos[m].x = px + mx;
             adapter->active_minos[m].y = py + my;
             adapter->active_minos[m].tile_id = mt;
@@ -91,14 +94,24 @@ static void sync_state(GameAdapter *adapter) {
     adapter->line_clear_anim_active = (adapter->nes.ram[ADDR_P1_PLAY_STATE] == PLAYSTATE_LINE_CLEAR_ANIM);
 }
 
-void game_adapter_init(GameAdapter *adapter) {
+void game_adapter_init(GameAdapter *adapter, const RomAssets *assets) {
     if (!adapter) return;
     memset(adapter, 0, sizeof(GameAdapter));
 
     nes_init(&adapter->nes);
-    initHighScoreTable(&adapter->nes);
+    adapter->assets = assets;
 
-    adapter->screen = SCREEN_TITLE;
+    if (assets && assets->is_loaded) {
+        adapter->rom_loaded = true;
+        memcpy(adapter->nes.prg_rom, assets->prg_rom, NES_PRG_SIZE);
+        memcpy(adapter->nes.chr_rom, assets->chr_rom, NES_CHR_SIZE);
+        initHighScoreTable(&adapter->nes);
+        adapter->screen = SCREEN_TITLE;
+    } else {
+        adapter->rom_loaded = false;
+        adapter->screen = SCREEN_ROM_REQUIRED;
+    }
+
     adapter->paused = false;
     adapter->selected_level = 0;
     adapter->selected_gametype = GAMETYPE_A;
@@ -108,10 +121,29 @@ void game_adapter_init(GameAdapter *adapter) {
     sync_state(adapter);
 }
 
-void game_adapter_start_game(GameAdapter *adapter, uint8_t level, uint8_t game_type, uint8_t height) {
+void game_adapter_load_rom_assets(GameAdapter *adapter, const RomAssets *assets) {
     if (!adapter) return;
+    adapter->assets = assets;
+    if (assets && assets->is_loaded) {
+        adapter->rom_loaded = true;
+        memcpy(adapter->nes.prg_rom, assets->prg_rom, NES_PRG_SIZE);
+        memcpy(adapter->nes.chr_rom, assets->chr_rom, NES_CHR_SIZE);
+        initHighScoreTable(&adapter->nes);
+        if (adapter->screen == SCREEN_ROM_REQUIRED) {
+            adapter->screen = SCREEN_TITLE;
+        }
+        sync_state(adapter);
+    }
+}
+
+void game_adapter_start_game(GameAdapter *adapter, uint8_t level, uint8_t game_type, uint8_t height) {
+    if (!adapter || !adapter->rom_loaded) return;
 
     nes_init(&adapter->nes);
+    if (adapter->assets && adapter->assets->is_loaded) {
+        memcpy(adapter->nes.prg_rom, adapter->assets->prg_rom, NES_PRG_SIZE);
+        memcpy(adapter->nes.chr_rom, adapter->assets->chr_rom, NES_CHR_SIZE);
+    }
     initHighScoreTable(&adapter->nes);
 
     adapter->nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
@@ -271,7 +303,7 @@ void game_adapter_menu_down(GameAdapter *adapter) {
 }
 
 void game_adapter_menu_select(GameAdapter *adapter) {
-    if (!adapter) return;
+    if (!adapter || !adapter->rom_loaded) return;
     if (adapter->screen == SCREEN_TITLE) {
         adapter->screen = SCREEN_LEVEL_SELECT;
     } else if (adapter->screen == SCREEN_LEVEL_SELECT) {

@@ -17,7 +17,7 @@
 | **Alternate Entry Points** | **111 / 111 (100%)** | Secondary entry points and shared fall-throughs mapped |
 | **Authoritative Data Tables** | **260 / 260 (100%)** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567 / 567 (100%)** | Complete symbol census of PRG ROM |
-| **Unit Test Suites** | **14 / 14 passing** | Subsystem test suites covering game logic, math, audio, video, and native adapter |
+| **Unit Test Suites** | **15 / 15 passing** | Subsystem test suites covering game logic, math, audio, video, ROM extraction, and native adapter |
 | **ROM Table Verifications** | **111 / 111 matched** | Byte-for-byte matching against reference ROM data tables |
 | **6502 Differential Tests** | **90 / 90 passing** | Equivalent execution proven against NMOS 6502 CPU simulator |
 
@@ -72,6 +72,7 @@ When `Tetris (USA).nes` is not present, ROM-dependent tests output `SKIPPED: ref
 | **Simplification** | Minimal C Project | Removed experimental cc65 ROM tooling (archived to `archive/rom-experiments`), streamlined CMake & documentation |
 | **Native Raylib Port** | Desktop Game & Presentation | Native Raylib desktop frontend (`native/`), clean `GameAdapter` interface to `libtdecomp_core.a`, authentic level palettes & rendering, procedural audio, and headless CI verification |
 | **WebAssembly HTML5 Port** | Cross-Platform Web | Emscripten & Raylib HTML5 build (`web/`), direct WASM compilation of C engine and raylib frontend, Node.js headless testing, and responsive canvas shell |
+| **ROM Import & Asset Extraction** | Authoritative Data Pipeline | Runtime import and validation of `Tetris (USA).nes` (SHA-1 `3026d28b...`), extraction of CHR pattern tiles, palettes, piece tables, and audio data; strict runtime gating preventing unauthenticated gameplay |
 
 ---
 

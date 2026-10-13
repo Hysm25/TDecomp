@@ -1,6 +1,7 @@
 #include "game_adapter.h"
 #include "renderer.h"
 #include "audio.h"
+#include "rom_assets.h"
 #include "constants/gameplay.h"
 #include <raylib.h>
 #include <stdio.h>
@@ -12,12 +13,30 @@
 #endif
 
 static GameAdapter s_adapter;
+static RomAssets   g_rom_assets;
+static char        s_rom_error_msg[256] = "";
+
+#if defined(__EMSCRIPTEN__)
+EMSCRIPTEN_KEEPALIVE
+#endif
+int rom_import_data(const uint8_t *data, size_t size) {
+    RomStatus st = rom_assets_load_from_buffer(&g_rom_assets, data, size, s_rom_error_msg, sizeof(s_rom_error_msg));
+    if (st == ROM_STATUS_OK) {
+        printf("[ROM_IMPORT] Valid Tetris (USA).nes loaded! SHA-1: %s\n", g_rom_assets.sha1_hex);
+        renderer_load_rom_assets(&g_rom_assets);
+        game_adapter_load_rom_assets(&s_adapter, &g_rom_assets);
+        return 0;
+    }
+    fprintf(stderr, "[ROM_IMPORT_ERROR] %s\n", s_rom_error_msg);
+    return (int)st;
+}
 
 static void print_usage(const char *prog) {
     printf("TDecomp - NES Tetris (Portable C Decompilation Port)\n\n");
     printf("Usage:\n");
     printf("  %s [options]\n\n", prog);
     printf("Options:\n");
+    printf("  --rom <path>         Import and validate original Tetris (USA).nes ROM\n");
     printf("  --headless           Run headless simulation test and exit cleanly (0)\n");
     printf("  --test-frames <N>    Run N frames in headless mode (default: 180)\n");
     printf("  --level <0-19>       Start immediately at the specified level\n");
@@ -35,9 +54,32 @@ static void print_usage(const char *prog) {
 }
 
 static void game_frame_step(void) {
+    /* Handle drag & drop ROM file */
+    if (IsFileDropped()) {
+        FilePathList dropped = LoadDroppedFiles();
+        if (dropped.count > 0) {
+            printf("[DROP] Loading dropped ROM file: %s\n", dropped.paths[0]);
+            RomStatus st = rom_assets_load_from_file(&g_rom_assets, dropped.paths[0], s_rom_error_msg, sizeof(s_rom_error_msg));
+            if (st == ROM_STATUS_OK) {
+                printf("[DROP] ROM authenticated! SHA-1: %s\n", g_rom_assets.sha1_hex);
+                renderer_load_rom_assets(&g_rom_assets);
+                game_adapter_load_rom_assets(&s_adapter, &g_rom_assets);
+            } else {
+                fprintf(stderr, "[DROP_ERROR] %s\n", s_rom_error_msg);
+            }
+        }
+        UnloadDroppedFiles(dropped);
+    }
+
     /* Global keys */
     if (IsKeyPressed(KEY_M)) {
         native_audio_toggle_mute();
+    }
+
+    if (s_adapter.screen == SCREEN_ROM_REQUIRED || !s_adapter.rom_loaded) {
+        /* ROM Required Screen: gameplay disabled until valid ROM imported */
+        renderer_draw(&s_adapter, s_rom_error_msg);
+        return;
     }
 
     if (s_adapter.screen == SCREEN_TITLE) {
@@ -104,7 +146,7 @@ static void game_frame_step(void) {
         }
     }
 
-    renderer_draw(&s_adapter);
+    renderer_draw(&s_adapter, s_rom_error_msg);
 }
 
 int main(int argc, char *argv[]) {
@@ -112,6 +154,7 @@ int main(int argc, char *argv[]) {
     uint32_t test_frames = 180;
     int start_level = -1;
     bool enable_audio = true;
+    const char *custom_rom_path = NULL;
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--headless") == 0) {
@@ -125,25 +168,33 @@ int main(int argc, char *argv[]) {
             if (start_level > 19) start_level = 19;
         } else if (strcmp(argv[i], "--no-audio") == 0) {
             enable_audio = false;
+        } else if ((strcmp(argv[i], "--rom") == 0 || strcmp(argv[i], "--import-rom") == 0) && i + 1 < argc) {
+            custom_rom_path = argv[++i];
         } else if (strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
             print_usage(argv[0]);
             return 0;
         }
     }
 
-    game_adapter_init(&s_adapter);
-
-    if (start_level >= 0) {
-        game_adapter_start_game(&s_adapter, (uint8_t)start_level, GAMETYPE_A, 0);
-    }
+    /* Attempt to locate and extract original Tetris (USA).nes ROM */
+    RomStatus rom_status = rom_assets_find_and_load(&g_rom_assets, custom_rom_path, s_rom_error_msg, sizeof(s_rom_error_msg));
 
     if (headless) {
-        printf("[HEADLESS] Stepping game simulation for %u frames...\n", test_frames);
-        if (s_adapter.screen != SCREEN_PLAYING) {
-            game_adapter_start_game(&s_adapter, 0, GAMETYPE_A, 0);
+        if (rom_status != ROM_STATUS_OK) {
+            fprintf(stderr, "\n[FATAL ERROR] Headless simulation aborted: ROM verification failed!\n");
+            fprintf(stderr, "Reason: %s\n\n", s_rom_error_msg);
+            fprintf(stderr, "Original Tetris (USA).nes is strictly required. Specify path via --rom <path>.\n");
+            return 1;
         }
 
-        /* Step frames with intermittent soft drops to test pieces landing */
+        printf("[HEADLESS] ROM authenticated: %s (SHA-1: %s)\n",
+               custom_rom_path ? custom_rom_path : "Tetris (USA).nes",
+               g_rom_assets.sha1_hex);
+
+        game_adapter_init(&s_adapter, &g_rom_assets);
+        game_adapter_start_game(&s_adapter, (start_level >= 0) ? (uint8_t)start_level : 0, GAMETYPE_A, 0);
+
+        printf("[HEADLESS] Stepping game simulation for %u frames...\n", test_frames);
         for (uint32_t f = 0; f < test_frames; f++) {
             uint8_t btn = 0;
             if ((f % 60) >= 30) {
@@ -160,12 +211,19 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    /* Initialize game adapter with loaded ROM assets (or in ROM_REQUIRED state) */
+    game_adapter_init(&s_adapter, &g_rom_assets);
+
+    if (g_rom_assets.is_loaded && start_level >= 0) {
+        game_adapter_start_game(&s_adapter, (uint8_t)start_level, GAMETYPE_A, 0);
+    }
+
     /* Raylib Graphical Window Setup */
     SetTraceLogLevel(LOG_WARNING);
     InitWindow(800, 720, "TDecomp - NES Tetris (C Decompilation)");
     SetTargetFPS(60);
 
-    renderer_init();
+    renderer_init(&g_rom_assets);
     native_audio_init(enable_audio);
 
 #if defined(__EMSCRIPTEN__)

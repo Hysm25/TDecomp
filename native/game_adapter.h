@@ -4,7 +4,7 @@
 #include "common.h"
 #include "nes.h"
 #include "constants/gameplay.h"
-#include "constants/memory.h"
+#include "rom_assets.h"
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -17,7 +17,8 @@ typedef enum GameStateScreen {
     SCREEN_LEVEL_SELECT = 1,
     SCREEN_PLAYING = 2,
     SCREEN_PAUSED = 3,
-    SCREEN_GAME_OVER = 4
+    SCREEN_GAME_OVER = 4,
+    SCREEN_ROM_REQUIRED = 5
 } GameStateScreen;
 
 typedef struct BoardCell {
@@ -77,11 +78,18 @@ typedef struct GameAdapter {
     uint8_t line_clear_frame;
     AudioEventType pending_audio;
 
+    /* ROM assets */
+    const RomAssets *assets;
+    bool rom_loaded;
+
     uint64_t frame_count;
 } GameAdapter;
 
-/* Initialize adapter and underlying NES RAM / tables */
-void game_adapter_init(GameAdapter *adapter);
+/* Initialize adapter and underlying NES RAM / tables with extracted ROM assets */
+void game_adapter_init(GameAdapter *adapter, const RomAssets *assets);
+
+/* Rebuild / reload adapter state when a ROM is imported at runtime */
+void game_adapter_load_rom_assets(GameAdapter *adapter, const RomAssets *assets);
 
 /* Start a game with given level (0..19), game type (0=A, 1=B), and start height (0..5) */
 void game_adapter_start_game(GameAdapter *adapter, uint8_t level, uint8_t game_type, uint8_t height);
