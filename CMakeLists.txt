@@ -72,3 +72,24 @@ if(BUILD_TESTING)
 
     add_test(NAME tdecomp_tests COMMAND tdecomp_tests)
 endif()
+
+# ROM Build & Verification Targets
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_FOUND)
+    add_custom_target(rom_baseline
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py baseline --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Building and verifying original assembly baseline NES ROM"
+    )
+
+    add_custom_target(rom_poc
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/build_rom.py poc --output-dir ${CMAKE_CURRENT_BINARY_DIR}/rom
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Compiling and verifying target C-to-6502 proof-of-concept"
+    )
+
+    add_custom_target(rom
+        DEPENDS rom_baseline rom_poc
+        COMMENT "Full ROM build baseline and C-to-6502 feasibility verification"
+    )
+endif()

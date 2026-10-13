@@ -68,3 +68,17 @@ ctest --test-dir build --output-on-failure
 # or directly execute the test runner binary:
 ./build/tdecomp_tests
 ```
+
+### Build NES ROM & Feasibility Verification
+To rebuild the authoritative baseline assembly ROM and test the target C-to-6502 compilation pipeline:
+```bash
+# Full ROM pipeline (Baseline assembly rebuild + C-to-6502 proof-of-concept)
+cmake --build build --target rom
+# or directly:
+python3 tools/build_rom.py all
+
+# Specific targets:
+cmake --build build --target rom_baseline  # Rebuilds tetris_baseline.nes from assembly
+cmake --build build --target rom_poc       # Compiles target-ready C routines with cc65
+```
+See [ROM_BUILD_REPORT.md](ROM_BUILD_REPORT.md) for full feasibility analysis, byte comparisons, and architecture details.
