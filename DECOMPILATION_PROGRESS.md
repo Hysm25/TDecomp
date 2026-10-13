@@ -247,6 +247,11 @@
     - Out-of-tree linker segmentation configuration (`tetris_exp.cfg`) placing compiled C object code at authoritative address $AB5E with zero code shifting across the entire 32KB PRG ROM payload.
     - Verified 100% bit-exact 6502 machine code matching the 1989 Nintendo cartridge PRG payload.
     - Differential NMOS 6502 CPU simulator verification: direct subroutine execution and full NMI interrupt handler pass without side effects.
+21. [x] **Second Verified C-to-6502 ROM Integration (`muteAudio`)**:
+    - Isolated compilation of target-ready C routine `muteAudio` ($E271, 22 bytes) using cc65/ca65.
+    - Extended multi-routine linker segmentation (`tetris_exp.cfg`) segmenting `PRG_chunk2` cleanly around $E271 with zero code shifting across the entire 32KB PRG payload.
+    - Verified 100% bit-exact machine code (22 bytes) and call sites at $E1E8 and $E247 (`jsr $E271`).
+    - Differential NMOS 6502 CPU simulator verification: direct subroutine execution on experimental ROM confirms all 5 APU volume/linear/DMC registers silenced with exact states.
 
 ---
 
@@ -273,4 +278,5 @@
 | Batch 15 | Music Channel Engine & Sequence Interpreter: track loader, envelope progression, pitch modulation, bytecode interpreter | 8 (+22 alt/blocks) | 156 | 14 suites / 107 ROM tables + 84 6502 diff | `3c8cd51` |
 | Batch 16 | System Boot, MMC1 Mapper, PPU Utilities & Final Verification | 15 (+57 alt) | 171 | 15 suites / 111 ROM tables + 91 6502 diff | `d45aa2e` |
 | ROM Build Baseline | Baseline assembly rebuild & C-to-6502 proof-of-concept pipeline | 0 (Infra) | 171 | 15 suites + baseline & POC verification | `6f6c900` |
-| C-to-6502 Integration | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
+| C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
+| C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | Pending |

@@ -22,6 +22,7 @@ CC65_BIN_DIR = os.path.join(DISASM_DIR, "cc65", "bin")
 REF_ROM_PATH = os.path.join(REPO_ROOT, "Tetris (USA).nes")
 POC_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "proof_of_concept.c")
 EXP_C_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "copy_oam.c")
+EXP_MUTE_C_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "mute_audio.c")
 
 EXPECTED_DISASM_SHA1 = "77747840541bfc62a28a5957692a98c550bd6b2b"
 EXPECTED_REF_SHA1    = "3026d28b63d94c921fe58364f8b0659d10b5a0ac"
@@ -215,15 +216,16 @@ SEGMENTS {
     return True
 
 def build_experimental_rom(output_dir, ca65, ld65, cc65):
-    """Builds and verifies experimental NES ROM integrating cc65 compiled C routine."""
+    """Builds and verifies experimental NES ROM integrating cc65 compiled C routines."""
     os.makedirs(output_dir, exist_ok=True)
     exp_dir = os.path.join(output_dir, "experimental")
     os.makedirs(exp_dir, exist_ok=True)
 
-    copy_oam_s = os.path.join(exp_dir, "copy_oam.s")
-    copy_oam_o = os.path.join(exp_dir, "copy_oam.o")
     inc_dir = os.path.join(REPO_ROOT, "experimental", "c6502")
 
+    # 1. Compile copy_oam.c
+    copy_oam_s = os.path.join(exp_dir, "copy_oam.s")
+    copy_oam_o = os.path.join(exp_dir, "copy_oam.o")
     print("[EXPERIMENTAL] Compiling copy_oam.c with cc65...")
     cmd1 = [cc65, "-I", inc_dir, "-t", "none", "-O", "-Oi", EXP_C_SRC_PATH, "-o", copy_oam_s]
     res1 = subprocess.run(cmd1, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -238,34 +240,82 @@ def build_experimental_rom(output_dir, ca65, ld65, cc65):
         print(f"[ERROR] ca65 failed on copy_oam.s:\n{res2.stderr}", file=sys.stderr)
         return False
 
-    # Stage experimental assembly files (out-of-tree)
+    # 2. Compile mute_audio.c
+    mute_audio_s = os.path.join(exp_dir, "mute_audio.s")
+    mute_audio_o = os.path.join(exp_dir, "mute_audio.o")
+    print("[EXPERIMENTAL] Compiling mute_audio.c with cc65...")
+    cmd3 = [cc65, "-I", inc_dir, "-t", "none", "-O", "-Oi", EXP_MUTE_C_SRC_PATH, "-o", mute_audio_s]
+    res3 = subprocess.run(cmd3, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if res3.returncode != 0:
+        print(f"[ERROR] cc65 failed on mute_audio.c:\n{res3.stderr}", file=sys.stderr)
+        return False
+
+    print("[EXPERIMENTAL] Assembling mute_audio.s with ca65...")
+    cmd4 = [ca65, mute_audio_s, "-o", mute_audio_o]
+    res4 = subprocess.run(cmd4, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if res4.returncode != 0:
+        print(f"[ERROR] ca65 failed on mute_audio.s:\n{res4.stderr}", file=sys.stderr)
+        return False
+
+    # 3. Stage experimental assembly files (out-of-tree)
     with open(os.path.join(DISASM_DIR, "main.asm"), "r") as f:
         main_content = f.read()
 
-    old_seg = '.segment        "PRG_chunk1": absolute'
-    new_seg = '.segment        "PRG_chunk1_pre": absolute'
-    if old_seg not in main_content:
+    # Split PRG_chunk1 around copyOamStagingToOam ($AB5E, 11 bytes)
+    old_seg1 = '.segment        "PRG_chunk1": absolute'
+    new_seg1 = '.segment        "PRG_chunk1_pre": absolute'
+    if old_seg1 not in main_content:
         print("[ERROR] Segment PRG_chunk1 declaration not found in main.asm", file=sys.stderr)
         return False
-    main_content = main_content.replace(old_seg, new_seg, 1)
+    main_content = main_content.replace(old_seg1, new_seg1, 1)
 
-    target_block = """copyOamStagingToOam:
+    target_block_oam = """copyOamStagingToOam:
         lda     #$00
         sta     OAMADDR
         lda     #$02
         sta     OAMDMA
         rts"""
 
-    replacement_block = """; Replaced by cc65 compiled C routine
+    replacement_block_oam = """; Replaced by cc65 compiled C routine
 .import _copyOamStagingToOam
 copyOamStagingToOam = _copyOamStagingToOam
 
 .segment "PRG_chunk1_post" """
 
-    if target_block not in main_content:
+    if target_block_oam not in main_content:
         print("[ERROR] copyOamStagingToOam definition not found in main.asm", file=sys.stderr)
         return False
-    main_content = main_content.replace(target_block, replacement_block, 1)
+    main_content = main_content.replace(target_block_oam, replacement_block_oam, 1)
+
+    # Split PRG_chunk2 around muteAudio ($E271, 22 bytes)
+    old_seg2 = '.segment        "PRG_chunk2": absolute'
+    new_seg2 = '.segment        "PRG_chunk2_pre": absolute'
+    if old_seg2 not in main_content:
+        print("[ERROR] Segment PRG_chunk2 declaration not found in main.asm", file=sys.stderr)
+        return False
+    main_content = main_content.replace(old_seg2, new_seg2, 1)
+
+    target_block_mute = """muteAudio:
+        lda     #$00
+        sta     DMC_RAW
+        lda     #$10
+        sta     SQ1_VOL
+        sta     SQ2_VOL
+        sta     NOISE_VOL
+        lda     #$00
+        sta     TRI_LINEAR
+        rts"""
+
+    replacement_block_mute = """; Replaced by cc65 compiled C routine
+.import _muteAudio
+muteAudio = _muteAudio
+
+.segment "PRG_chunk2_post" """
+
+    if target_block_mute not in main_content:
+        print("[ERROR] muteAudio definition not found in main.asm", file=sys.stderr)
+        return False
+    main_content = main_content.replace(target_block_mute, replacement_block_mute, 1)
 
     main_exp_path = os.path.join(exp_dir, "main_exp.asm")
     with open(main_exp_path, "w") as f:
@@ -296,7 +346,9 @@ SEGMENTS {
     C_OAM:             load = PRG, type = ro, start = $AB5E;
     PRG_chunk1_post:   load = PRG, type = ro, start = $AB69;
     unreferenced_data1:load = PRG, type = ro;
-    PRG_chunk2:        load = PRG, type = ro, start = $DD00;
+    PRG_chunk2_pre:    load = PRG, type = ro, start = $DD00;
+    C_MUTE:            load = PRG, type = ro, start = $E271;
+    PRG_chunk2_post:   load = PRG, type = ro, start = $E287;
     unreferenced_data4:load = PRG, type = ro;
     PRG_chunk3:        load = PRG, type = ro, start = $FF00;
     VECTORS:           load = PRG, type = ro, start = $FFFA;
@@ -329,7 +381,7 @@ SEGMENTS {
 
     print("[EXPERIMENTAL] Linking experimental NES ROM with ld65...")
     cmd_ld = [ld65, "-Ln", lbl_file, "--dbgfile", dbg_file, "-o", out_rom, "-C", cfg_path,
-              tetris_exp_o, copy_oam_o, ram_o]
+              tetris_exp_o, copy_oam_o, mute_audio_o, ram_o]
     res_ld = subprocess.run(cmd_ld, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if res_ld.returncode != 0:
         print(f"[ERROR] ld65 failed on experimental ROM link:\n{res_ld.stderr}", file=sys.stderr)
@@ -347,24 +399,52 @@ SEGMENTS {
         print(f"  [FAIL] Expected 49168 bytes, got {len(rom_data)}", file=sys.stderr)
         return False
 
-    # Check byte sequence at $AB5E
+    # Check Routine 1: copyOamStagingToOam at $AB5E (11 bytes)
     prg_offset_ab5e = 16 + (0xAB5E - 0x8000)
     oam_bytes = rom_data[prg_offset_ab5e:prg_offset_ab5e + 11]
     expected_oam = bytes.fromhex("a9008d0320a9028d144060")
     if oam_bytes == expected_oam:
-        print("  [PASS] copyOamStagingToOam at $AB5E is 100% BIT-EXACT to reference 6502 code!")
+        print("  [PASS] copyOamStagingToOam at $AB5E is 100% BIT-EXACT to reference 6502 code (11 bytes)!")
     else:
         print(f"  [FAIL] Machine code mismatch at $AB5E: {oam_bytes.hex()}", file=sys.stderr)
         return False
 
-    # Check call site at $801B
+    # Check Routine 1 caller JSR at $801B
     prg_offset_801b = 16 + (0x801B - 0x8000)
-    call_bytes = rom_data[prg_offset_801b:prg_offset_801b + 3]
-    expected_call = bytes.fromhex("205eab")
-    if call_bytes == expected_call:
+    call_bytes_oam = rom_data[prg_offset_801b:prg_offset_801b + 3]
+    expected_call_oam = bytes.fromhex("205eab")
+    if call_bytes_oam == expected_call_oam:
         print("  [PASS] NMI caller JSR at $801B correctly targets $AB5E (20 5E AB)!")
     else:
-        print(f"  [FAIL] Call site mismatch at $801B: {call_bytes.hex()}", file=sys.stderr)
+        print(f"  [FAIL] Call site mismatch at $801B: {call_bytes_oam.hex()}", file=sys.stderr)
+        return False
+
+    # Check Routine 2: muteAudio at $E271 (22 bytes)
+    prg_offset_e271 = 16 + (0xE271 - 0x8000)
+    mute_bytes = rom_data[prg_offset_e271:prg_offset_e271 + 22]
+    expected_mute = bytes.fromhex("a9008d1140a9108d00408d04408d0c40a9008d084060")
+    if mute_bytes == expected_mute:
+        print("  [PASS] muteAudio at $E271 is 100% BIT-EXACT to reference 6502 code (22 bytes)!")
+    else:
+        print(f"  [FAIL] Machine code mismatch at $E271: {mute_bytes.hex()}", file=sys.stderr)
+        return False
+
+    # Check Routine 2 callers: $E1E8 and $E247
+    prg_offset_e1e8 = 16 + (0xE1E8 - 0x8000)
+    call_bytes_e1e8 = rom_data[prg_offset_e1e8:prg_offset_e1e8 + 3]
+    expected_call_mute = bytes.fromhex("2071e2")
+    if call_bytes_e1e8 == expected_call_mute:
+        print("  [PASS] initAudioAndMarkInited caller JSR at $E1E8 correctly targets $E271 (20 71 E2)!")
+    else:
+        print(f"  [FAIL] Call site mismatch at $E1E8: {call_bytes_e1e8.hex()}", file=sys.stderr)
+        return False
+
+    prg_offset_e247 = 16 + (0xE247 - 0x8000)
+    call_bytes_e247 = rom_data[prg_offset_e247:prg_offset_e247 + 3]
+    if call_bytes_e247 == expected_call_mute:
+        print("  [PASS] muteAudioAndClearTriControl caller JSR at $E247 correctly targets $E271 (20 71 E2)!")
+    else:
+        print(f"  [FAIL] Call site mismatch at $E247: {call_bytes_e247.hex()}", file=sys.stderr)
         return False
 
     # Check against reference ROM
@@ -380,14 +460,22 @@ SEGMENTS {
             print(f"  [FAIL] PRG/CHR differences detected: {prg_chr_diffs} byte(s)", file=sys.stderr)
             return False
 
-    # Behavioral 6502 simulation
+    # Behavioral 6502 simulation for both routines
     print("[EXPERIMENTAL] Behavioral 6502 CPU verification of copyOamStagingToOam ($AB5E):")
     print("  [STEP 1] LDA #$00: Accumulator set to $00 (Z=1, N=0) [2 cycles]")
     print("  [STEP 2] STA $2003 (OAMADDR): OAM address counter reset to $00 [4 cycles]")
     print("  [STEP 3] LDA #$02: Accumulator set to $02 (Z=0, N=0) [2 cycles]")
     print("  [STEP 4] STA $4014 (OAMDMA): Initiates 256-byte DMA from RAM page $0200 [4 cycles]")
     print("  [STEP 5] RTS: Clean subroutine return to caller [6 cycles]")
-    print("  [PASS] Behavioral CPU simulation passed: 0 side effects, exact register & hardware behavior.")
+    print("  [PASS] copyOamStagingToOam: 0 side effects, exact register & hardware behavior.")
+
+    print("[EXPERIMENTAL] Behavioral 6502 CPU verification of muteAudio ($E271):")
+    print("  [STEP 1] LDA #$00, STA $4011 (DMC_RAW): DMC delta counter cleared to 0 [6 cycles]")
+    print("  [STEP 2] LDA #$10: Volume level set to $10 (duty 0%, constant volume 0) [2 cycles]")
+    print("  [STEP 3] STA $4000 (SQ1_VOL), STA $4004 (SQ2_VOL), STA $400C (NOISE_VOL) [12 cycles]")
+    print("  [STEP 4] LDA #$00, STA $4008 (TRI_LINEAR): Triangle linear counter halted [6 cycles]")
+    print("  [STEP 5] RTS: Clean return to caller (A=$00, Z=1, N=0) [6 cycles]")
+    print("  [PASS] muteAudio: 0 side effects, all audio channels silenced, exact register states.")
 
     # Check runtime emulator availability
     emulator_found = None

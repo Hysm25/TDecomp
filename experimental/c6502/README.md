@@ -78,10 +78,13 @@ Using `cc65 -t none -O -Oi`:
 
 ## 3. Experimental ROM Integration
 
-The repository contains an isolated experimental build pipeline that compiles `copy_oam.c` with `cc65`, segments the original PRG cleanly around address `$AB5E`, and links the compiled C object code directly into a functional NES ROM:
+The repository contains an isolated experimental build pipeline that compiles target-ready C routines with `cc65`, segments the original PRG cleanly around their respective addresses, and links the compiled C object code directly into a functional NES ROM:
+
+- **Routine 1**: `copy_oam.c` (`copyOamStagingToOam` at `$AB5E`, 11 bytes, PRG chunk 1)
+- **Routine 2**: `mute_audio.c` (`muteAudio` at `$E271`, 22 bytes, PRG chunk 2)
 
 ```bash
-# Build experimental ROM with compiled C copyOamStagingToOam integrated
+# Build experimental ROM with compiled C routines integrated
 python3 tools/build_rom.py experimental
 
 # Or via CMake:
@@ -89,9 +92,9 @@ cmake --build build --target rom_experimental
 ```
 
 The resulting ROM (`build/rom/tetris_experimental.nes`) is verified:
-1. **Bit-Exact Machine Code**: The compiled C routine matches the original 11 bytes at `$AB5E` bit-for-bit.
+1. **Bit-Exact Machine Code**: Both compiled C routines match original Nintendo machine code bit-for-bit (33 bytes total).
 2. **Zero Code Shifting**: All preceding and succeeding code/data maintain bit-exact addresses and byte content across the entire 32KB PRG payload.
-3. **Interrupt & Calling Convention**: Executed cleanly inside the NMI interrupt vector (`$8005 -> $801B JSR $AB5E`).
+3. **Interrupt & Calling Convention**: Executed cleanly inside the NMI interrupt vector (`$8005 -> $801B JSR $AB5E`) and audio callers (`$E1E8`, `$E247` JSR `$E271`).
 4. **Behavioral Simulation**: Proven on the differential NMOS 6502 CPU simulator in automated test suites.
 
 ---

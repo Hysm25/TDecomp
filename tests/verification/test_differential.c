@@ -3520,7 +3520,20 @@ int test_differential_verification(void) {
             assert(ok);
             assert(nes_exp.oam_addr == 0x00);
             assert(nes_exp.ram[ADDR_FRAME_COUNTER] == 0x21);
-            printf("  [PASS] test_experimental_c_rom (Compiled C copyOamStagingToOam verified in 6502 CPU)\n");
+
+            /* 4. Direct 6502 CPU execution of compiled C muteAudio ($E271) */
+            cpu6502_init(&cpu, &nes_exp);
+            cpu6502_set_state(&cpu, ROM_ADDR_MUTE_AUDIO, 0xFF, 0, 0, 0, 0xFD);
+            ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MUTE_AUDIO, 100);
+            assert(ok);
+            assert(cpu.a == 0x00);
+            assert(nes_exp.apu_regs[REG_SQ1_VOL - 0x4000] == 0x10);
+            assert(nes_exp.apu_regs[REG_SQ2_VOL - 0x4000] == 0x10);
+            assert(nes_exp.apu_regs[REG_NOISE_VOL - 0x4000] == 0x10);
+            assert(nes_exp.apu_regs[REG_TRI_LINEAR - 0x4000] == 0x00);
+            assert(nes_exp.apu_regs[REG_DMC_RAW - 0x4000] == 0x00);
+
+            printf("  [PASS] test_experimental_c_rom (Compiled C copyOamStagingToOam & muteAudio verified in 6502 CPU)\n");
         }
     }
 
