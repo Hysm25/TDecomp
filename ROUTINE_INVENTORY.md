@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **97** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **148** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **74** | Pending conversion |
-| **Completion Percentage** | **56.73%** | Standalone routine completion rate |
+| **Remaining Routines** | **23** | Pending conversion |
+| **Completion Percentage** | **86.55%** | Standalone routine completion rate |
 
 ---
 
@@ -26,17 +26,17 @@
 
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
-| **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
-| **CORE_LOGIC** | 38 | 20 | 0 | 18 | 52.6% |
+| **AUDIO** | 41 | 35 | 0 | 6 | 85.4% |
+| **CORE_LOGIC** | 38 | 29 | 0 | 9 | 76.3% |
 | **GAMEPLAY_STATE** | 14 | 14 | 0 | 0 | 100.0% |
 | **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
-| **MENUS_UI** | 13 | 8 | 0 | 5 | 61.5% |
+| **MENUS_UI** | 13 | 13 | 0 | 0 | 100.0% |
 | **PLAYER_INPUT** | 4 | 4 | 0 | 0 | 100.0% |
-| **PLAYFIELD** | 9 | 8 | 0 | 1 | 88.9% |
+| **PLAYFIELD** | 9 | 9 | 0 | 0 | 100.0% |
 | **RENDER** | 16 | 14 | 0 | 2 | 87.5% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
-| **TETRIMINO** | 16 | 13 | 0 | 3 | 81.2% |
+| **TETRIMINO** | 16 | 16 | 0 | 0 | 100.0% |
 
 ---
 
@@ -48,39 +48,39 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `updateMusicSpeed` | `0x9D17` | L3596–L3629 | JSR | `VERIFIED` | Verified: Playfield row 5 height check and danger allegro switching differential proven |
 | `setMusicTrack` | `0x9E07` | L3746–L3755 | JSR | `VERIFIED` | Verified: Track selection and demo mute override differential proven |
-| `updateAudioWaitForNmiAndResetOamStaging` | `0xAA2F` | L5295–L5308 | JSR | `MISSING` |  |
-| `updateAudioAndWaitForNmi` | `0xAA45` | L5309–L5318 | JSR | `MISSING` |  |
-| `updateAudioWaitForNmiAndDisablePpuRendering` | `0xAA52` | L5319–L5322 | JSR | `MISSING` |  |
-| `updateAudioWaitForNmiAndEnablePpuRendering` | `0xAA5F` | L5328–L5335 | JSR | `MISSING` |  |
-| `updateAudio_jmp` | `0xE000` | L5851–L5854 | JSR | `MISSING` |  |
-| `updateAudio2` | `0xE003` | L5855–L5857 | JSR | `MISSING` |  |
-| `computeSoundEffMethod` | `0xE072` | L5933–L5962 | JSR | `MISSING` |  |
-| `advanceAudioSlotFrame` | `0xE0B5` | L5979–L5988 | JSR | `MISSING` |  |
-| `updateSoundEffectSlot2` | `0xE194` | L6063–L6067 | JSR | `MISSING` |  |
-| `initAudioAndMarkInited` | `0xE1E5` | L6114–L6119 | Entry / Direct | `MISSING` |  |
-| `updateAudio_pause` | `0xE1EF` | L6120–L6141 | Entry / Direct | `MISSING` |  |
-| `updateAudio` | `0xE216` | L6142–L6163 | Entry / Direct | `MISSING` |  |
-| `soundEffectSlot2_makesNoSound` | `0xE244` | L6164–L6165 | JSR | `MISSING` |  |
-| `muteAudio` | `0xE271` | L6188–L6199 | JSR | `MISSING` |  |
-| `initSoundEffectShared` | `0xE287` | L6200–L6234 | JSR | `MISSING` |  |
-| `soundEffectSlot0_endingRocketInit` | `0xE2CC` | L6235–L6239 | Jump Table | `MISSING` |  |
-| `soundEffectSlot0_makesNoSound` | `0xE2DD` | L6248–L6252 | Jump Table | `MISSING` |  |
-| `advanceSoundEffectSlot0WithoutUpdate` | `0xE2E4` | L6253–L6255 | Jump Table | `MISSING` |  |
-| `updateSoundEffectSlot0_apu` | `0xE2FF` | L6272–L6276 | Jump Table | `MISSING` |  |
-| `updateSoundEffectNoiseAudio` | `0xE307` | L6277–L6287 | Entry / Direct | `MISSING` |  |
-| `getSoundEffectNoiseNibble` | `0xE31A` | L6288–L6311 | JSR | `MISSING` |  |
-| `soundEffectSlot1_chirpChirpPlaying` | `0xE34F` | L6323–L6345 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_chirpChirpInit` | `0xE37F` | L6346–L6349 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1Playing_advance` | `0xE39C` | L6364–L6366 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_tetrisAchievedInit` | `0xE403` | L6426–L6431 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_lineCompletedInit` | `0xE41A` | L6439–L6444 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_levelUpPlaying` | `0xE4D1` | L6524–L6534 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_levelUpInit` | `0xE4EC` | L6537–L6541 | Jump Table | `MISSING` |  |
-| `soundEffectSlot2_mediumBuzz` | `0xE50B` | L6547–L6550 | Jump Table | `MISSING` |  |
-| `soundEffectSlot3_donk` | `0xE534` | L6568–L6572 | Jump Table | `MISSING` |  |
-| `soundEffectSlot3Playing_advance` | `0xE53B` | L6573–L6575 | Jump Table | `MISSING` |  |
-| `updateSoundEffectSlot3_apu` | `0xE551` | L6586–L6599 | Jump Table | `MISSING` |  |
-| `soundEffectSlot3_fallingAlien` | `0xE56E` | L6600–L6607 | Jump Table | `MISSING` |  |
+| `updateAudioWaitForNmiAndResetOamStaging` | `0xAA2F` | L5295–L5308 | JSR | `VERIFIED` | Verified: NMI wait and OAM staging page fill with $FF |
+| `updateAudioAndWaitForNmi` | `0xAA45` | L5309–L5318 | JSR | `VERIFIED` | Verified: Audio update and vertical blanking interval wait |
+| `updateAudioWaitForNmiAndDisablePpuRendering` | `0xAA52` | L5319–L5322 | JSR | `VERIFIED` | Verified: Audio update, NMI wait, and PPUMASK render disable |
+| `updateAudioWaitForNmiAndEnablePpuRendering` | `0xAA5F` | L5328–L5335 | JSR | `VERIFIED` | Verified: Audio update, NMI wait, scroll/ctrl flush, and PPUMASK render enable |
+| `updateAudio_jmp` | `0xE000` | L5851–L5854 | JSR | `VERIFIED` | Verified: JMP wrapper to updateAudio |
+| `updateAudio2` | `0xE003` | L5855–L5857 | JSR | `VERIFIED` | Verified: JMP wrapper to soundEffectSlot2_makesNoSound |
+| `computeSoundEffMethod` | `0xE072` | L5933–L5962 | JSR | `VERIFIED` | Verified: Table pointer dereference at $E000+AUDIOTMP1 differential proven against 6502 ROM (Test 67) |
+| `advanceAudioSlotFrame` | `0xE0B5` | L5979–L5988 | JSR | `VERIFIED` | Verified: Slot frame counter increment and frame count wrap differential proven against 6502 ROM (Test 68) |
+| `updateSoundEffectSlot2` | `0xE194` | L6063–L6067 | JSR | `VERIFIED` | Verified: Slot 2 sound effect dispatcher |
+| `initAudioAndMarkInited` | `0xE1E5` | L6114–L6119 | Entry / Direct | `VERIFIED` | Verified: Audio initialization marking audioInitialized and clearing length counter |
+| `updateAudio_pause` | `0xE1EF` | L6120–L6141 | Entry / Direct | `VERIFIED` | Verified: Pause sound effect Square 1 alternating pulse driver |
+| `updateAudio` | `0xE216` | L6142–L6163 | Entry / Direct | `VERIFIED` | Verified: Master audio frame updater disabling APU frame IRQ, updating slots 2,0,3,1, and clearing trigger requests |
+| `soundEffectSlot2_makesNoSound` | `0xE244` | L6164–L6165 | JSR | `VERIFIED` | Verified: Reset channel inhibits, clear slot 0-5 playing states, and mute APU differential proven against 6502 ROM (Test 70) |
+| `muteAudio` | `0xE271` | L6188–L6199 | JSR | `VERIFIED` | Verified: Silence SQ1, SQ2, Noise, Triangle, and DMC registers differential proven against 6502 ROM (Test 69) |
+| `initSoundEffectShared` | `0xE287` | L6200–L6234 | JSR | `VERIFIED` | Verified: Generic slot initializer copying channel data and clearing counters differential proven against 6502 ROM (Test 71) |
+| `soundEffectSlot0_endingRocketInit` | `0xE2CC` | L6235–L6239 | Jump Table | `VERIFIED` | Verified: Slot 0 ending rocket noise sound effect initialization |
+| `soundEffectSlot0_makesNoSound` | `0xE2DD` | L6248–L6252 | Jump Table | `VERIFIED` | Verified: Slot 0 dummy / mute initialization |
+| `advanceSoundEffectSlot0WithoutUpdate` | `0xE2E4` | L6253–L6255 | Jump Table | `VERIFIED` | Verified: Slot 0 frame advance and stop check |
+| `updateSoundEffectSlot0_apu` | `0xE2FF` | L6272–L6276 | Jump Table | `VERIFIED` | Verified: Slot 0 APU audio progression updating noise period and volume |
+| `updateSoundEffectNoiseAudio` | `0xE307` | L6277–L6287 | Entry / Direct | `VERIFIED` | Verified: Noise period and volume envelope progression from tables |
+| `getSoundEffectNoiseNibble` | `0xE31A` | L6288–L6311 | JSR | `VERIFIED` | Verified: Table nibble extractor from noiselo_table and noisevol_table |
+| `soundEffectSlot1_chirpChirpPlaying` | `0xE34F` | L6323–L6345 | Jump Table | `VERIFIED` | Verified: Chirp-chirp sound effect envelope progression |
+| `soundEffectSlot1_chirpChirpInit` | `0xE37F` | L6346–L6349 | Jump Table | `VERIFIED` | Verified: Chirp-chirp sound effect initialization |
+| `soundEffectSlot1Playing_advance` | `0xE39C` | L6364–L6366 | Jump Table | `VERIFIED` | Verified: Slot 1 frame advance and stop check |
+| `soundEffectSlot1_tetrisAchievedInit` | `0xE403` | L6426–L6431 | Jump Table | `VERIFIED` | Verified: 4-line Tetris sound effect initialization |
+| `soundEffectSlot1_lineCompletedInit` | `0xE41A` | L6439–L6444 | Jump Table | `VERIFIED` | Verified: Line completed sound effect initialization |
+| `soundEffectSlot1_levelUpPlaying` | `0xE4D1` | L6524–L6534 | Jump Table | `VERIFIED` | Verified: Level up sound effect tone progression |
+| `soundEffectSlot1_levelUpInit` | `0xE4EC` | L6537–L6541 | Jump Table | `VERIFIED` | Verified: Level up sound effect initialization |
+| `soundEffectSlot2_mediumBuzz` | `0xE50B` | L6547–L6550 | Jump Table | `VERIFIED` | Verified: Medium buzz DMC sample register configuration differential proven against 6502 ROM (Test 74) |
+| `soundEffectSlot3_donk` | `0xE534` | L6568–L6572 | Jump Table | `VERIFIED` | Verified: Triangle donk sound effect initialization differential proven against 6502 ROM (Test 75) |
+| `soundEffectSlot3Playing_advance` | `0xE53B` | L6573–L6575 | Jump Table | `VERIFIED` | Verified: Slot 3 frame advance and stop check |
+| `updateSoundEffectSlot3_apu` | `0xE551` | L6586–L6599 | Jump Table | `VERIFIED` | Verified: Slot 3 APU triangle period progression from trilo_table |
+| `soundEffectSlot3_fallingAlien` | `0xE56E` | L6600–L6607 | Jump Table | `VERIFIED` | Verified: Falling alien triangle sound effect initialization |
 | `updateMusic_noSoundJmp` | `0xE580` | L6610–L6612 | Entry / Direct | `MISSING` |  |
 | `updateMusic` | `0xE583` | L6613–L6635 | JSR | `MISSING` |  |
 | `updateMusicFrame_setChanLo` | `0xE5D0` | L6643–L6664 | JSR | `MISSING` |  |
@@ -119,15 +119,15 @@
 | `changeCHRBank0` | `0xACB7` | L5696–L5710 | JSR | `MISSING` |  |
 | `changeCHRBank1` | `0xACCB` | L5711–L5725 | JSR | `MISSING` |  |
 | `changePRGBank` | `0xACDF` | L5726–L5740 | JSR | `MISSING` |  |
-| `LE006` | `0xE006` | L5858–L5860 | JSR | `MISSING` |  |
-| `copyToSq1Channel` | `0xE04B` | L5903–L5905 | JSR | `MISSING` |  |
-| `LE1D8` | `0xE1D8` | L6107–L6113 | Entry / Direct | `MISSING` |  |
-| `LE253` | `0xE253` | L6173–L6179 | JSR | `MISSING` |  |
-| `setNoiseLo` | `0xE2D3` | L6240–L6243 | Entry / Direct | `MISSING` |  |
-| `loadNoiseLo` | `0xE2D7` | L6244–L6247 | JSR | `MISSING` |  |
-| `LE33B` | `0xE33B` | L6312–L6320 | JSR | `MISSING` |  |
-| `LE46C` | `0xE46C` | L6480–L6481 | Entry / Direct | `MISSING` |  |
-| `LE4E9` | `0xE4E9` | L6535–L6536 | Entry / Direct | `MISSING` |  |
+| `LE006` | `0xE006` | L5858–L5860 | JSR | `VERIFIED` | Verified: JMP wrapper to LE1D8 |
+| `copyToSq1Channel` | `0xE04B` | L5903–L5905 | JSR | `VERIFIED` | Verified: Square 1 APU register block copy differential proven against 6502 ROM (Test 66) |
+| `LE1D8` | `0xE1D8` | L6107–L6113 | Entry / Direct | `VERIFIED` | Verified: Boot audio initialization setting SND_CHN=$0F and soundRngSeed=$55 |
+| `LE253` | `0xE253` | L6173–L6179 | JSR | `VERIFIED` | Verified: Clear channel inhibits and reset soundEffectSlot0-5 playing states |
+| `setNoiseLo` | `0xE2D3` | L6240–L6243 | Entry / Direct | `VERIFIED` | Verified: NOISE_LO register write |
+| `loadNoiseLo` | `0xE2D7` | L6244–L6247 | JSR | `VERIFIED` | Verified: Noise period nibble load and register write |
+| `LE33B` | `0xE33B` | L6312–L6320 | JSR | `VERIFIED` | Verified: Sound effect priority check protecting active Tetris/line/level sounds |
+| `LE46C` | `0xE46C` | L6480–L6481 | Entry / Direct | `VERIFIED` | Verified: Jump to soundEffectSlot1Playing_stop |
+| `LE4E9` | `0xE4E9` | L6535–L6536 | Entry / Direct | `VERIFIED` | Verified: Jump to soundEffectSlot1Playing_stop |
 | `playNoise` | `0xE9EB` | L7244–L7254 | JSR | `MISSING` |  |
 | `playDmc` | `0xEA03` | L7255–L7292 | JSR | `MISSING` |  |
 
@@ -186,11 +186,11 @@
 | `gameMode_levelMenu_processPlayer1Navigation` | `0x8436` | L845–L919 | Entry / Direct | `VERIFIED` | Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM |
 | `gameMode_levelMenu_handleLevelHeightNavigation` | `0x84AE` | L920–L1065 | JSR | `VERIFIED` | Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM |
 | `render_mode_menu_screens` | `0x85DA` | L1078–L1091 | Jump Table | `VERIFIED` | Verified: Menu screens PPUCTRL masking/write and scroll flush differential proven against 6502 ROM (Test 48) |
-| `soundEffectSlot1_menuOptionSelectPlaying_ret` | `0xE3B2` | L6377–L6379 | Entry / Direct | `MISSING` |  |
-| `soundEffectSlot1_menuOptionSelectPlaying` | `0xE3B3` | L6380–L6391 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_menuOptionSelectInit` | `0xE3CA` | L6392–L6395 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_menuScreenSelectInit` | `0xE473` | L6485–L6492 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_menuScreenSelectPlaying` | `0xE481` | L6493–L6501 | Jump Table | `MISSING` |  |
+| `soundEffectSlot1_menuOptionSelectPlaying_ret` | `0xE3B2` | L6377–L6379 | Entry / Direct | `VERIFIED` | Verified: Menu option select return stub |
+| `soundEffectSlot1_menuOptionSelectPlaying` | `0xE3B3` | L6380–L6391 | Jump Table | `VERIFIED` | Verified: Menu option select sound effect progression |
+| `soundEffectSlot1_menuOptionSelectInit` | `0xE3CA` | L6392–L6395 | Jump Table | `VERIFIED` | Verified: Menu option select sound effect initialization |
+| `soundEffectSlot1_menuScreenSelectInit` | `0xE473` | L6485–L6492 | Jump Table | `VERIFIED` | Verified: Menu screen select sound effect initialization |
+| `soundEffectSlot1_menuScreenSelectPlaying` | `0xE481` | L6493–L6501 | Jump Table | `VERIFIED` | Verified: Menu screen select pitch shift progression |
 
 ### PLAYER_INPUT (4 Routines)
 
@@ -213,7 +213,7 @@
 | `playState_checkForCompletedRows` | `0x9A6B` | L3188–L3279 | Jump Table | `VERIFIED` | Verified: Row completion detection, collapsing, and garbage calculation differential proven against 6502 ROM |
 | `playState_receiveGarbage` | `0x9B03` | L3280–L3326 | Jump Table | `VERIFIED` | Verified: 2-player pending garbage shifting and bottom row filling verified |
 | `updatePlayfield` | `0x9CAF` | L3532–L3544 | JSR | `VERIFIED` | Verified: VRAM row dirty flag tracking verified |
-| `soundEffectSlot1_lineClearingPlaying` | `0xE43B` | L6458–L6461 | Jump Table | `MISSING` |  |
+| `soundEffectSlot1_lineClearingPlaying` | `0xE43B` | L6458–L6461 | Jump Table | `VERIFIED` | Verified: Line clear pitch sweep and volume envelope progression |
 
 ### RENDER (16 Routines)
 
@@ -264,9 +264,9 @@
 | `incrementPieceStat` | `0x9969` | L3030–L3054 | JSR | `VERIFIED` | Verified: BCD piece statistic increments verified with CPU simulator |
 | `playState_lockTetrimino` | `0x99A2` | L3062–L3129 | Jump Table | `VERIFIED` | Verified: Locking 4 minos into playfield and invalid-position game over sequence verified |
 | `playState_unassignOrientationId` | `0x9E2F` | L3777–L3784 | Jump Table | `VERIFIED` | Verified: Hidden orientation unassign differential proven against 6502 ROM |
-| `soundEffectSlot1_lockTetriminoInit` | `0xE384` | L6350–L6356 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_shiftTetriminoInit` | `0xE390` | L6357–L6363 | Jump Table | `MISSING` |  |
-| `soundEffectSlot1_rotateTetriminoInit` | `0xE3D1` | L6399–L6404 | Jump Table | `MISSING` |  |
+| `soundEffectSlot1_lockTetriminoInit` | `0xE384` | L6350–L6356 | Jump Table | `VERIFIED` | Verified: Piece lock sound effect initialization with priority check differential proven against 6502 ROM (Test 72) |
+| `soundEffectSlot1_shiftTetriminoInit` | `0xE390` | L6357–L6363 | Jump Table | `VERIFIED` | Verified: Piece shift sound effect initialization with priority check |
+| `soundEffectSlot1_rotateTetriminoInit` | `0xE3D1` | L6399–L6404 | Jump Table | `VERIFIED` | Verified: Piece rotation sound effect initialization with priority check |
 
 ---
 
@@ -316,7 +316,7 @@ Total alternate entry points identified: **111**
 | `LA9FC` | `0xA9FC` | L5272–L5278 | `selectEndingScreen` | Internal | `MISSING` |
 | `LAA0B` | `0xAA0B` | L5279–L5280 | `selectEndingScreen` | Internal | `MISSING` |
 | `LAA10` | `0xAA10` | L5282–L5283 | `selectEndingScreen` | Internal | `MISSING` |
-| `_updatePpuMask` | `0xAA59` | L5323–L5327 | `updateAudioWaitForNmiAndDisablePpuRendering` | Internal | `MISSING` |
+| `_updatePpuMask` | `0xAA59` | L5323–L5327 | `updateAudioWaitForNmiAndDisablePpuRendering` | Internal | `VERIFIED` |
 | `waitForVBlankAndEnableNmi` | `0xAA6B` | L5336–L5342 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `MISSING` |
 | `disableNmi` | `0xAA78` | L5343–L5345 | `updateAudioWaitForNmiAndEnablePpuRendering` | Yes | `MISSING` |
 | `_updatePpuCtrl` | `0xAA7C` | L5346–L5350 | `updateAudioWaitForNmiAndEnablePpuRendering` | Internal | `MISSING` |
@@ -338,39 +338,39 @@ Total alternate entry points identified: **111**
 | `LAC44` | `0xAC44` | L5614–L5627 | `memset_ppu_page_and_more` | Internal | `MISSING` |
 | `LAC61` | `0xAC61` | L5628–L5630 | `memset_ppu_page_and_more` | Internal | `MISSING` |
 | `LAC67` | `0xAC67` | L5631–L5634 | `memset_ppu_page_and_more` | Internal | `MISSING` |
-| `copyToTriChannel` | `0xE04F` | L5906–L5908 | `copyToSq1Channel` | Yes | `MISSING` |
-| `copyToNoiseChannel` | `0xE053` | L5909–L5911 | `copyToSq1Channel` | Yes | `MISSING` |
-| `copyToSq2Channel` | `0xE057` | L5912–L5914 | `copyToSq1Channel` | Yes | `MISSING` |
-| `copyToApuChannel` | `0xE059` | L5915–L5932 | `copyToSq1Channel` | Internal | `MISSING` |
-| `updateSoundEffectSlot3` | `0xE19C` | L6068–L6072 | `updateSoundEffectSlot2` | Yes | `MISSING` |
-| `updateSoundEffectSlot1` | `0xE1AC` | L6078–L6084 | `updateSoundEffectSlot2` | Yes | `MISSING` |
-| `updateSoundEffectSlot0` | `0xE1B9` | L6085–L6089 | `updateSoundEffectSlot2` | Yes | `MISSING` |
-| `updateSoundEffectSlotShared` | `0xE1BF` | L6090–L6103 | `updateSoundEffectSlot2` | Internal | `MISSING` |
-| `updateSoundEffectSlotShared_rts` | `0xE1D7` | L6104–L6106 | `updateSoundEffectSlot2` | Internal | `MISSING` |
-| `muteAudioAndClearTriControl` | `0xE247` | L6166–L6172 | `soundEffectSlot2_makesNoSound` | Yes | `MISSING` |
-| `LE265` | `0xE265` | L6180–L6187 | `LE253` | Internal | `MISSING` |
-| `stopSoundEffectSlot0` | `0xE2E9` | L6256–L6260 | `advanceSoundEffectSlot0WithoutUpdate` | Internal | `MISSING` |
-| `updateSoundEffectSlot0WithoutUpdate_ret` | `0xE2F3` | L6261–L6263 | `advanceSoundEffectSlot0WithoutUpdate` | Internal | `MISSING` |
-| `soundEffectSlot0_gameOverCurtainInit` | `0xE2F8` | L6267–L6271 | `advanceSoundEffectSlot0WithoutUpdate` | Yes | `MISSING` |
-| `LE34E` | `0xE34E` | L6321–L6322 | `LE33B` | Internal | `MISSING` |
-| `soundEffectSlot1Playing_stop` | `0xE3A1` | L6367–L6373 | `soundEffectSlot1Playing_advance` | Internal | `MISSING` |
-| `soundEffectSlot1Playing_ret` | `0xE3B1` | L6374–L6376 | `soundEffectSlot1Playing_advance` | Internal | `MISSING` |
-| `soundEffectSlot1_rotateTetrimino_ret` | `0xE3D0` | L6396–L6398 | `soundEffectSlot1_menuOptionSelectInit` | Internal | `MISSING` |
-| `soundEffectSlot1_rotateTetriminoPlaying` | `0xE3DD` | L6405–L6425 | `soundEffectSlot1_rotateTetriminoInit` | Yes | `MISSING` |
-| `soundEffectSlot1_tetrisAchievedPlaying` | `0xE40E` | L6432–L6436 | `soundEffectSlot1_tetrisAchievedInit` | Yes | `MISSING` |
-| `LE417` | `0xE417` | L6437–L6438 | `soundEffectSlot1_tetrisAchievedInit` | Yes | `MISSING` |
-| `soundEffectSlot1_lineCompletedPlaying` | `0xE425` | L6445–L6449 | `soundEffectSlot1_lineCompletedInit` | Yes | `MISSING` |
-| `soundEffectSlot1_lineClearingInit` | `0xE42E` | L6450–L6454 | `soundEffectSlot1_lineCompletedInit` | Yes | `MISSING` |
-| `LE437` | `0xE437` | L6455–L6455 | `soundEffectSlot1_lineCompletedInit` | Internal | `MISSING` |
-| `LE43A` | `0xE43A` | L6456–L6457 | `soundEffectSlot1_lineCompletedInit` | Internal | `MISSING` |
-| `LE442` | `0xE442` | L6462–L6479 | `soundEffectSlot1_lineClearingPlaying` | Internal | `MISSING` |
-| `LE472` | `0xE472` | L6483–L6484 | `LE46C` | Internal | `MISSING` |
-| `LE4AC` | `0xE4AC` | L6514–L6514 | `soundEffectSlot1_menuScreenSelectPlaying` | Internal | `MISSING` |
-| `LE4AF` | `0xE4AF` | L6515–L6516 | `soundEffectSlot1_menuScreenSelectPlaying` | Internal | `MISSING` |
-| `soundEffectSlot2_lowBuzz` | `0xE513` | L6551–L6555 | `soundEffectSlot2_mediumBuzz` | Yes | `MISSING` |
-| `LE51B` | `0xE51B` | L6556–L6567 | `soundEffectSlot2_mediumBuzz` | Internal | `MISSING` |
-| `soundEffectSlot3Playing_stop` | `0xE540` | L6576–L6582 | `soundEffectSlot3Playing_advance` | Internal | `MISSING` |
-| `soundEffectSlot3Playing_ret` | `0xE550` | L6583–L6585 | `soundEffectSlot3Playing_advance` | Internal | `MISSING` |
+| `copyToTriChannel` | `0xE04F` | L5906–L5908 | `copyToSq1Channel` | Yes | `VERIFIED` |
+| `copyToNoiseChannel` | `0xE053` | L5909–L5911 | `copyToSq1Channel` | Yes | `VERIFIED` |
+| `copyToSq2Channel` | `0xE057` | L5912–L5914 | `copyToSq1Channel` | Yes | `VERIFIED` |
+| `copyToApuChannel` | `0xE059` | L5915–L5932 | `copyToSq1Channel` | Internal | `VERIFIED` |
+| `updateSoundEffectSlot3` | `0xE19C` | L6068–L6072 | `updateSoundEffectSlot2` | Yes | `VERIFIED` |
+| `updateSoundEffectSlot1` | `0xE1AC` | L6078–L6084 | `updateSoundEffectSlot2` | Yes | `VERIFIED` |
+| `updateSoundEffectSlot0` | `0xE1B9` | L6085–L6089 | `updateSoundEffectSlot2` | Yes | `VERIFIED` |
+| `updateSoundEffectSlotShared` | `0xE1BF` | L6090–L6103 | `updateSoundEffectSlot2` | Internal | `VERIFIED` |
+| `updateSoundEffectSlotShared_rts` | `0xE1D7` | L6104–L6106 | `updateSoundEffectSlot2` | Internal | `VERIFIED` |
+| `muteAudioAndClearTriControl` | `0xE247` | L6166–L6172 | `soundEffectSlot2_makesNoSound` | Yes | `VERIFIED` |
+| `LE265` | `0xE265` | L6180–L6187 | `LE253` | Internal | `VERIFIED` |
+| `stopSoundEffectSlot0` | `0xE2E9` | L6256–L6260 | `advanceSoundEffectSlot0WithoutUpdate` | Internal | `VERIFIED` |
+| `updateSoundEffectSlot0WithoutUpdate_ret` | `0xE2F3` | L6261–L6263 | `advanceSoundEffectSlot0WithoutUpdate` | Internal | `VERIFIED` |
+| `soundEffectSlot0_gameOverCurtainInit` | `0xE2F8` | L6267–L6271 | `advanceSoundEffectSlot0WithoutUpdate` | Yes | `VERIFIED` |
+| `LE34E` | `0xE34E` | L6321–L6322 | `LE33B` | Internal | `VERIFIED` |
+| `soundEffectSlot1Playing_stop` | `0xE3A1` | L6367–L6373 | `soundEffectSlot1Playing_advance` | Internal | `VERIFIED` |
+| `soundEffectSlot1Playing_ret` | `0xE3B1` | L6374–L6376 | `soundEffectSlot1Playing_advance` | Internal | `VERIFIED` |
+| `soundEffectSlot1_rotateTetrimino_ret` | `0xE3D0` | L6396–L6398 | `soundEffectSlot1_menuOptionSelectInit` | Internal | `VERIFIED` |
+| `soundEffectSlot1_rotateTetriminoPlaying` | `0xE3DD` | L6405–L6425 | `soundEffectSlot1_rotateTetriminoInit` | Yes | `VERIFIED` |
+| `soundEffectSlot1_tetrisAchievedPlaying` | `0xE40E` | L6432–L6436 | `soundEffectSlot1_tetrisAchievedInit` | Yes | `VERIFIED` |
+| `LE417` | `0xE417` | L6437–L6438 | `soundEffectSlot1_tetrisAchievedInit` | Yes | `VERIFIED` |
+| `soundEffectSlot1_lineCompletedPlaying` | `0xE425` | L6445–L6449 | `soundEffectSlot1_lineCompletedInit` | Yes | `VERIFIED` |
+| `soundEffectSlot1_lineClearingInit` | `0xE42E` | L6450–L6454 | `soundEffectSlot1_lineCompletedInit` | Yes | `VERIFIED` |
+| `LE437` | `0xE437` | L6455–L6455 | `soundEffectSlot1_lineCompletedInit` | Internal | `VERIFIED` |
+| `LE43A` | `0xE43A` | L6456–L6457 | `soundEffectSlot1_lineCompletedInit` | Internal | `VERIFIED` |
+| `LE442` | `0xE442` | L6462–L6479 | `soundEffectSlot1_lineClearingPlaying` | Internal | `VERIFIED` |
+| `LE472` | `0xE472` | L6483–L6484 | `LE46C` | Internal | `VERIFIED` |
+| `LE4AC` | `0xE4AC` | L6514–L6514 | `soundEffectSlot1_menuScreenSelectPlaying` | Internal | `VERIFIED` |
+| `LE4AF` | `0xE4AF` | L6515–L6516 | `soundEffectSlot1_menuScreenSelectPlaying` | Internal | `VERIFIED` |
+| `soundEffectSlot2_lowBuzz` | `0xE513` | L6551–L6555 | `soundEffectSlot2_mediumBuzz` | Yes | `VERIFIED` |
+| `LE51B` | `0xE51B` | L6556–L6567 | `soundEffectSlot2_mediumBuzz` | Internal | `VERIFIED` |
+| `soundEffectSlot3Playing_stop` | `0xE540` | L6576–L6582 | `soundEffectSlot3Playing_advance` | Internal | `VERIFIED` |
+| `soundEffectSlot3Playing_ret` | `0xE550` | L6583–L6585 | `soundEffectSlot3Playing_advance` | Internal | `VERIFIED` |
 | `LE613` | `0xE613` | L6680–L6683 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
 | `musicLoOffset_minus2_6` | `0xE628` | L6696–L6705 | `updateMusicFrame_setChanLo` | Internal | `MISSING` |
 | `updateMusicFrame_setChanLoOffset` | `0xE637` | L6706–L6739 | `updateMusicFrame_setChanLo` | Yes | `MISSING` |

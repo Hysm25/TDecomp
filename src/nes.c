@@ -10,6 +10,7 @@ void nes_init(NES_State *nes) {
     nes->ppu_scroll_y = 0;
     nes->ppu_addr = 0;
     nes->oam_addr = 0;
+    memset(nes->apu_regs, 0, sizeof(nes->apu_regs));
     nes->joy1_latch = 0;
     nes->joy1_shift = 0;
     nes->joy2_latch = 0;
@@ -69,7 +70,7 @@ uint8_t nes_read8(const NES_State *nes, uint16_t addr) {
             ((NES_State *)nes)->joy2_shift = (uint8_t)((((NES_State *)nes)->joy2_shift >> 1) | 0x80);
             return val;
         }
-        return 0;
+        return nes->apu_regs[addr - 0x4000];
     }
 
     /* PRG ROM: $8000 - $FFFF */
@@ -110,6 +111,7 @@ void nes_write8(NES_State *nes, uint16_t addr, uint8_t val) {
 
     /* APU / I/O Registers: $4000 - $401F */
     if (addr < 0x4020) {
+        nes->apu_regs[addr - 0x4000] = val;
         if (addr == REG_JOY1) {
             if (val & 1) {
                 nes->joy1_shift = nes->joy1_latch;

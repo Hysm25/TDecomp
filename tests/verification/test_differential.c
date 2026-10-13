@@ -15,6 +15,7 @@
 #include "game/highscore.h"
 #include "game/render.h"
 #include "game/ending.h"
+#include "game/audio.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_RENDER                 0x804B
@@ -23,6 +24,22 @@
 #define ROM_ADDR_PATCH_TO_PPU           0xA507
 #define ROM_ADDR_RENDER_ENDING          0xA527
 #define ROM_ADDR_ENDING_TYPE_B          0xA52E
+#define ROM_ADDR_UPDATE_PPU_MASK        0xAA59
+#define ROM_ADDR_COPY_TO_SQ1_CHANNEL    0xE04B
+#define ROM_ADDR_COPY_TO_TRI_CHANNEL    0xE04F
+#define ROM_ADDR_COPY_TO_NOISE_CHANNEL  0xE053
+#define ROM_ADDR_COPY_TO_SQ2_CHANNEL    0xE057
+#define ROM_ADDR_COMPUTE_SOUND_EFF_METHOD 0xE072
+#define ROM_ADDR_ADVANCE_AUDIO_SLOT_FRAME 0xE0B5
+#define ROM_ADDR_MUTE_AUDIO             0xE271
+#define ROM_ADDR_SOUND_EFFECT_SLOT2_MAKES_NO_SOUND 0xE244
+#define ROM_ADDR_INIT_SOUND_EFFECT_SHARED 0xE287
+#define ROM_ADDR_SFX_SLOT1_LOCK_INIT    0xE384
+#define ROM_ADDR_SFX_SLOT1_PLAYING_STOP 0xE3A1
+#define ROM_ADDR_SFX_SLOT2_MEDIUM_BUZZ  0xE50B
+#define ROM_ADDR_SFX_SLOT2_LOW_BUZZ     0xE513
+#define ROM_ADDR_SFX_SLOT3_DONK         0xE534
+#define ROM_ADDR_SFX_SLOT3_PLAYING_STOP 0xE540
 #define ROM_ADDR_ENDING_TYPE_B_CONCERT  0xA53B
 #define ROM_ADDR_ENDING_TYPE_B_CATHEDRAL 0xA625
 #define ROM_ADDR_ENDING_TYPE_B_CATHEDRAL_SET_SPRITE 0xA690
@@ -2755,6 +2772,321 @@ int test_differential_verification(void) {
 
         assert(nes_6502.ram[ADDR_SLEEP_COUNTER] == nes_c.ram[ADDR_SLEEP_COUNTER]);
         assert(nes_c.ram[ADDR_SLEEP_COUNTER] == 0);
+    }
+
+    /* Test 66: Differential copyToSq1Channel ($E04B) & copyToNoiseChannel ($E053) */
+    {
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_COPY_TO_SQ1_CHANNEL, 0, 0, 0x04, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_TO_SQ1_CHANNEL, 200);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        copyToSq1Channel(&nes_c, 0x04);
+
+        assert(nes_6502.ram[ADDR_AUDIOTMP1] == nes_c.ram[ADDR_AUDIOTMP1]);
+        assert(nes_6502.ram[ADDR_AUDIOTMP2] == nes_c.ram[ADDR_AUDIOTMP2]);
+        assert(nes_6502.ram[ADDR_AUDIOTMP3] == nes_c.ram[ADDR_AUDIOTMP3]);
+        assert(nes_6502.ram[ADDR_AUDIOTMP4] == nes_c.ram[ADDR_AUDIOTMP4]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 67: Differential computeSoundEffMethod ($E072) */
+    {
+        for (uint8_t idx = 1; idx <= 4; idx++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_AUDIOTMP1] = 0x15; /* soundEffectSlot1Init_table */
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_COMPUTE_SOUND_EFF_METHOD, idx, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COMPUTE_SOUND_EFF_METHOD, 500);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_AUDIOTMP1] = 0x15;
+            uint16_t addr_c = computeSoundEffMethod(&nes_c, idx);
+
+            assert(nes_6502.ram[ADDR_AUDIOTMP3] == nes_c.ram[ADDR_AUDIOTMP3]);
+            assert(nes_6502.ram[ADDR_AUDIOTMP4] == nes_c.ram[ADDR_AUDIOTMP4]);
+            assert(nes_6502.ram[ADDR_CURRENT_AUDIO_SLOT] == nes_c.ram[ADDR_CURRENT_AUDIO_SLOT]);
+            assert(addr_c == MAKE_WORD(nes_6502.ram[ADDR_AUDIOTMP3], nes_6502.ram[ADDR_AUDIOTMP4]));
+        }
+    }
+
+    /* Test 68: Differential advanceAudioSlotFrame ($E0B5) */
+    {
+        /* Case A: counter < count (no wrap) */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1] = 4;
+        nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] = 1;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ADVANCE_AUDIO_SLOT_FRAME, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ADVANCE_AUDIO_SLOT_FRAME, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1] = 4;
+        nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] = 1;
+        bool wrapped_c = advanceAudioSlotFrame(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] == nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1]);
+        assert(!wrapped_c);
+
+        /* Case B: counter == count (wrap to 0) */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1] = 4;
+        nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ADVANCE_AUDIO_SLOT_FRAME, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ADVANCE_AUDIO_SLOT_FRAME, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1] = 4;
+        nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] = 3;
+        wrapped_c = advanceAudioSlotFrame(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] == nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1]);
+        assert(wrapped_c);
+        assert(nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] == 0);
+    }
+
+    /* Test 69: Differential muteAudio ($E271) */
+    {
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_MUTE_AUDIO, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_MUTE_AUDIO, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        muteAudio(&nes_c);
+
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+        assert(nes_c.apu_regs[REG_SQ1_VOL - 0x4000] == 0x10);
+        assert(nes_c.apu_regs[REG_SQ2_VOL - 0x4000] == 0x10);
+        assert(nes_c.apu_regs[REG_NOISE_VOL - 0x4000] == 0x10);
+        assert(nes_c.apu_regs[REG_TRI_LINEAR - 0x4000] == 0x00);
+        assert(nes_c.apu_regs[REG_DMC_RAW - 0x4000] == 0x00);
+    }
+
+    /* Test 70: Differential soundEffectSlot2_makesNoSound ($E244) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT] = 1;
+        nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 1] = 2;
+        nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] = 3;
+        nes_6502.ram[ADDR_MUSIC_STAGING_NOISE_LO] = 0x55;
+        nes_6502.ram[ADDR_RESET_SQ12_FOR_MUSIC] = 0x42;
+        nes_6502.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1] = 0x07;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SOUND_EFFECT_SLOT2_MAKES_NO_SOUND, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SOUND_EFFECT_SLOT2_MAKES_NO_SOUND, 300);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT] = 1;
+        nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 1] = 2;
+        nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] = 3;
+        nes_c.ram[ADDR_MUSIC_STAGING_NOISE_LO] = 0x55;
+        nes_c.ram[ADDR_RESET_SQ12_FOR_MUSIC] = 0x42;
+        nes_c.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1] = 0x07;
+
+        soundEffectSlot2_makesNoSound(&nes_c);
+
+        assert(nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT] == nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT]);
+        assert(nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 1] == nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 1]);
+        assert(nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] == nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 2]);
+        assert(nes_6502.ram[ADDR_MUSIC_STAGING_NOISE_LO] == nes_c.ram[ADDR_MUSIC_STAGING_NOISE_LO]);
+        assert(nes_6502.ram[ADDR_RESET_SQ12_FOR_MUSIC] == nes_c.ram[ADDR_RESET_SQ12_FOR_MUSIC]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 71: Differential initSoundEffectShared ($E287) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_6502.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_INIT_SOUND_EFFECT_SHARED, 0x0F, 0, 0x20, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_INIT_SOUND_EFFECT_SHARED, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_c.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+        initSoundEffectShared(&nes_c, 0x0F, 0x20);
+
+        assert(nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1] == nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 1]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT0_PLAYING + 1]);
+        assert(nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1] == nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNTER + 1]);
+        assert(nes_6502.ram[ADDR_RESET_SQ12_FOR_MUSIC] == nes_c.ram[ADDR_RESET_SQ12_FOR_MUSIC]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 72: Differential soundEffectSlot1_lockTetriminoInit ($E384) priority branch */
+    {
+        /* Case A: Blocked by higher priority SFX (playing = 4) */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_6502.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+        nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 4;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT1_LOCK_INIT, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT1_LOCK_INIT, 200);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_c.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+        nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 4;
+        soundEffectSlot1_lockTetriminoInit(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING]);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] == 4);
+
+        /* Case B: Allowed when playing = 1 */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_6502.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+        nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 1;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT1_LOCK_INIT, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT1_LOCK_INIT, 500);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 1;
+        nes_c.ram[ADDR_CURRENT_AUDIO_SLOT] = 7;
+        nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 1;
+        soundEffectSlot1_lockTetriminoInit(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING]);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] == 7);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 73: Differential soundEffectSlot1Playing_stop ($E3A1) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT] = 1;
+        nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 5;
+        nes_6502.ram[ADDR_RESET_SQ12_FOR_MUSIC] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT1_PLAYING_STOP, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT1_PLAYING_STOP, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT] = 1;
+        nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] = 5;
+        nes_c.ram[ADDR_RESET_SQ12_FOR_MUSIC] = 0;
+        soundEffectSlot1Playing_stop(&nes_c);
+
+        assert(nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT] == nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_PLAYING]);
+        assert(nes_6502.ram[ADDR_RESET_SQ12_FOR_MUSIC] == nes_c.ram[ADDR_RESET_SQ12_FOR_MUSIC]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 74: Differential soundEffectSlot2_mediumBuzz ($E50B) & lowBuzz ($E513) */
+    {
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT2_MEDIUM_BUZZ, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT2_MEDIUM_BUZZ, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        soundEffectSlot2_mediumBuzz(&nes_c);
+
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+        assert(nes_c.apu_regs[REG_DMC_LEN - 0x4000] == 0x3F);
+        assert(nes_c.apu_regs[REG_DMC_START - 0x4000] == 0x60);
+        assert(nes_c.apu_regs[REG_DMC_FREQ - 0x4000] == 0x0F);
+
+        /* Low Buzz */
+        nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT2_LOW_BUZZ, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT2_LOW_BUZZ, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        soundEffectSlot2_lowBuzz(&nes_c);
+
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+        assert(nes_c.apu_regs[REG_DMC_FREQ - 0x4000] == 0x0E);
+    }
+
+    /* Test 75: Differential soundEffectSlot3_donk ($E534) & stop ($E540) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_SFX_SLOT] = 3;
+        nes_6502.ram[ADDR_CURRENT_AUDIO_SLOT] = 2;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT3_DONK, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT3_DONK, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_SFX_SLOT] = 3;
+        nes_c.ram[ADDR_CURRENT_AUDIO_SLOT] = 2;
+        soundEffectSlot3_donk(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 3] == nes_c.ram[ADDR_SFX_SLOT0_FRAME_COUNT + 3]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+
+        /* Stop */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING] = 2;
+        nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_SFX_SLOT3_PLAYING_STOP, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SFX_SLOT3_PLAYING_STOP, 100);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING] = 2;
+        nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] = 3;
+        soundEffectSlot3Playing_stop(&nes_c);
+
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT3_PLAYING]);
+        assert(nes_6502.ram[ADDR_MUSIC_CHAN_INHIBIT + 2] == nes_c.ram[ADDR_MUSIC_CHAN_INHIBIT + 2]);
+        assert(memcmp(nes_6502.apu_regs, nes_c.apu_regs, 0x20) == 0);
+    }
+
+    /* Test 76: Differential _updatePpuMask ($AA59) */
+    {
+        uint8_t masks[] = { 0x00, 0x1E, 0xE1, 0xFF, 0x55 };
+        for (int m = 0; m < 5; m++) {
+            NES_State nes_6502 = rom_nes;
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_UPDATE_PPU_MASK, masks[m], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_UPDATE_PPU_MASK, 50);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            _updatePpuMask(&nes_c, masks[m]);
+
+            assert(nes_6502.ppu_mask == nes_c.ppu_mask);
+            assert(nes_6502.ram[ADDR_CURRENT_PPU_MASK] == nes_c.ram[ADDR_CURRENT_PPU_MASK]);
+        }
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

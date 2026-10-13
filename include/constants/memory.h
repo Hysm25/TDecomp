@@ -168,13 +168,48 @@ extern "C" {
 #define ADDR_STATS_BY_TYPE                  0x03F0 /* 14 bytes: 7 pieces * 2 bytes BCD */
 #define ADDR_PLAYFIELD                      0x0400 /* 200 bytes ($C8): 10 x 20 cells */
 #define ADDR_PLAYFIELD_P2                   0x0500 /* 200 bytes */
+#define ADDR_MUSIC_STAGING_SQ1_LO           0x0680
+#define ADDR_MUSIC_STAGING_SQ1_HI           0x0681
+#define ADDR_AUDIO_INITIALIZED              0x0682
+#define ADDR_MUSIC_PAUSE_SFX_LEN_COUNTER    0x0683
+#define ADDR_MUSIC_STAGING_SQ2_LO           0x0684
+#define ADDR_MUSIC_STAGING_SQ2_HI           0x0685
+#define ADDR_MUSIC_STAGING_TRI_LO           0x0688
+#define ADDR_MUSIC_STAGING_TRI_HI           0x0689
+#define ADDR_RESET_SQ12_FOR_MUSIC           0x068A
+#define ADDR_MUSIC_PAUSE_SFX_COUNTER        0x068B
+#define ADDR_MUSIC_STAGING_NOISE_LO         0x068C
 #define ADDR_MUSIC_STAGING_NOISE_HI         0x068D
+#define ADDR_MUSIC_CHAN_CONTROL             0x069A /* 4 bytes */
+#define ADDR_MUSIC_CHAN_VOLUME              0x069D
+#define ADDR_MUSIC_STAGING_SQ1_SWEEP        0x06C0 /* 2 bytes */
+#define ADDR_MUSIC_CHAN_INHIBIT             0x06C8 /* 4 bytes */
+#define ADDR_MUSIC_TRACK_DEC                0x06CC
+#define ADDR_SFX_SLOT0_FRAME_COUNT          0x06D5 /* 5 bytes */
+#define ADDR_SFX_SLOT0_FRAME_COUNTER        0x06DA /* 5 bytes */
+#define ADDR_SFX_SLOT0_SECONDARY_COUNTER    0x06DF /* 4 bytes */
+#define ADDR_SFX_SLOT1_SECONDARY_COUNTER    0x06E0
+#define ADDR_SFX_SLOT2_SECONDARY_COUNTER    0x06E1
+#define ADDR_SFX_SLOT3_SECONDARY_COUNTER    0x06E2
+#define ADDR_SFX_SLOT0_TERTIARY_COUNTER     0x06E3 /* 4 bytes */
+#define ADDR_SFX_SLOT1_TERTIARY_COUNTER     0x06E4
+#define ADDR_SFX_SLOT2_TERTIARY_COUNTER     0x06E5
+#define ADDR_SFX_SLOT3_TERTIARY_COUNTER     0x06E6
+#define ADDR_SFX_SLOT0_TMP                  0x06E7 /* 4 bytes */
+#define ADDR_SFX_SLOT1_TMP                  0x06E8
+#define ADDR_SFX_SLOT2_TMP                  0x06E9
+#define ADDR_SFX_SLOT3_TMP                  0x06EA
 #define ADDR_SOUND_EFFECT_SLOT0_INIT        0x06F0
 #define ADDR_SOUND_EFFECT_SLOT1_INIT        0x06F1
 #define ADDR_SOUND_EFFECT_SLOT2_INIT        0x06F2
 #define ADDR_SOUND_EFFECT_SLOT3_INIT        0x06F3
 #define ADDR_SOUND_EFFECT_SLOT4_INIT        0x06F4
 #define ADDR_MUSIC_TRACK                    0x06F5
+#define ADDR_SOUND_EFFECT_SLOT0_PLAYING     0x06F8 /* 5 bytes */
+#define ADDR_SOUND_EFFECT_SLOT1_PLAYING     0x06F9
+#define ADDR_SOUND_EFFECT_SLOT2_PLAYING     0x06FA
+#define ADDR_SOUND_EFFECT_SLOT3_PLAYING     0x06FB
+#define ADDR_SOUND_EFFECT_SLOT4_PLAYING     0x06FC
 #define ADDR_CURRENTLY_PLAYING_MUSIC_TRACK  0x06FD
 #define ADDR_UNREFERENCED_SOUND_RNG_TMP     0x06FF /* 1 byte */
 #define ADDR_HIGH_SCORE_NAMES               0x0700 /* 48 bytes ($30): 3 chars * 8 entries * 2 types */

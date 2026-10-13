@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **97** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **148** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **74** | Pending conversion |
-| **Current Progress** | **56.73%** | `[############################----------------------] 56.73%` |
-| **Build & Test Suite** | 13 / 13 suites passing | Unit, 63 ROM data tables, & 6502 differential CPU oracle (65 differential tests) |
+| **Remaining Routines** | **23** | Pending conversion |
+| **Current Progress** | **86.55%** | `[###########################################-------] 86.55%` |
+| **Build & Test Suite** | 14 / 14 suites passing | Unit, 96 ROM data tables, & 6502 differential CPU oracle (76 differential tests) |
 
 ---
 
@@ -34,14 +34,14 @@
 | **MATH_BCD** (Score & Line Math) | 12 | 12 | 0 | 0 | **100.0%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 4 | 0 | 0 | **100.0%** |
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 14 | 0 | 0 | **100.0%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 13 | 0 | 3 | **81.2%** |
-| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 8 | 0 | 1 | **88.9%** |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 16 | 0 | 0 | **100.0%** |
+| **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 9 | 0 | 0 | **100.0%** |
+| **MENUS_UI** (Title, Menus, High Scores) | 13 | 13 | 0 | 0 | **100.0%** |
+| **AUDIO** (Music Engine, SFX, APU) | 41 | 35 | 0 | 6 | **85.4%** |
 | **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 14 | 0 | 2 | **87.5%** |
-| **MENUS_UI** (Title, Menus, High Scores) | 13 | 8 | 0 | 5 | **61.5%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 20 | 0 | 18 | **52.6%** |
-| **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
-| **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **97** | **0** | **74** | **56.73%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 29 | 0 | 9 | **76.3%** |
+| **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | **0.0%** |
+| **TOTAL** | **171** | **148** | **0** | **23** | **86.55%** |
 
 ---
 
@@ -215,8 +215,21 @@
     - Authoritative data tables bit-exact verified against reference ROM: 28 ending tables (63 cumulative verified tables in suite).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `selectEndingScreen`, `ending_selected`, `ending_typeA`, `ending_initTypeBVars`, `ending_computeTypeBCathedralYTableIndex`, `ending_typeBCathedralSetSprite`, `LA6BC`, `ending_typeBConcert`, `render_ending`/`ending_typeB`, and `render_endingUnskippable` (Tests 56–65).
 
-17. [ ] **Batch 14 (Audio Subsystem & APU Drivers)**:
-    - Sound effect drivers, music channel scripts, audio initialization, and APU registers.
+17. [x] **Batch 14 (Audio Subsystem & APU Drivers)**:
+    - Decompiled master audio update & pause engine: `updateAudio` ($E216), `updateAudio_pause` ($E1EF), `initAudioAndMarkInited` ($E1E5), `updateAudio_jmp` ($E000), `updateAudio2` ($E003), `LE006` ($E006).
+    - Decompiled 4-byte APU channel transfer drivers: `copyToSq1Channel` ($E04B), `copyToTriChannel` ($E04F), `copyToNoiseChannel` ($E053), `copyToSq2Channel` ($E057), `copyToApuChannel` ($E059).
+    - Decompiled sound effect slot dispatchers & helpers: `computeSoundEffMethod` ($E072), `advanceAudioSlotFrame` ($E0B5), `initSoundEffectShared` ($E287), `updateSoundEffectSlotShared` ($E1BF), `updateSoundEffectSlot0` ($E1B9), `updateSoundEffectSlot1` ($E1AC), `updateSoundEffectSlot2` ($E194), `updateSoundEffectSlot3` ($E19C), `updateSoundEffectSlotShared_rts` ($E1D7).
+    - Decompiled mute & channel inhibit drivers: `muteAudio` ($E271), `soundEffectSlot2_makesNoSound` ($E244), `muteAudioAndClearTriControl` ($E247), `LE1D8` ($E1D8), `LE253` ($E253), `LE265` ($E265).
+    - Decompiled Slot 0 Noise Channel sound effects: `soundEffectSlot0_gameOverCurtainInit` ($E2F8), `soundEffectSlot0_endingRocketInit` ($E2CC), `soundEffectSlot0_makesNoSound` ($E2DD), `advanceSoundEffectSlot0WithoutUpdate` ($E2E4), `stopSoundEffectSlot0` ($E2E9), `updateSoundEffectSlot0_apu` ($E2FF), `updateSoundEffectNoiseAudio` ($E307), `getSoundEffectNoiseNibble` ($E31A), `setNoiseLo` ($E2D3), `loadNoiseLo` ($E2D7), `updateSoundEffectSlot0WithoutUpdate_ret` ($E2F3).
+    - Decompiled Slot 1 Pulse 1 Channel sound effects: `soundEffectSlot1_lockTetriminoInit` ($E384), `soundEffectSlot1_shiftTetriminoInit` ($E390), `soundEffectSlot1Playing_advance` ($E39C), `soundEffectSlot1Playing_stop` ($E3A1), `soundEffectSlot1_menuOptionSelectInit` ($E3CA), `soundEffectSlot1_menuOptionSelectPlaying` ($E3B3), `soundEffectSlot1_rotateTetriminoInit` ($E3D1), `soundEffectSlot1_rotateTetriminoPlaying` ($E3DD), `soundEffectSlot1_tetrisAchievedInit` ($E403), `soundEffectSlot1_tetrisAchievedPlaying` ($E40E), `soundEffectSlot1_lineCompletedInit` ($E41A), `soundEffectSlot1_lineCompletedPlaying` ($E425), `soundEffectSlot1_lineClearingInit` ($E42E), `soundEffectSlot1_lineClearingPlaying` ($E43B), `soundEffectSlot1_menuScreenSelectInit` ($E473), `soundEffectSlot1_menuScreenSelectPlaying` ($E481), `soundEffectSlot1_levelUpInit` ($E4EC), `soundEffectSlot1_levelUpPlaying` ($E4D1), `soundEffectSlot1_chirpChirpInit` ($E37F), `soundEffectSlot1_chirpChirpPlaying` ($E34F), `LE33B` ($E33B), `LE34E` ($E34E), `LE417` ($E417), `LE437` ($E437), `LE43A` ($E43A), `LE442` ($E442), `LE46C` ($E46C), `LE46F` ($E46F), `LE472` ($E472), `LE493` ($E493), `LE4AC` ($E4AC), `LE4AF` ($E4AF), `LE4E9` ($E4E9), `soundEffectSlot1Playing_ret` ($E3B1), `soundEffectSlot1_menuOptionSelectPlaying_ret` ($E3B2), `soundEffectSlot1_rotateTetrimino_ret` ($E3D0).
+    - Decompiled Slot 2 DMC Channel sound effects: `soundEffectSlot2_mediumBuzz` ($E50B), `soundEffectSlot2_lowBuzz` ($E513), `LE51B` ($E51B).
+    - Decompiled Slot 3 Triangle Channel sound effects: `soundEffectSlot3_donk` ($E534), `soundEffectSlot3Playing_advance` ($E53B), `soundEffectSlot3Playing_stop` ($E540), `soundEffectSlot3Playing_ret` ($E550), `updateSoundEffectSlot3_apu` ($E551), `soundEffectSlot3_fallingAlien` ($E56E).
+    - Decompiled NMI audio synchronizers: `updateAudioWaitForNmiAndResetOamStaging` ($AA2F), `updateAudioAndWaitForNmi` ($AA45), `updateAudioWaitForNmiAndDisablePpuRendering` ($AA52), `updateAudioWaitForNmiAndEnablePpuRendering` ($AA5F), `_updatePpuMask` ($AA59).
+    - Authoritative ROM data tables verified byte-for-byte against reference ROM: 33 audio tables (96 cumulative verified tables in suite).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyToSq1Channel`, `computeSoundEffMethod`, `advanceAudioSlotFrame`, `muteAudio`, `soundEffectSlot2_makesNoSound`, `initSoundEffectShared`, `soundEffectSlot1_lockTetriminoInit`, `soundEffectSlot1Playing_stop`, `soundEffectSlot2_mediumBuzz`/`lowBuzz`, `soundEffectSlot3_donk`/`stop`, and `_updatePpuMask` (Tests 66–76).
+
+18. [ ] **Batch 15 (Music Channel Engine & Sequence Interpreter)**:
+    - Music track loader (`loadMusicTrack` at $E6D7), instruction stream parser (`updateMusicFrame`, `musicGetNextInstructionByte`), note duration & pitch envelopes, and music tracks (Tracks 1, 2, 3).
 
 ---
 
@@ -239,4 +252,4 @@
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
 | Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | `ad44ed4` |
 | Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `6c586bc` |
-
+| Batch 14 | Audio Subsystem & APU Drivers: SFX dispatchers, slot 0-3 handlers, APU output registers, and NMI audio sync | 51 (+35 alt) | 148 | 14 suites / 96 ROM tables + 76 6502 diff | pending |

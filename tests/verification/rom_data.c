@@ -12,6 +12,7 @@
 #include "game/state.h"
 #include "game/render.h"
 #include "game/ending.h"
+#include "game/audio.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH 0x86B0
@@ -77,6 +78,41 @@
 #define ADDR_ROM_ROCKET_TO_JET_X_OFFSET     0xAA20
 #define ADDR_ROM_ROCKET_TO_X_OFFSET         0xAA25
 #define ADDR_ROM_ROCKET_START_Y             0xAA2A
+
+/* Audio PRG chunk 2 tables ($E000 - $E580) */
+#define ADDR_ROM_SFX_SLOT0_INIT_TABLE            0xE009
+#define ADDR_ROM_SFX_SLOT0_PLAYING_TABLE         0xE00F
+#define ADDR_ROM_SFX_SLOT1_INIT_TABLE            0xE015
+#define ADDR_ROM_SFX_SLOT1_PLAYING_TABLE         0xE029
+#define ADDR_ROM_SFX_SLOT3_INIT_TABLE            0xE03D
+#define ADDR_ROM_SFX_SLOT3_PLAYING_TABLE         0xE041
+#define ADDR_ROM_SFX_SLOT2_INIT_TABLE            0xE045
+#define ADDR_ROM_SFX_SLOT0_GAMEOVER_INIT_DATA    0xE104
+#define ADDR_ROM_SFX_SLOT0_ENDING_ROCKET_INIT    0xE108
+#define ADDR_ROM_MUSIC_PAUSE_SQ1_EVEN            0xE10C
+#define ADDR_ROM_MUSIC_PAUSE_SQ1_ODD             0xE110
+#define ADDR_ROM_SFX_SLOT1_ROTATE_INIT_DATA      0xE114
+#define ADDR_ROM_SFX_SLOT1_ROTATE_STAGE3         0xE118
+#define ADDR_ROM_SFX_SLOT1_LEVELUP_INIT_DATA     0xE11C
+#define ADDR_ROM_SFX_SLOT1_LOCK_INIT_DATA        0xE120
+#define ADDR_ROM_SFX_SLOT1_MENU_OPT_INIT_DATA    0xE124
+#define ADDR_ROM_SFX_SLOT1_MENU_OPT_STAGE2       0xE128
+#define ADDR_ROM_SFX_SLOT1_MENU_SCREEN_INIT_DATA 0xE12C
+#define ADDR_ROM_SFX_SLOT1_TETRIS_INIT_DATA      0xE130
+#define ADDR_ROM_SFX_SLOT1_LINE_CMP_INIT_DATA    0xE134
+#define ADDR_ROM_SFX_SLOT1_LINECLEAR_INIT_DATA   0xE138
+#define ADDR_ROM_SFX_SLOT1_CHIRP_INIT_DATA       0xE13C
+#define ADDR_ROM_SFX_SLOT1_CHIRP_STAGE2          0xE140
+#define ADDR_ROM_SFX_SLOT1_SHIFT_INIT_DATA       0xE144
+#define ADDR_ROM_SFX_SLOT3_FALLING_ALIEN_INIT    0xE148
+#define ADDR_ROM_SFX_SLOT3_DONK_INIT_DATA        0xE14C
+#define ADDR_ROM_SFX_SLOT1_CHIRP_SQ1_VOL         0xE150
+#define ADDR_ROM_NOISELO_TABLE                   0xE154
+#define ADDR_ROM_NOISEVOL_TABLE                  0xE174
+#define ADDR_ROM_SFX_SLOT1_LINECLEAR_VOL         0xE4B0
+#define ADDR_ROM_SFX_SLOT1_LINECLEAR_LO          0xE4B9
+#define ADDR_ROM_SFX_SLOT1_LEVELUP_LO            0xE4F3
+#define ADDR_ROM_TRILO_TABLE                     0xE57C
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -591,6 +627,237 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (63 ROM data tables verified bit-for-bit)\n");
+    /* Test 64: soundEffectSlot0_gameOverCurtainInitData (4 bytes at $E104) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT0_GAMEOVER_INIT_DATA + i));
+        assert(soundEffectSlot0_gameOverCurtainInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 65: soundEffectSlot0_endingRocketInitData (4 bytes at $E108) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT0_ENDING_ROCKET_INIT + i));
+        assert(soundEffectSlot0_endingRocketInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 66: music_pause_sq1_even (4 bytes at $E10C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MUSIC_PAUSE_SQ1_EVEN + i));
+        assert(music_pause_sq1_even[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 67: music_pause_sq1_odd (4 bytes at $E110) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MUSIC_PAUSE_SQ1_ODD + i));
+        assert(music_pause_sq1_odd[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 68: soundEffectSlot1_rotateTetriminoInitData (4 bytes at $E114) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_ROTATE_INIT_DATA + i));
+        assert(soundEffectSlot1_rotateTetriminoInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 69: soundEffectSlot1Playing_rotateTetriminoStage3 (4 bytes at $E118) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_ROTATE_STAGE3 + i));
+        assert(soundEffectSlot1Playing_rotateTetriminoStage3[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 70: soundEffectSlot1_levelUpInitData (4 bytes at $E11C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LEVELUP_INIT_DATA + i));
+        assert(soundEffectSlot1_levelUpInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 71: soundEffectSlot1_lockTetriminoInitData (4 bytes at $E120) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LOCK_INIT_DATA + i));
+        assert(soundEffectSlot1_lockTetriminoInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 72: soundEffectSlot1_menuOptionSelectInitData (4 bytes at $E124) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_MENU_OPT_INIT_DATA + i));
+        assert(soundEffectSlot1_menuOptionSelectInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 73: soundEffectSlot1Playing_menuOptionSelectStage2 (4 bytes at $E128) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_MENU_OPT_STAGE2 + i));
+        assert(soundEffectSlot1Playing_menuOptionSelectStage2[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 74: soundEffectSlot1_menuScreenSelectInitData (4 bytes at $E12C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_MENU_SCREEN_INIT_DATA + i));
+        assert(soundEffectSlot1_menuScreenSelectInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 75: soundEffectSlot1_tetrisAchievedInitData (4 bytes at $E130) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_TETRIS_INIT_DATA + i));
+        assert(soundEffectSlot1_tetrisAchievedInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 76: soundEffectSlot1_lineCompletedInitData (4 bytes at $E134) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LINE_CMP_INIT_DATA + i));
+        assert(soundEffectSlot1_lineCompletedInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 77: soundEffectSlot1_lineClearingInitData (4 bytes at $E138) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LINECLEAR_INIT_DATA + i));
+        assert(soundEffectSlot1_lineClearingInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 78: soundEffectSlot1_chirpChirpInitData (4 bytes at $E13C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_CHIRP_INIT_DATA + i));
+        assert(soundEffectSlot1_chirpChirpInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 79: soundEffectSlot1Playing_chirpChirpStage2 (4 bytes at $E140) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_CHIRP_STAGE2 + i));
+        assert(soundEffectSlot1Playing_chirpChirpStage2[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 80: soundEffectSlot1_shiftTetriminoInitData (4 bytes at $E144) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_SHIFT_INIT_DATA + i));
+        assert(soundEffectSlot1_shiftTetriminoInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 81: soundEffectSlot3_fallingAlienInitData (4 bytes at $E148) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT3_FALLING_ALIEN_INIT + i));
+        assert(soundEffectSlot3_fallingAlienInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 82: soundEffectSlot3_donkInitData (4 bytes at $E14C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT3_DONK_INIT_DATA + i));
+        assert(soundEffectSlot3_donkInitData[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 83: soundEffectSlot1_chirpChirpSq1Vol_table (4 bytes at $E150) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_CHIRP_SQ1_VOL + i));
+        assert(soundEffectSlot1_chirpChirpSq1Vol_table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 84: noiselo_table (32 bytes at $E154) */
+    for (int i = 0; i < 32; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_NOISELO_TABLE + i));
+        assert(noiselo_table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 85: noisevol_table (32 bytes at $E174) */
+    for (int i = 0; i < 32; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_NOISEVOL_TABLE + i));
+        assert(noisevol_table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 86: soundEffectSlot1_lineClearing_vol (9 bytes at $E4B0) */
+    for (int i = 0; i < 9; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LINECLEAR_VOL + i));
+        assert(soundEffectSlot1_lineClearing_vol[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 87: soundEffectSlot1_lineClearing_lo (24 bytes at $E4B9) */
+    for (int i = 0; i < 24; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LINECLEAR_LO + i));
+        assert(soundEffectSlot1_lineClearing_lo[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 88: soundEffectSlot1_levelUp_lo (24 bytes at $E4F3) */
+    for (int i = 0; i < 24; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_LEVELUP_LO + i));
+        assert(soundEffectSlot1_levelUp_lo[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 89: trilo_table (4 bytes at $E57C) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_TRILO_TABLE + i));
+        assert(trilo_table[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 90: soundEffectSlot0Init_table (3 words at $E009) */
+    for (int i = 0; i < 3; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT0_INIT_TABLE + i * 2));
+        assert(soundEffectSlot0Init_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 91: soundEffectSlot0Playing_table (3 words at $E00F) */
+    for (int i = 0; i < 3; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT0_PLAYING_TABLE + i * 2));
+        assert(soundEffectSlot0Playing_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 92: soundEffectSlot1Init_table (10 words at $E015) */
+    for (int i = 0; i < 10; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_INIT_TABLE + i * 2));
+        assert(soundEffectSlot1Init_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 93: soundEffectSlot1Playing_table (10 words at $E029) */
+    for (int i = 0; i < 10; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT1_PLAYING_TABLE + i * 2));
+        assert(soundEffectSlot1Playing_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 94: soundEffectSlot3Init_table (2 words at $E03D) */
+    for (int i = 0; i < 2; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT3_INIT_TABLE + i * 2));
+        assert(soundEffectSlot3Init_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 95: soundEffectSlot3Playing_table (2 words at $E041) */
+    for (int i = 0; i < 2; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT3_PLAYING_TABLE + i * 2));
+        assert(soundEffectSlot3Playing_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    /* Test 96: soundEffectSlot2Init_table (3 words at $E045) */
+    for (int i = 0; i < 3; i++) {
+        uint16_t rom_w = nes_read16(nes, (uint16_t)(ADDR_ROM_SFX_SLOT2_INIT_TABLE + i * 2));
+        assert(soundEffectSlot2Init_table[i] == rom_w);
+        (void)rom_w;
+    }
+
+    printf("  [PASS] test_rom_tables_match (96 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

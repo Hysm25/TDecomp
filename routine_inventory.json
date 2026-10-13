@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 97,
+    "verified_routines": 148,
     "decompiled_untested": 0,
-    "missing_routines": 74,
-    "progress_percentage": 56.73
+    "missing_routines": 23,
+    "progress_percentage": 86.55
   },
   "routines": [
     {
@@ -1367,8 +1367,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: NMI wait and OAM staging page fill with $FF"
     },
     {
       "name": "updateAudioAndWaitForNmi",
@@ -1381,8 +1381,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Audio update and vertical blanking interval wait"
     },
     {
       "name": "updateAudioWaitForNmiAndDisablePpuRendering",
@@ -1395,8 +1395,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Audio update, NMI wait, and PPUMASK render disable"
     },
     {
       "name": "updateAudioWaitForNmiAndEnablePpuRendering",
@@ -1409,8 +1409,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Audio update, NMI wait, scroll/ctrl flush, and PPUMASK render enable"
     },
     {
       "name": "LAA82",
@@ -1619,8 +1619,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: JMP wrapper to updateAudio"
     },
     {
       "name": "updateAudio2",
@@ -1633,8 +1633,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: JMP wrapper to soundEffectSlot2_makesNoSound"
     },
     {
       "name": "LE006",
@@ -1647,8 +1647,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: JMP wrapper to LE1D8"
     },
     {
       "name": "copyToSq1Channel",
@@ -1661,8 +1661,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Square 1 APU register block copy differential proven against 6502 ROM (Test 66)"
     },
     {
       "name": "computeSoundEffMethod",
@@ -1675,8 +1675,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Table pointer dereference at $E000+AUDIOTMP1 differential proven against 6502 ROM (Test 67)"
     },
     {
       "name": "unreferenced_soundRng",
@@ -1703,8 +1703,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot frame counter increment and frame count wrap differential proven against 6502 ROM (Test 68)"
     },
     {
       "name": "updateSoundEffectSlot2",
@@ -1717,8 +1717,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 2 sound effect dispatcher"
     },
     {
       "name": "LE1D8",
@@ -1731,8 +1731,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Boot audio initialization setting SND_CHN=$0F and soundRngSeed=$55"
     },
     {
       "name": "initAudioAndMarkInited",
@@ -1745,8 +1745,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Audio initialization marking audioInitialized and clearing length counter"
     },
     {
       "name": "updateAudio_pause",
@@ -1759,8 +1759,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Pause sound effect Square 1 alternating pulse driver"
     },
     {
       "name": "updateAudio",
@@ -1773,8 +1773,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master audio frame updater disabling APU frame IRQ, updating slots 2,0,3,1, and clearing trigger requests"
     },
     {
       "name": "soundEffectSlot2_makesNoSound",
@@ -1787,8 +1787,8 @@
       "jsr_called": true,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Reset channel inhibits, clear slot 0-5 playing states, and mute APU differential proven against 6502 ROM (Test 70)"
     },
     {
       "name": "LE253",
@@ -1801,8 +1801,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Clear channel inhibits and reset soundEffectSlot0-5 playing states"
     },
     {
       "name": "muteAudio",
@@ -1815,8 +1815,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Silence SQ1, SQ2, Noise, Triangle, and DMC registers differential proven against 6502 ROM (Test 69)"
     },
     {
       "name": "initSoundEffectShared",
@@ -1829,8 +1829,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Generic slot initializer copying channel data and clearing counters differential proven against 6502 ROM (Test 71)"
     },
     {
       "name": "soundEffectSlot0_endingRocketInit",
@@ -1843,8 +1843,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 ending rocket noise sound effect initialization"
     },
     {
       "name": "setNoiseLo",
@@ -1857,8 +1857,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: NOISE_LO register write"
     },
     {
       "name": "loadNoiseLo",
@@ -1871,8 +1871,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Noise period nibble load and register write"
     },
     {
       "name": "soundEffectSlot0_makesNoSound",
@@ -1885,8 +1885,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 dummy / mute initialization"
     },
     {
       "name": "advanceSoundEffectSlot0WithoutUpdate",
@@ -1899,8 +1899,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 frame advance and stop check"
     },
     {
       "name": "updateSoundEffectSlot0_apu",
@@ -1913,8 +1913,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 APU audio progression updating noise period and volume"
     },
     {
       "name": "updateSoundEffectNoiseAudio",
@@ -1927,8 +1927,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Noise period and volume envelope progression from tables"
     },
     {
       "name": "getSoundEffectNoiseNibble",
@@ -1941,8 +1941,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Table nibble extractor from noiselo_table and noisevol_table"
     },
     {
       "name": "LE33B",
@@ -1955,8 +1955,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Sound effect priority check protecting active Tetris/line/level sounds"
     },
     {
       "name": "soundEffectSlot1_chirpChirpPlaying",
@@ -1969,8 +1969,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Chirp-chirp sound effect envelope progression"
     },
     {
       "name": "soundEffectSlot1_chirpChirpInit",
@@ -1983,8 +1983,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Chirp-chirp sound effect initialization"
     },
     {
       "name": "soundEffectSlot1_lockTetriminoInit",
@@ -1997,8 +1997,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Piece lock sound effect initialization with priority check differential proven against 6502 ROM (Test 72)"
     },
     {
       "name": "soundEffectSlot1_shiftTetriminoInit",
@@ -2011,8 +2011,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Piece shift sound effect initialization with priority check"
     },
     {
       "name": "soundEffectSlot1Playing_advance",
@@ -2025,8 +2025,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 frame advance and stop check"
     },
     {
       "name": "soundEffectSlot1_menuOptionSelectPlaying_ret",
@@ -2039,8 +2039,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu option select return stub"
     },
     {
       "name": "soundEffectSlot1_menuOptionSelectPlaying",
@@ -2053,8 +2053,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu option select sound effect progression"
     },
     {
       "name": "soundEffectSlot1_menuOptionSelectInit",
@@ -2067,8 +2067,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu option select sound effect initialization"
     },
     {
       "name": "soundEffectSlot1_rotateTetriminoInit",
@@ -2081,8 +2081,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Piece rotation sound effect initialization with priority check"
     },
     {
       "name": "soundEffectSlot1_tetrisAchievedInit",
@@ -2095,8 +2095,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 4-line Tetris sound effect initialization"
     },
     {
       "name": "soundEffectSlot1_lineCompletedInit",
@@ -2109,8 +2109,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line completed sound effect initialization"
     },
     {
       "name": "soundEffectSlot1_lineClearingPlaying",
@@ -2123,8 +2123,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line clear pitch sweep and volume envelope progression"
     },
     {
       "name": "LE46C",
@@ -2137,8 +2137,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Jump to soundEffectSlot1Playing_stop"
     },
     {
       "name": "soundEffectSlot1_menuScreenSelectInit",
@@ -2151,8 +2151,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu screen select sound effect initialization"
     },
     {
       "name": "soundEffectSlot1_menuScreenSelectPlaying",
@@ -2165,8 +2165,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu screen select pitch shift progression"
     },
     {
       "name": "soundEffectSlot1_levelUpPlaying",
@@ -2179,8 +2179,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Level up sound effect tone progression"
     },
     {
       "name": "LE4E9",
@@ -2193,8 +2193,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Jump to soundEffectSlot1Playing_stop"
     },
     {
       "name": "soundEffectSlot1_levelUpInit",
@@ -2207,8 +2207,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Level up sound effect initialization"
     },
     {
       "name": "soundEffectSlot2_mediumBuzz",
@@ -2221,8 +2221,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Medium buzz DMC sample register configuration differential proven against 6502 ROM (Test 74)"
     },
     {
       "name": "soundEffectSlot3_donk",
@@ -2235,8 +2235,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Triangle donk sound effect initialization differential proven against 6502 ROM (Test 75)"
     },
     {
       "name": "soundEffectSlot3Playing_advance",
@@ -2249,8 +2249,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 3 frame advance and stop check"
     },
     {
       "name": "updateSoundEffectSlot3_apu",
@@ -2263,8 +2263,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 3 APU triangle period progression from trilo_table"
     },
     {
       "name": "soundEffectSlot3_fallingAlien",
@@ -2277,8 +2277,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Falling alien triangle sound effect initialization"
     },
     {
       "name": "updateMusic_noSoundJmp",
@@ -2979,8 +2979,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "updateAudioWaitForNmiAndDisablePpuRendering",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPUMASK and currentPpuMask register update differential proven against 6502 ROM (Test 76)"
     },
     {
       "name": "waitForVBlankAndEnableNmi",
@@ -3287,8 +3287,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "copyToSq1Channel",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Triangle APU register block copy"
     },
     {
       "name": "copyToNoiseChannel",
@@ -3301,8 +3301,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "copyToSq1Channel",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Noise APU register block copy"
     },
     {
       "name": "copyToSq2Channel",
@@ -3315,8 +3315,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "copyToSq1Channel",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Square 2 APU register block copy"
     },
     {
       "name": "copyToApuChannel",
@@ -3329,8 +3329,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "copyToSq1Channel",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 4-byte APU channel transfer from PRG ROM to $4000+a differential proven against 6502 ROM (Test 66)"
     },
     {
       "name": "updateSoundEffectSlot3",
@@ -3343,8 +3343,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "updateSoundEffectSlot2",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 3 sound effect dispatcher"
     },
     {
       "name": "updateSoundEffectSlot1",
@@ -3357,8 +3357,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "updateSoundEffectSlot2",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 sound effect dispatcher with slot 4 playing inhibit check"
     },
     {
       "name": "updateSoundEffectSlot0",
@@ -3371,8 +3371,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "updateSoundEffectSlot2",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 sound effect dispatcher"
     },
     {
       "name": "updateSoundEffectSlotShared",
@@ -3385,8 +3385,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "updateSoundEffectSlot2",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Shared primary init vs secondary playing slot dispatcher"
     },
     {
       "name": "updateSoundEffectSlotShared_rts",
@@ -3399,8 +3399,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "updateSoundEffectSlot2",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Return stub for slot dispatcher"
     },
     {
       "name": "muteAudioAndClearTriControl",
@@ -3413,8 +3413,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot2_makesNoSound",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Mute APU, clear DMC_RAW, and clear triangle channel control"
     },
     {
       "name": "LE265",
@@ -3427,8 +3427,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LE253",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Loop clearing 6 sound effect slot playing states"
     },
     {
       "name": "stopSoundEffectSlot0",
@@ -3441,8 +3441,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "advanceSoundEffectSlot0WithoutUpdate",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 stop clearing playing state and restoring NOISE_VOL=$10"
     },
     {
       "name": "updateSoundEffectSlot0WithoutUpdate_ret",
@@ -3455,8 +3455,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "advanceSoundEffectSlot0WithoutUpdate",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 return stub"
     },
     {
       "name": "soundEffectSlot0_gameOverCurtainInit",
@@ -3469,8 +3469,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "advanceSoundEffectSlot0WithoutUpdate",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 0 game over curtain cascade noise initialization"
     },
     {
       "name": "LE34E",
@@ -3483,8 +3483,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LE33B",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Return stub for priority check"
     },
     {
       "name": "soundEffectSlot1Playing_stop",
@@ -3497,8 +3497,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1Playing_advance",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 stop restoring SQ1_VOL=$10 and incrementing resetSq12ForMusic differential proven against 6502 ROM (Test 73)"
     },
     {
       "name": "soundEffectSlot1Playing_ret",
@@ -3511,8 +3511,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1Playing_advance",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 return stub"
     },
     {
       "name": "soundEffectSlot1_rotateTetrimino_ret",
@@ -3525,8 +3525,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_menuOptionSelectInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Rotation sound effect return stub"
     },
     {
       "name": "soundEffectSlot1_rotateTetriminoPlaying",
@@ -3539,8 +3539,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "soundEffectSlot1_rotateTetriminoInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Piece rotation multi-stage pulse pitch progression"
     },
     {
       "name": "soundEffectSlot1_tetrisAchievedPlaying",
@@ -3553,8 +3553,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "soundEffectSlot1_tetrisAchievedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 4-line Tetris sound effect progression"
     },
     {
       "name": "LE417",
@@ -3567,8 +3567,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_tetrisAchievedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Helper jump to initSoundEffectShared"
     },
     {
       "name": "soundEffectSlot1_lineCompletedPlaying",
@@ -3581,8 +3581,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "soundEffectSlot1_lineCompletedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line completed sound effect progression"
     },
     {
       "name": "soundEffectSlot1_lineClearingInit",
@@ -3595,8 +3595,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "soundEffectSlot1_lineCompletedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Line clear sound effect initialization"
     },
     {
       "name": "LE437",
@@ -3609,8 +3609,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_lineCompletedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 tertiary counter store"
     },
     {
       "name": "LE43A",
@@ -3623,8 +3623,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_lineCompletedInit",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 1 return stub"
     },
     {
       "name": "LE442",
@@ -3637,8 +3637,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_lineClearingPlaying",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Shared line clear audio progression helper"
     },
     {
       "name": "LE472",
@@ -3651,8 +3651,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "LE46C",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Return stub"
     },
     {
       "name": "LE4AC",
@@ -3665,8 +3665,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_menuScreenSelectPlaying",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Write SQ1_HI with $28"
     },
     {
       "name": "LE4AF",
@@ -3679,8 +3679,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot1_menuScreenSelectPlaying",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Return stub"
     },
     {
       "name": "soundEffectSlot2_lowBuzz",
@@ -3693,8 +3693,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": "soundEffectSlot2_mediumBuzz",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Low buzz DMC sample register configuration differential proven against 6502 ROM (Test 74)"
     },
     {
       "name": "LE51B",
@@ -3707,8 +3707,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot2_mediumBuzz",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Shared DMC register staging and channel trigger"
     },
     {
       "name": "soundEffectSlot3Playing_stop",
@@ -3721,8 +3721,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot3Playing_advance",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 3 stop clearing triangle channel differential proven against 6502 ROM (Test 75)"
     },
     {
       "name": "soundEffectSlot3Playing_ret",
@@ -3735,8 +3735,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "soundEffectSlot3Playing_advance",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Slot 3 return stub"
     },
     {
       "name": "LE613",

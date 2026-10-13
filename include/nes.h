@@ -28,6 +28,9 @@ typedef struct NES_State {
     uint16_t ppu_addr;
     uint8_t oam_addr;
 
+    /* APU state registers ($4000 - $401F) */
+    uint8_t apu_regs[0x20];
+
     /* Joypad input latch */
     uint8_t joy1_latch;
     uint8_t joy1_shift;
