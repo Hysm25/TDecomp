@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **67** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **80** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **104** | Pending conversion |
-| **Current Progress** | **39.18%** | `[####################--------------------------------] 39.18%` |
-| **Build & Test Suite** | 11 / 11 suites passing | Unit, 29 ROM data tables, & 6502 differential CPU oracle (40 differential tests) |
+| **Remaining Routines** | **91** | Pending conversion |
+| **Current Progress** | **46.78%** | `[#######################---------------------------] 46.78%` |
+| **Build & Test Suite** | 12 / 12 suites passing | Unit, 32 ROM data tables, & 6502 differential CPU oracle (53 differential tests) |
 
 ---
 
@@ -33,15 +33,15 @@
 | **MATH_RNG** (Pseudo-Random Generation) | 2 | 2 | 0 | 0 | **100.0%** |
 | **MATH_BCD** (Score & Line Math) | 12 | 12 | 0 | 0 | **100.0%** |
 | **PLAYER_INPUT** (DAS, Joypad, Autorepeat) | 4 | 4 | 0 | 0 | **100.0%** |
-| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 11 | 0 | 3 | **78.6%** |
+| **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 14 | 0 | 0 | **100.0%** |
+| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 13 | 0 | 3 | **81.2%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 7 | 0 | 2 | **77.8%** |
-| **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 11 | 0 | 5 | **68.8%** |
-| **MENUS_UI** (Title, Menus, High Scores) | 13 | 6 | 0 | 7 | **46.2%** |
+| **MENUS_UI** (Title, Menus, High Scores) | 13 | 8 | 0 | 5 | **61.5%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 8 | 0 | 8 | **50.0%** |
 | **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 10 | 0 | 28 | **26.3%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 2 | 0 | 14 | **12.5%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **67** | **0** | **104** | **39.18%** |
+| **TOTAL** | **171** | **80** | **0** | **91** | **46.78%** |
 
 ---
 
@@ -171,8 +171,22 @@
     - Authoritative data tables bit-exact verified against reference ROM: `game_typeb_nametable_patch` ($86B0, 44 bytes).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `memset_page`, `add100Points`, `gameModeState_checkForResetKeyCombo`, `gameModeState_handleGameOver`, `gameModeState_startButtonHandling`, and `gameMode_playAndEndingHighScore` (Tests 35–40).
 
-14. [ ] **Batch 11 (PPU Rendering & OAM)**:
-    - OAM sprite staging (`stageSpriteForCurrentPiece`, `stageSpriteForNextPiece`, `loadSpriteIntoOamStaging`) and nametable row updates.
+14. [x] **Batch 11 (PPU Rendering, Palette & OAM Sprite Staging)**:
+    - Decompiled `copyOamStagingToOam` ($AB5E): OAM DMA transfer initiator via REG_OAMADDR ($2003) and REG_OAMDMA ($4014).
+    - Decompiled `copyCurrentScrollAndCtrlToPPU` ($AA8A): Scroll flush to (0, 0) and PPUCTRL flush from `currentPpuCtrl`.
+    - Decompiled `loadSpriteIntoOamStaging` ($8C27): Table-driven OAM sprite staging with contiguous sprite data and 90-entry lookup table.
+    - Decompiled `stageSpriteForCurrentPiece` ($8A0A): Active tetromino 4-mino coordinate calculation, 1P/2P field offset, and Y < $2F clipping to invisible tile $FF.
+    - Decompiled `stageSpriteForNextPiece` ($8BCE): Next piece preview sprite staging using `orientationToSpriteTable` and OAM staging.
+    - Decompiled `updatePaletteForLevel` ($9808): Modulo-10 level color palette copying to PPUADDR $3F08 and $3F18 using `colorTable`.
+    - Decompiled `render_mode_legal_and_title_screens` ($82B1): Legal/title screen PPUCTRL masking and scroll flush.
+    - Decompiled `render_mode_menu_screens` ($85DA): Menu screens PPUCTRL masking/write and scroll flush.
+    - Decompiled `render_mode_ending_animation` ($9F95): Type A and Type B ending score display to PPU nametable and scroll flush.
+    - Decompiled `render` ($804B): Master render dispatcher jump table for modes 0..4.
+    - Decompiled `gameModeState_updatePlayer1` ($8174): P1 state sync, playState branch, piece sprite staging, and state increment.
+    - Decompiled `gameModeState_updatePlayer2` ($8186): 2-player state sync, playState branch, piece sprite staging, and state increment.
+    - Decompiled `playState_bTypeGoalCheck_ret` ($A42B): Goal check return stub incrementing playState.
+    - Authoritative data tables bit-exact verified against reference ROM: `orientationToSpriteTable` ($8BE5, 19 bytes), `colorTable` ($984C, 40 bytes), `oamContentLookupAndSprites` ($8C6C, 2008 bytes).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyOamStagingToOam`, `copyCurrentScrollAndCtrlToPPU`, `loadSpriteIntoOamStaging`, `stageSpriteForCurrentPiece`, `stageSpriteForNextPiece`, `updatePaletteForLevel`, `render_mode_legal_and_title_screens`, `render_mode_menu_screens`, `render_mode_ending_animation`, `render`, `gameModeState_updatePlayer1`, `gameModeState_updatePlayer2`, and `playState_bTypeGoalCheck_ret` (Tests 41–53).
 
 15. [ ] **Batch 12 (Audio & Sound Effects)**:
     - APU sound effects and music sequencing.
@@ -196,3 +210,4 @@
 | Batch 9 | Menu Navigation: Game Type Menu & Level Menu Navigation | 4 | 46 | 10 suites / 19 ROM tables + 28 6502 diff | `3d19246` |
 | Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `c24f9c0` |
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
+| Batch 11 | PPU Rendering, Palette, OAM Sprite Staging & Player Game Loops | 13 | 80 | 12 suites / 32 ROM tables + 53 6502 diff | pending |

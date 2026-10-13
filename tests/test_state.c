@@ -573,6 +573,45 @@ static void test_play_and_ending_high_score_dispatcher(void) {
     printf("  [PASS] test_play_and_ending_high_score_dispatcher\n");
 }
 
+static void test_game_mode_state_update_players(void) {
+    NES_State nes;
+    nes_init(&nes);
+
+    /* Test playState_bTypeGoalCheck_ret */
+    nes.ram[ADDR_PLAY_STATE] = 5;
+    playState_bTypeGoalCheck_ret(&nes);
+    assert(nes.ram[ADDR_PLAY_STATE] == 6);
+
+    /* Test gameModeState_updatePlayer1 */
+    nes.ram[ADDR_GAME_MODE_STATE] = 4;
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    nes.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_NOOP_9;
+    nes.ram[ADDR_P1_CURRENT_PIECE] = ORIENT_T_UP;
+    nes.ram[ADDR_P1_TETRIMINO_X] = 5;
+    nes.ram[ADDR_P1_TETRIMINO_Y] = 10;
+    nes.ram[ADDR_DISPLAY_NEXT_PIECE] = 1; /* skip next piece staging */
+    gameModeState_updatePlayer1(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 5);
+    assert(nes.ram[ADDR_OAM_STAGING_LENGTH] == 16);
+
+    /* Test gameModeState_updatePlayer2 in 1-player mode (no-op except inc) */
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+    gameModeState_updatePlayer2(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 6);
+
+    /* Test gameModeState_updatePlayer2 in 2-player mode */
+    nes.ram[ADDR_GAME_MODE_STATE] = 5;
+    nes.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+    nes.ram[ADDR_P2_PLAY_STATE] = PLAYSTATE_NOOP_9;
+    nes.ram[ADDR_P2_CURRENT_PIECE] = ORIENT_T_UP;
+    nes.ram[ADDR_P2_TETRIMINO_X] = 5;
+    nes.ram[ADDR_P2_TETRIMINO_Y] = 10;
+    gameModeState_updatePlayer2(&nes);
+    assert(nes.ram[ADDR_GAME_MODE_STATE] == 6);
+
+    printf("  [PASS] test_game_mode_state_update_players\n");
+}
+
 int test_state_subsystem(void) {
     printf("[RUN] Running Gameplay State Machine tests...\n");
     test_player_context_switching();
@@ -587,6 +626,7 @@ int test_state_subsystem(void) {
     test_start_button_handling_unit();
     test_init_game_background_and_state();
     test_play_and_ending_high_score_dispatcher();
+    test_game_mode_state_update_players();
     printf("[PASS] All Gameplay State Machine unit tests passed successfully!\n");
     return 0;
 }

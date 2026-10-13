@@ -71,6 +71,25 @@ extern const uint8_t rotationTable[19 * 2];
 /* Gravity table (NTSC): levels 0 to 28 */
 extern const uint8_t framesPerDropTable[29];
 
+/* Orientation to sprite index table for next piece preview (19 bytes at $8BE5) */
+extern const uint8_t orientationToSpriteTable[19];
+
+/*
+ * Stages the 4 minos of the current active tetromino into OAM staging ($0200).
+ * Calculates screen coordinates from tetriminoX and tetriminoY.
+ * Applies 1P vs 2P offsets and clips minos with Y < $2F (transparent tile 0xFF).
+ * Source address: $8A0A (main.asm lines 1668-1758).
+ */
+void stageSpriteForCurrentPiece(NES_State *nes);
+
+/*
+ * Stages the next piece preview sprite into OAM staging.
+ * If displayNextPiece ($DF) != 0, returns early.
+ * Sets sprite offsets (X = $C8, Y = $77) and loads sprite via loadSpriteIntoOamStaging.
+ * Source address: $8BCE (main.asm lines 1832-1846).
+ */
+void stageSpriteForNextPiece(NES_State *nes);
+
 #ifdef __cplusplus
 }
 #endif

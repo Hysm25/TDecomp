@@ -1,4 +1,5 @@
 #include "game/tetrimino.h"
+#include "game/render.h"
 
 /*
  * Rotation lookup table: 19 orientations * 2 directions (B counter-clockwise, A clockwise).
@@ -313,4 +314,104 @@ void drop_tetrimino(NES_State *nes) {
         nes->ram[ADDR_PLAY_STATE] = PLAYSTATE_LOCK_TETRIMINO;
         updatePlayfield(nes);
     }
+}
+
+/*
+ * Orientation to sprite index table for next piece preview (19 bytes at $8BE5).
+ * Maps spawn orientations to sprite indices in oamContentLookup.
+ * Source address: $8BE5 (main.asm lines 1847-1850).
+ */
+const uint8_t orientationToSpriteTable[19] = {
+    0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x09,
+    0x08, 0x00, 0x0B, 0x07, 0x00, 0x00, 0x0A, 0x00,
+    0x00, 0x00, 0x0C
+};
+
+/*
+ * Stages the 4 minos of the current active tetromino into OAM staging ($0200).
+ * Calculates screen coordinates from tetriminoX and tetriminoY.
+ * Applies 1P vs 2P offsets and clips minos with Y < $2F (transparent tile 0xFF).
+ * Source address: $8A0A (main.asm lines 1668-1758).
+ */
+void stageSpriteForCurrentPiece(NES_State *nes) {
+    if (!nes) return;
+
+    uint8_t x = nes->ram[ADDR_TETRIMINO_X];
+    uint8_t x_center = (uint8_t)((x << 3) + 0x60);
+    nes->ram[ADDR_GENERAL_COUNTER3] = x_center;
+
+    if (nes->ram[ADDR_NUMBER_OF_PLAYERS] != 1) {
+        x_center = (uint8_t)(x_center - 0x40);
+        nes->ram[ADDR_GENERAL_COUNTER3] = x_center;
+        if (nes->ram[ADDR_ACTIVE_PLAYER] != 1) {
+            x_center = (uint8_t)(x_center + 0x6F);
+            nes->ram[ADDR_GENERAL_COUNTER3] = x_center;
+        }
+    }
+
+    uint8_t y = nes->ram[ADDR_TETRIMINO_Y];
+    uint8_t y_center = (uint8_t)((y << 3) + 0x2F);
+    nes->ram[ADDR_GENERAL_COUNTER4] = y_center;
+
+    uint8_t piece = nes->ram[ADDR_CURRENT_PIECE];
+    nes->ram[ADDR_GENERAL_COUNTER5] = piece;
+    nes->ram[ADDR_GENERAL_COUNTER] = (uint8_t)(piece << 2);
+
+    uint8_t tbl_idx = (uint8_t)(piece * 12);
+    uint8_t oam_len = nes->ram[ADDR_OAM_STAGING_LENGTH];
+    nes->ram[ADDR_GENERAL_COUNTER2] = 4;
+
+    for (uint8_t i = 0; i < 4; i++) {
+        uint8_t y_offset = orientationTable[tbl_idx++];
+        uint8_t mino_y = (uint8_t)((y_offset << 3) + y_center);
+        nes->ram[ADDR_OAM_STAGING + oam_len] = mino_y;
+        nes->ram[ADDR_ORIGINAL_Y] = mino_y;
+        oam_len++;
+
+        uint8_t tile_id = orientationTable[tbl_idx++];
+        nes->ram[ADDR_OAM_STAGING + oam_len] = tile_id;
+        oam_len++;
+
+        nes->ram[ADDR_OAM_STAGING + oam_len] = 0x02;
+
+        if (mino_y < 0x2F) {
+            oam_len++;
+            nes->ram[ADDR_OAM_STAGING + oam_len - 2] = 0xFF;
+            nes->ram[ADDR_OAM_STAGING + oam_len] = 0x00;
+            oam_len++;
+            tbl_idx++;
+        } else {
+            oam_len++;
+            uint8_t x_offset = orientationTable[tbl_idx++];
+            uint8_t mino_x = (uint8_t)((x_offset << 3) + x_center);
+            nes->ram[ADDR_OAM_STAGING + oam_len] = mino_x;
+            oam_len++;
+        }
+
+        nes->ram[ADDR_OAM_STAGING_LENGTH] = oam_len;
+        nes->ram[ADDR_GENERAL_COUNTER2]--;
+    }
+}
+
+/*
+ * Stages the next piece preview sprite into OAM staging.
+ * If displayNextPiece ($DF) != 0, returns early.
+ * Sets sprite offsets (X = $C8, Y = $77) and loads sprite via loadSpriteIntoOamStaging.
+ * Source address: $8BCE (main.asm lines 1832-1846).
+ */
+void stageSpriteForNextPiece(NES_State *nes) {
+    if (!nes) return;
+
+    if (nes->ram[ADDR_DISPLAY_NEXT_PIECE] != 0) {
+        return;
+    }
+
+    nes->ram[ADDR_SPRITE_X_OFFSET] = 0xC8;
+    nes->ram[ADDR_SPRITE_Y_OFFSET] = 0x77;
+
+    uint8_t next = nes->ram[ADDR_NEXT_PIECE];
+    uint8_t sprite_idx = (next < 19) ? orientationToSpriteTable[next] : 0;
+    nes->ram[ADDR_SPRITE_INDEX_OAM] = sprite_idx;
+
+    loadSpriteIntoOamStaging(nes);
 }

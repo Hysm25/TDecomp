@@ -9,6 +9,7 @@ extern int test_input_subsystem(void);
 extern int test_state_subsystem(void);
 extern int test_menu_subsystem(void);
 extern int test_highscore_subsystem(void);
+extern int test_render_subsystem(void);
 extern int test_differential_verification(void);
 
 int main(void) {
@@ -24,6 +25,7 @@ int main(void) {
     failures += test_state_subsystem();
     failures += test_menu_subsystem();
     failures += test_highscore_subsystem();
+    failures += test_render_subsystem();
 
     printf("\n=== Running Reference ROM & 6502 Differential Verification ===\n");
     failures += test_differential_verification();

@@ -189,6 +189,28 @@ void gameMode_playAndEndingHighScore(NES_State *nes);
  */
 void gameMode_playAndEndingHighScore_jmp(NES_State *nes);
 
+/*
+ * Mode 4 / 5 State 4: updates Player 1 gameplay state.
+ * Activates P1, branches on playState, stages current piece sprites,
+ * saves P1 state, stages next piece sprite, and increments gameModeState.
+ * Source address: $8174 (main.asm lines 442-450).
+ */
+void gameModeState_updatePlayer1(NES_State *nes);
+
+/*
+ * Mode 4 / 5 State 5: updates Player 2 gameplay state (2-player mode only).
+ * If numberOfPlayers == 2, activates P2, branches on playState, stages sprites,
+ * and saves P2 state. Increments gameModeState.
+ * Source address: $8186 (main.asm lines 451-461).
+ */
+void gameModeState_updatePlayer2(NES_State *nes);
+
+/*
+ * Return stub for playState_bTypeGoalCheck: increments playState and returns.
+ * Source address: $A42B (main.asm lines 4585-4588).
+ */
+void playState_bTypeGoalCheck_ret(NES_State *nes);
+
 #ifdef __cplusplus
 }
 #endif

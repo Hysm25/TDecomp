@@ -112,6 +112,59 @@ int test_tetrimino_subsystem(void) {
     assert(getDropSpeed(29) == 1);
     assert(getDropSpeed(35) == 1);
 
+    /* Test 10: stageSpriteForCurrentPiece (1P mode) */
+    {
+        NES_State nes_st;
+        nes_init(&nes_st);
+        nes_st.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_st.ram[ADDR_ACTIVE_PLAYER] = 1;
+        nes_st.ram[ADDR_TETRIMINO_X] = 5;
+        nes_st.ram[ADDR_TETRIMINO_Y] = 10;
+        nes_st.ram[ADDR_CURRENT_PIECE] = ORIENT_T_UP; /* 0 */
+        nes_st.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        stageSpriteForCurrentPiece(&nes_st);
+
+        assert(nes_st.ram[ADDR_OAM_STAGING_LENGTH] == 16);
+        assert(nes_st.ram[ADDR_GENERAL_COUNTER3] == (uint8_t)((5 << 3) + 0x60));
+        assert(nes_st.ram[ADDR_GENERAL_COUNTER4] == (uint8_t)((10 << 3) + 0x2F));
+    }
+
+    /* Test 11: stageSpriteForCurrentPiece clipping above visible field */
+    {
+        NES_State nes_clip;
+        nes_init(&nes_clip);
+        nes_clip.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_clip.ram[ADDR_ACTIVE_PLAYER] = 1;
+        nes_clip.ram[ADDR_TETRIMINO_X] = 5;
+        nes_clip.ram[ADDR_TETRIMINO_Y] = 0; /* minos may have Y < 0x2F */
+        nes_clip.ram[ADDR_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_clip.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        stageSpriteForCurrentPiece(&nes_clip);
+        assert(nes_clip.ram[ADDR_OAM_STAGING_LENGTH] == 16);
+    }
+
+    /* Test 12: stageSpriteForNextPiece */
+    {
+        NES_State nes_next;
+        nes_init(&nes_next);
+        /* displayNextPiece == 1 -> no staging */
+        nes_next.ram[ADDR_DISPLAY_NEXT_PIECE] = 1;
+        nes_next.ram[ADDR_NEXT_PIECE] = ORIENT_T_DOWN; /* 2 */
+        nes_next.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+        stageSpriteForNextPiece(&nes_next);
+        assert(nes_next.ram[ADDR_OAM_STAGING_LENGTH] == 0);
+
+        /* displayNextPiece == 0 -> stages preview sprite */
+        nes_next.ram[ADDR_DISPLAY_NEXT_PIECE] = 0;
+        stageSpriteForNextPiece(&nes_next);
+        assert(nes_next.ram[ADDR_SPRITE_X_OFFSET] == 0xC8);
+        assert(nes_next.ram[ADDR_SPRITE_Y_OFFSET] == 0x77);
+        assert(nes_next.ram[ADDR_SPRITE_INDEX_OAM] == 6); /* T piece sprite */
+        assert(nes_next.ram[ADDR_OAM_STAGING_LENGTH] > 0);
+    }
+
     printf("  [PASS] test_tetrimino_subsystem\n");
     return 0;
 }

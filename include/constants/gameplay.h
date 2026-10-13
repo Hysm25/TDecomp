@@ -144,6 +144,13 @@ extern "C" {
 #define RENDER_STATS            0x40
 #define RENDER_HIGH_SCORE_LETTER 0x80
 
+/* Render Modes (renderMode $00BD) */
+#define RENDER_MODE_LEGAL_AND_TITLE     0x00
+#define RENDER_MODE_MENUS               0x01
+#define RENDER_MODE_CONGRATULATIONS     0x02
+#define RENDER_MODE_PLAY_AND_DEMO       0x03
+#define RENDER_MODE_ENDING              0x04
+
 #ifdef __cplusplus
 }
 #endif

@@ -13,22 +13,36 @@
 #include "game/state.h"
 #include "game/menu.h"
 #include "game/highscore.h"
+#include "game/render.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
+#define ROM_ADDR_RENDER                 0x804B
+#define ROM_ADDR_GAME_MODE_STATE_UPDATE_P1 0x8174
+#define ROM_ADDR_GAME_MODE_STATE_UPDATE_P2 0x8186
 #define ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE 0x819B
 #define ROM_ADDR_BRANCH_ON_GAME_MODE    0x8161
 #define ROM_ADDR_BRANCH_ON_PLAY_STATE_P1 0x81B2
 #define ROM_ADDR_LEGAL_SCREEN           0x8200
 #define ROM_ADDR_TITLE_SCREEN           0x824F
 #define ROM_ADDR_TITLE_TIMEOUT_CHECK    0x8296
+#define ROM_ADDR_RENDER_MODE_LEGAL_AND_TITLE 0x82B1
 #define ROM_ADDR_GAME_TYPE_MENU_LOOP    0x830B
 #define ROM_ADDR_LEVEL_MENU_PROCESS_P1  0x8436
 #define ROM_ADDR_LEVEL_MENU_HANDLE_NAV  0x84AE
+#define ROM_ADDR_RENDER_MODE_MENUS      0x85DA
 #define ROM_ADDR_MAKE_PLAYER1_ACTIVE    0x8776
 #define ROM_ADDR_MAKE_PLAYER2_ACTIVE    0x8792
 #define ROM_ADDR_SAVE_PLAYER1_STATE     0x87AE
 #define ROM_ADDR_SAVE_PLAYER2_STATE     0x87C8
+#define ROM_ADDR_STAGE_SPRITE_CURRENT_PIECE 0x8A0A
+#define ROM_ADDR_STAGE_SPRITE_NEXT_PIECE 0x8BCE
+#define ROM_ADDR_LOAD_SPRITE_INTO_OAM_STAGING 0x8C27
 #define ROM_ADDR_UPDATE_COUNTERS_AND_NON_PLAYER_STATE 0x8884
+#define ROM_ADDR_UPDATE_PALETTE_FOR_LEVEL 0x9808
+#define ROM_ADDR_RENDER_MODE_ENDING_ANIMATION 0x9F95
+#define ROM_ADDR_PLAYSTATE_B_TYPE_GOAL_CHECK_RET 0xA42B
+#define ROM_ADDR_COPY_CURRENT_SCROLL_CTRL_PPU 0xAA8A
+#define ROM_ADDR_COPY_OAM_STAGING_TO_OAM 0xAB5E
 #define ROM_ADDR_IS_POSITION_VALID      0x948B
 #define ROM_ADDR_TWO_DIGS_TO_PPU        0x9712
 #define ROM_ADDR_SPAWN_NEXT_TETRIMINO   0x988E
@@ -1775,6 +1789,345 @@ int test_differential_verification(void) {
 
         assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
         assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 2);
+    }
+
+    /* Test 41: Differential copyOamStagingToOam ($AB5E) */
+    {
+        NES_State nes_6502 = rom_nes;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_COPY_OAM_STAGING_TO_OAM, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_OAM_STAGING_TO_OAM, 50);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        copyOamStagingToOam(&nes_c);
+        assert(nes_6502.oam_addr == nes_c.oam_addr);
+    }
+
+    /* Test 42: Differential copyCurrentScrollAndCtrlToPPU ($AA8A) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_PPU_CTRL] = 0x98;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_COPY_CURRENT_SCROLL_CTRL_PPU, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_COPY_CURRENT_SCROLL_CTRL_PPU, 50);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_PPU_CTRL] = 0x98;
+        copyCurrentScrollAndCtrlToPPU(&nes_c);
+        assert(nes_6502.ppu_ctrl == nes_c.ppu_ctrl);
+    }
+
+    /* Test 43: Differential loadSpriteIntoOamStaging ($8C27) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_SPRITE_INDEX_OAM] = 0x00;
+        nes_6502.ram[ADDR_SPRITE_X_OFFSET] = 0x20;
+        nes_6502.ram[ADDR_SPRITE_Y_OFFSET] = 0x30;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0x00;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LOAD_SPRITE_INTO_OAM_STAGING, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LOAD_SPRITE_INTO_OAM_STAGING, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_SPRITE_INDEX_OAM] = 0x00;
+        nes_c.ram[ADDR_SPRITE_X_OFFSET] = 0x20;
+        nes_c.ram[ADDR_SPRITE_Y_OFFSET] = 0x30;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0x00;
+
+        loadSpriteIntoOamStaging(&nes_c);
+
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER2] == nes_c.ram[ADDR_GENERAL_COUNTER2]);
+        assert(memcmp(&nes_6502.ram[ADDR_OAM_STAGING], &nes_c.ram[ADDR_OAM_STAGING], 16) == 0);
+    }
+
+    /* Test 44: Differential stageSpriteForCurrentPiece ($8A0A) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_6502.ram[ADDR_ACTIVE_PLAYER] = 1;
+        nes_6502.ram[ADDR_TETRIMINO_X] = 5;
+        nes_6502.ram[ADDR_TETRIMINO_Y] = 10;
+        nes_6502.ram[ADDR_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_STAGE_SPRITE_CURRENT_PIECE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_STAGE_SPRITE_CURRENT_PIECE, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_c.ram[ADDR_ACTIVE_PLAYER] = 1;
+        nes_c.ram[ADDR_TETRIMINO_X] = 5;
+        nes_c.ram[ADDR_TETRIMINO_Y] = 10;
+        nes_c.ram[ADDR_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        stageSpriteForCurrentPiece(&nes_c);
+
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER3] == nes_c.ram[ADDR_GENERAL_COUNTER3]);
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER4] == nes_c.ram[ADDR_GENERAL_COUNTER4]);
+        assert(nes_6502.ram[ADDR_ORIGINAL_Y] == nes_c.ram[ADDR_ORIGINAL_Y]);
+        assert(memcmp(&nes_6502.ram[ADDR_OAM_STAGING], &nes_c.ram[ADDR_OAM_STAGING], 16) == 0);
+    }
+
+    /* Test 45: Differential stageSpriteForNextPiece ($8BCE) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_DISPLAY_NEXT_PIECE] = 0;
+        nes_6502.ram[ADDR_NEXT_PIECE] = ORIENT_T_DOWN;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_STAGE_SPRITE_NEXT_PIECE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_STAGE_SPRITE_NEXT_PIECE, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_DISPLAY_NEXT_PIECE] = 0;
+        nes_c.ram[ADDR_NEXT_PIECE] = ORIENT_T_DOWN;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        stageSpriteForNextPiece(&nes_c);
+
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_SPRITE_X_OFFSET] == nes_c.ram[ADDR_SPRITE_X_OFFSET]);
+        assert(nes_6502.ram[ADDR_SPRITE_Y_OFFSET] == nes_c.ram[ADDR_SPRITE_Y_OFFSET]);
+        assert(nes_6502.ram[ADDR_SPRITE_INDEX_OAM] == nes_c.ram[ADDR_SPRITE_INDEX_OAM]);
+        assert(memcmp(&nes_6502.ram[ADDR_OAM_STAGING], &nes_c.ram[ADDR_OAM_STAGING], 16) == 0);
+    }
+
+    /* Test 46: Differential updatePaletteForLevel ($9808) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_P1_LEVEL_NUMBER] = 17;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_UPDATE_PALETTE_FOR_LEVEL, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_UPDATE_PALETTE_FOR_LEVEL, 200);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_P1_LEVEL_NUMBER] = 17;
+
+        updatePaletteForLevel(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+    }
+
+    /* Test 47: Differential render_mode_legal_and_title_screens ($82B1) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_PPU_CTRL] = 0x9B;
+        nes_6502.ram[ADDR_PPU_SCROLL_X] = 10;
+        nes_6502.ram[ADDR_PPU_SCROLL_Y] = 20;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_MODE_LEGAL_AND_TITLE, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_MODE_LEGAL_AND_TITLE, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_PPU_CTRL] = 0x9B;
+        nes_c.ram[ADDR_PPU_SCROLL_X] = 10;
+        nes_c.ram[ADDR_PPU_SCROLL_Y] = 20;
+
+        render_mode_legal_and_title_screens(&nes_c);
+
+        assert(nes_6502.ram[ADDR_CURRENT_PPU_CTRL] == nes_c.ram[ADDR_CURRENT_PPU_CTRL]);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_X] == nes_c.ram[ADDR_PPU_SCROLL_X]);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_Y] == nes_c.ram[ADDR_PPU_SCROLL_Y]);
+    }
+
+    /* Test 48: Differential render_mode_menu_screens ($85DA) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_CURRENT_PPU_CTRL] = 0x9B;
+        nes_6502.ram[ADDR_PPU_SCROLL_X] = 10;
+        nes_6502.ram[ADDR_PPU_SCROLL_Y] = 20;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_MODE_MENUS, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_MODE_MENUS, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_CURRENT_PPU_CTRL] = 0x9B;
+        nes_c.ram[ADDR_PPU_SCROLL_X] = 10;
+        nes_c.ram[ADDR_PPU_SCROLL_Y] = 20;
+
+        render_mode_menu_screens(&nes_c);
+
+        assert(nes_6502.ram[ADDR_CURRENT_PPU_CTRL] == nes_c.ram[ADDR_CURRENT_PPU_CTRL]);
+        assert(nes_6502.ppu_ctrl == nes_c.ppu_ctrl);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_X] == nes_c.ram[ADDR_PPU_SCROLL_X]);
+        assert(nes_6502.ram[ADDR_PPU_SCROLL_Y] == nes_c.ram[ADDR_PPU_SCROLL_Y]);
+    }
+
+    /* Test 49: Differential render_mode_ending_animation ($9F95) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_B;
+        nes_6502.ram[ADDR_P1_SCORE] = 0x12;
+        nes_6502.ram[ADDR_P1_SCORE + 1] = 0x34;
+        nes_6502.ram[ADDR_P1_SCORE + 2] = 0x56;
+        nes_6502.ram[ADDR_GENERAL_COUNTER4] = 0x09;
+        nes_6502.ram[ADDR_GENERAL_COUNTER5] = 0x05;
+        nes_6502.ram[ADDR_TOTAL_SCORE] = 0x99;
+        nes_6502.ram[ADDR_TOTAL_SCORE + 1] = 0x88;
+        nes_6502.ram[ADDR_TOTAL_SCORE + 2] = 0x07;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_MODE_ENDING_ANIMATION, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_MODE_ENDING_ANIMATION, 500);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_B;
+        nes_c.ram[ADDR_P1_SCORE] = 0x12;
+        nes_c.ram[ADDR_P1_SCORE + 1] = 0x34;
+        nes_c.ram[ADDR_P1_SCORE + 2] = 0x56;
+        nes_c.ram[ADDR_GENERAL_COUNTER4] = 0x09;
+        nes_c.ram[ADDR_GENERAL_COUNTER5] = 0x05;
+        nes_c.ram[ADDR_TOTAL_SCORE] = 0x99;
+        nes_c.ram[ADDR_TOTAL_SCORE + 1] = 0x88;
+        nes_c.ram[ADDR_TOTAL_SCORE + 2] = 0x07;
+
+        render_mode_ending_animation(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+    }
+
+    /* Test 50: Differential render ($804B) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_RENDER_MODE] = RENDER_MODE_LEGAL_AND_TITLE;
+        nes_6502.ram[ADDR_CURRENT_PPU_CTRL] = 0xFF;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_RENDER_MODE] = RENDER_MODE_LEGAL_AND_TITLE;
+        nes_c.ram[ADDR_CURRENT_PPU_CTRL] = 0xFF;
+
+        render(&nes_c);
+
+        assert(nes_6502.ram[ADDR_CURRENT_PPU_CTRL] == nes_c.ram[ADDR_CURRENT_PPU_CTRL]);
+    }
+
+    /* Test 51: Differential gameModeState_updatePlayer1 ($8174) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 4;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_6502.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_NOOP_9;
+        nes_6502.ram[ADDR_P1_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_6502.ram[ADDR_P1_TETRIMINO_X] = 5;
+        nes_6502.ram[ADDR_P1_TETRIMINO_Y] = 10;
+        nes_6502.ram[ADDR_DISPLAY_NEXT_PIECE] = 1;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P1, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P1, 1000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 4;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+        nes_c.ram[ADDR_P1_PLAY_STATE] = PLAYSTATE_NOOP_9;
+        nes_c.ram[ADDR_P1_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_c.ram[ADDR_P1_TETRIMINO_X] = 5;
+        nes_c.ram[ADDR_P1_TETRIMINO_Y] = 10;
+        nes_c.ram[ADDR_DISPLAY_NEXT_PIECE] = 1;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        gameModeState_updatePlayer1(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_P1_PLAY_STATE] == nes_c.ram[ADDR_P1_PLAY_STATE]);
+    }
+
+    /* Test 52: Differential gameModeState_updatePlayer2 ($8186) */
+    {
+        /* Case 1: 1-Player mode (no-op except inc) */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 5;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P2, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P2, 100);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 5;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 1;
+
+        gameModeState_updatePlayer2(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_c.ram[ADDR_GAME_MODE_STATE] == 6);
+
+        /* Case 2: 2-Player mode */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_MODE_STATE] = 5;
+        nes_6502.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_6502.ram[ADDR_P2_PLAY_STATE] = PLAYSTATE_NOOP_9;
+        nes_6502.ram[ADDR_P2_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_6502.ram[ADDR_P2_TETRIMINO_X] = 5;
+        nes_6502.ram[ADDR_P2_TETRIMINO_Y] = 10;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P2, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_GAME_MODE_STATE_UPDATE_P2, 1000);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_MODE_STATE] = 5;
+        nes_c.ram[ADDR_NUMBER_OF_PLAYERS] = 2;
+        nes_c.ram[ADDR_P2_PLAY_STATE] = PLAYSTATE_NOOP_9;
+        nes_c.ram[ADDR_P2_CURRENT_PIECE] = ORIENT_T_UP;
+        nes_c.ram[ADDR_P2_TETRIMINO_X] = 5;
+        nes_c.ram[ADDR_P2_TETRIMINO_Y] = 10;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        gameModeState_updatePlayer2(&nes_c);
+
+        assert(nes_6502.ram[ADDR_GAME_MODE_STATE] == nes_c.ram[ADDR_GAME_MODE_STATE]);
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(nes_6502.ram[ADDR_P2_PLAY_STATE] == nes_c.ram[ADDR_P2_PLAY_STATE]);
+    }
+
+    /* Test 53: Differential playState_bTypeGoalCheck_ret ($A42B) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_PLAY_STATE] = 5;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_PLAYSTATE_B_TYPE_GOAL_CHECK_RET, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_PLAYSTATE_B_TYPE_GOAL_CHECK_RET, 50);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_PLAY_STATE] = 5;
+
+        playState_bTypeGoalCheck_ret(&nes_c);
+
+        assert(nes_6502.ram[ADDR_PLAY_STATE] == nes_c.ram[ADDR_PLAY_STATE]);
+        assert(nes_c.ram[ADDR_PLAY_STATE] == 6);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

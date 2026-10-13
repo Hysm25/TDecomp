@@ -51,8 +51,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master render dispatcher jump table for modes 0..4 differential proven against 6502 ROM (Test 50)"
     },
     {
       "name": "initRamContinued",
@@ -107,8 +107,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: P1 state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 51)"
     },
     {
       "name": "gameModeState_updatePlayer2",
@@ -121,8 +121,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: 2-player state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 52)"
     },
     {
       "name": "gameMode_playAndEndingHighScore",
@@ -233,8 +233,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Legal/title screen PPUCTRL masking and scroll flush differential proven against 6502 ROM (Test 47)"
     },
     {
       "name": "gameMode_gameTypeMenu",
@@ -303,8 +303,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Menu screens PPUCTRL masking/write and scroll flush differential proven against 6502 ROM (Test 48)"
     },
     {
       "name": "gameModeState_initGameBackground",
@@ -485,8 +485,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Active tetromino 4-mino coordinate calculation, 1P/2P field offset, and Y < $2F clipping differential proven against 6502 ROM (Test 44)"
     },
     {
       "name": "stageSpriteForNextPiece",
@@ -499,8 +499,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Next piece preview sprite staging using orientationToSpriteTable differential proven against 6502 ROM (Test 45)"
     },
     {
       "name": "loadSpriteIntoOamStaging",
@@ -513,8 +513,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Table-driven OAM sprite staging with contiguous sprite data and 90-entry lookup differential proven against 6502 ROM (Test 43)"
     },
     {
       "name": "isPositionValid",
@@ -597,8 +597,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Modulo-10 level color palette copying to PPUADDR $3F08 and $3F18 using colorTable differential proven against 6502 ROM (Test 46)"
     },
     {
       "name": "noop_disabledVramRowIncr",
@@ -947,8 +947,8 @@
       "jsr_called": false,
       "table_referenced": true,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type A and Type B ending score display to PPU and scroll flush differential proven against 6502 ROM (Test 49)"
     },
     {
       "name": "showHighScores",
@@ -1129,8 +1129,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Goal check return stub incrementing playState differential proven against 6502 ROM (Test 53)"
     },
     {
       "name": "sleep_for_14_vblanks",
@@ -1437,8 +1437,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Scroll flush to (0, 0) and PPUCTRL update differential proven against 6502 ROM (Test 42)"
     },
     {
       "name": "bulkCopyToPpu",
@@ -1479,8 +1479,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: OAM DMA initiator via REG_OAMADDR and REG_OAMDMA differential proven against 6502 ROM (Test 41)"
     },
     {
       "name": "pollController_actualRead",

@@ -722,6 +722,48 @@ void gameModeState_initGameState(NES_State *nes) {
 }
 
 /*
+ * Mode 4 / 5 State 4: updates Player 1 gameplay state.
+ * Activates P1, branches on playState, stages current piece sprites,
+ * saves P1 state, stages next piece sprite, and increments gameModeState.
+ * Source address: $8174 (main.asm lines 442-450).
+ */
+void gameModeState_updatePlayer1(NES_State *nes) {
+    if (!nes) return;
+    makePlayer1Active(nes);
+    branchOnPlayStatePlayer1(nes);
+    stageSpriteForCurrentPiece(nes);
+    savePlayer1State(nes);
+    stageSpriteForNextPiece(nes);
+    nes->ram[ADDR_GAME_MODE_STATE]++;
+}
+
+/*
+ * Mode 4 / 5 State 5: updates Player 2 gameplay state (2-player mode only).
+ * If numberOfPlayers == 2, activates P2, branches on playState, stages sprites,
+ * and saves P2 state. Increments gameModeState.
+ * Source address: $8186 (main.asm lines 451-461).
+ */
+void gameModeState_updatePlayer2(NES_State *nes) {
+    if (!nes) return;
+    if (nes->ram[ADDR_NUMBER_OF_PLAYERS] == 2) {
+        makePlayer2Active(nes);
+        branchOnPlayStatePlayer2(nes);
+        stageSpriteForCurrentPiece(nes);
+        savePlayer2State(nes);
+    }
+    nes->ram[ADDR_GAME_MODE_STATE]++;
+}
+
+/*
+ * Return stub for playState_bTypeGoalCheck: increments playState and returns.
+ * Source address: $A42B (main.asm lines 4585-4588).
+ */
+void playState_bTypeGoalCheck_ret(NES_State *nes) {
+    if (!nes) return;
+    nes->ram[ADDR_PLAY_STATE]++;
+}
+
+/*
  * Master state machine dispatcher for Mode 4 (Playing) and Mode 5 (Ending / Demo),
  * jumping through switch_s_plus_2a over states 0..8 of gameModeState.
  * Source address: $819B (main.asm lines 462-473).
@@ -744,12 +786,10 @@ void gameMode_playAndEndingHighScore(NES_State *nes) {
             gameModeState_handleGameOver(nes);
             break;
         case 4:
-            /* State 4: gameModeState_updatePlayer1 (deferred to Batch 11 sprite staging) */
-            nes->ram[ADDR_GAME_MODE_STATE]++;
+            gameModeState_updatePlayer1(nes);
             break;
         case 5:
-            /* State 5: gameModeState_updatePlayer2 (deferred to Batch 11 sprite staging) */
-            nes->ram[ADDR_GAME_MODE_STATE]++;
+            gameModeState_updatePlayer2(nes);
             break;
         case 6:
             gameModeState_checkForResetKeyCombo(nes);

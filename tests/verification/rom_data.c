@@ -10,6 +10,7 @@
 #include "game/menu.h"
 #include "game/highscore.h"
 #include "game/state.h"
+#include "game/render.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH 0x86B0
@@ -21,6 +22,9 @@
 #define ADDR_ROM_ROTATION_TABLE             0x88EE
 #define ADDR_ROM_FRAMES_PER_DROP_TABLE      0x898E
 #define ADDR_ROM_ORIENTATION_TABLE          0x8A9C
+#define ADDR_ROM_ORIENTATION_TO_SPRITE_TABLE 0x8BE5
+#define ADDR_ROM_COLOR_TABLE                0x984C
+#define ADDR_ROM_OAM_CONTENT_LOOKUP_SPRITES 0x8C6C
 #define ADDR_ROM_TETRIMINO_TYPE_TABLE       0x993B
 #define ADDR_ROM_SPAWN_TABLE                0x994E
 #define ADDR_ROM_SPAWN_ORIENT_TABLE         0x9956
@@ -317,6 +321,27 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (29 ROM data tables verified bit-for-bit)\n");
+    /* Test 30: orientationToSpriteTable (19 bytes at $8BE5) */
+    for (int i = 0; i < 19; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ORIENTATION_TO_SPRITE_TABLE + i));
+        assert(orientationToSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 31: colorTable (40 bytes at $984C) */
+    for (int i = 0; i < 40; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_COLOR_TABLE + i));
+        assert(colorTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 32: oamContentLookupAndSprites (2008 bytes at $8C6C) */
+    for (int i = 0; i < 2008; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_OAM_CONTENT_LOOKUP_SPRITES + i));
+        assert(oamContentLookupAndSprites[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (32 ROM data tables verified bit-for-bit)\n");
     return 0;
 }
