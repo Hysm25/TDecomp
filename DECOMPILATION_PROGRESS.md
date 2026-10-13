@@ -252,6 +252,11 @@
     - Extended multi-routine linker segmentation (`tetris_exp.cfg`) segmenting `PRG_chunk2` cleanly around $E271 with zero code shifting across the entire 32KB PRG payload.
     - Verified 100% bit-exact machine code (22 bytes) and call sites at $E1E8 and $E247 (`jsr $E271`).
     - Differential NMOS 6502 CPU simulator verification: direct subroutine execution on experimental ROM confirms all 5 APU volume/linear/DMC registers silenced with exact states.
+22. [x] **Third C-to-6502 Integration Analysis (Gameplay RNG: `generateNextPseudorandomNumber`)**:
+    - Bare-metal target-ready C implementation (`experimental/c6502/rng.c`) targeting $AB47 (23 bytes, 6502 LFSR).
+    - Compiles cleanly under `cc65` to 62 bytes (ca65/ld65). Exhaustively proven equivalent across all 65,536 seeds (0 errors) and continuous 1,000-step sequence verified in NMOS 6502 differential CPU simulator (Test 1b).
+    - Architectural blocker documented: In-place ROM integration safely BLOCKED due to fixed 23-byte slot capacity ($AB47–$AB5D). A 62-byte routine (+39B overflow) cannot be placed in-place without overwriting downstream code ($AB5E `copyOamStagingToOam` and $AB69 `pollController_actualRead`) or shifting chunk 1.
+    - Safe placement preserved: Baseline assembly build and experimental ROM build remain 100% bit-exact with the two verified C integrations intact and 0 code shifting.
 
 ---
 
@@ -280,3 +285,4 @@
 | ROM Build Baseline | Baseline assembly rebuild & C-to-6502 proof-of-concept pipeline | 0 (Infra) | 171 | 15 suites + baseline & POC verification | `6f6c900` |
 | C-to-6502 Integration 1 | First verified C-to-6502 experimental ROM (`copyOamStagingToOam` at $AB5E) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `6dec196` |
 | C-to-6502 Integration 2 | Second verified C-to-6502 experimental ROM (`muteAudio` at $E271) | 1 (ROM Integration) | 171 | 15 suites + exp ROM verification (92 diff tests) | `73dd826` |
+| C-to-6502 Integration 3 | Third C-to-6502 analysis: gameplay RNG (generateNextPseudorandomNumber at $AB47; in-place integration blocked: 62B vs 23B slot, 0 code shifting preserved) | 1 (Analysis & Target C) | 171 | 15 suites + continuous LFSR sequence diff (92 diff tests) | Pending |

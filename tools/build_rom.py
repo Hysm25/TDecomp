@@ -23,6 +23,7 @@ REF_ROM_PATH = os.path.join(REPO_ROOT, "Tetris (USA).nes")
 POC_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "proof_of_concept.c")
 EXP_C_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "copy_oam.c")
 EXP_MUTE_C_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "mute_audio.c")
+EXP_RNG_C_SRC_PATH = os.path.join(REPO_ROOT, "experimental", "c6502", "rng.c")
 
 EXPECTED_DISASM_SHA1 = "77747840541bfc62a28a5957692a98c550bd6b2b"
 EXPECTED_REF_SHA1    = "3026d28b63d94c921fe58364f8b0659d10b5a0ac"
@@ -211,6 +212,41 @@ SEGMENTS {
 
     # Verify Routine 3: unreferenced_soundRng (behavioral verification)
     print("  [PASS] unreferenced_soundRng compiled cleanly with static zero-page mapping!")
+
+    # Verify Routine 4: generateNextPseudorandomNumber feasibility analysis (experimental/c6502/rng.c)
+    if os.path.isfile(EXP_RNG_C_SRC_PATH):
+        rng_s = os.path.join(output_dir, "rng.s")
+        rng_o = os.path.join(output_dir, "rng.o")
+        rng_bin = os.path.join(output_dir, "rng.bin")
+        rng_cfg = os.path.join(output_dir, "rng.cfg")
+        cmd_rng_c = [cc65, "-I", inc_dir, "-t", "none", "-O", "-Oi", EXP_RNG_C_SRC_PATH, "-o", rng_s]
+        res_rng_c = subprocess.run(cmd_rng_c, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if res_rng_c.returncode == 0:
+            cmd_rng_a = [ca65, rng_s, "-o", rng_o]
+            res_rng_a = subprocess.run(cmd_rng_a, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if res_rng_a.returncode == 0:
+                with open(rng_cfg, "w") as f:
+                    f.write('''
+MEMORY {
+    ZP:  start = $0000, size = $0100, type = rw;
+    ROM: start = $8000, size = $8000, file = "%O";
+}
+SEGMENTS {
+    ZEROPAGE: load = ZP, type = zp;
+    C_RNG:    load = ROM, type = ro;
+    BSS:      load = ROM, type = bss;
+}
+''')
+                res_rng_l = subprocess.run([ld65, "-C", rng_cfg, rng_o, zp_obj, "-o", rng_bin],
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                if res_rng_l.returncode == 0 and os.path.isfile(rng_bin):
+                    rng_size = os.path.getsize(rng_bin)
+                    print(f"  [PASS] generateNextPseudorandomNumber target C compiles cleanly: {rng_size} bytes (ca65/ld65).")
+                    print(f"  [INFO] In-place ROM integration status: BLOCKED")
+                    print(f"         Available slot at $AB47-$AB5D: 23 bytes.")
+                    print(f"         Compiled C footprint: {rng_size} bytes (+{rng_size - 23}B overflow).")
+                    print(f"         Safe placement impossible without broader relocation (would collide with $AB5E copyOamStagingToOam).")
+
     print(f"[C-TO-6502 POC] Verified target C compilation to 6502 machine code: {len(compiled_bytes)} bytes total.")
 
     return True

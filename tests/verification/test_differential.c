@@ -174,6 +174,33 @@ int test_differential_verification(void) {
         }
     }
 
+    /* Test 1b: Continuous LFSR sequence verification across 1,000 steps */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_RNG_SEED] = 0x00;
+        nes_6502.ram[ADDR_RNG_SEED + 1] = 0x00;
+        nes_6502.ram[ADDR_TMP1] = 0x00;
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_RNG_SEED] = 0x00;
+        nes_c.ram[ADDR_RNG_SEED + 1] = 0x00;
+        nes_c.ram[ADDR_TMP1] = 0x00;
+
+        for (int step = 0; step < 1000; step++) {
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_LFSR_PRNG, 0, ADDR_RNG_SEED, 2, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LFSR_PRNG, 1000);
+            assert(ok);
+            (void)ok;
+
+            generateNextPseudorandomNumber(&nes_c, ADDR_RNG_SEED, 2);
+
+            assert(nes_6502.ram[ADDR_RNG_SEED] == nes_c.ram[ADDR_RNG_SEED]);
+            assert(nes_6502.ram[ADDR_RNG_SEED + 1] == nes_c.ram[ADDR_RNG_SEED + 1]);
+            assert(nes_6502.ram[ADDR_TMP1] == nes_c.ram[ADDR_TMP1]);
+        }
+    }
+
     /* Test 2: Differential sound RNG across test seeds */
     {
         uint16_t test_seeds[] = { 0x0003, 0x1234, 0x89AB, 0x5555, 0xAAAA, 0x0200 };
