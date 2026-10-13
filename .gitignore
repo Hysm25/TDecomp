@@ -10,6 +10,7 @@ bin/
 *.dylib
 *.dll
 *.exe
+web/raylib/
 scan_includes
 scan_includes.exe
 tools/cTools/scan_includes

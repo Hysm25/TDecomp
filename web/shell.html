@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TDecomp - NES Tetris (C Decompilation / raylib HTML5)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #0b0d13;
+            color: #d8e0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 10px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        h1 {
+            color: #ff4757;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #1e272e;
+            display: inline-block;
+        }
+        h1 span {
+            color: #ffa502;
+            font-size: 1.4rem;
+            margin-left: 8px;
+        }
+        .subtitle {
+            color: #747d8c;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .game-container {
+            position: relative;
+            background: #1e272e;
+            border: 3px solid #3742fa;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            max-width: 800px;
+            width: 100%;
+        }
+        canvas.emscripten {
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 800 / 720;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            outline: none;
+            background-color: #0e1018;
+            cursor: pointer;
+        }
+        #status-bar {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #2ed573;
+            margin-top: 8px;
+            min-height: 20px;
+        }
+        .controls-panel {
+            max-width: 800px;
+            width: 100%;
+            margin-top: 16px;
+            background: #181c24;
+            border: 1px solid #2f3542;
+            border-radius: 6px;
+            padding: 14px 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+        .control-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        kbd {
+            background: #2f3542;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #57606f;
+            font-size: 0.8rem;
+            font-family: monospace;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #57606f;
+            text-align: center;
+        }
+        footer a {
+            color: #70a1ff;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TDecomp<span>NES TETRIS</span></h1>
+        <p class="subtitle">Portable C11 Decompilation running via raylib WebAssembly</p>
+    </header>
+
+    <div class="game-container">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <div id="status-bar">Loading WebAssembly module...</div>
+
+    <div class="controls-panel">
+        <div class="control-item"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd><span>Move & Drop</span></div>
+        <div class="control-item"><kbd>Z</kbd> / <kbd>J</kbd><span>Rotate CCW (Button B)</span></div>
+        <div class="control-item"><kbd>X</kbd> / <kbd>K</kbd> / <kbd>&uarr;</kbd><span>Rotate CW (Button A)</span></div>
+        <div class="control-item"><kbd>Enter</kbd> / <kbd>Space</kbd><span>Start / Pause / Resume</span></div>
+        <div class="control-item"><kbd>Tab</kbd> / <kbd>Shift</kbd><span>Toggle Next Preview</span></div>
+        <div class="control-item"><kbd>R</kbd><span>Quick Restart</span></div>
+        <div class="control-item"><kbd>M</kbd><span>Mute Audio</span></div>
+    </div>
+
+    <footer>
+        TDecomp is an independent educational decompilation project. Powered by raylib &amp; Emscripten.
+    </footer>
+
+    <script>
+        var statusElement = document.getElementById('status-bar');
+        var canvasElement = document.getElementById('canvas');
+
+        // Automatically focus canvas on click to capture key presses
+        canvasElement.addEventListener('click', function() {
+            canvasElement.focus();
+        });
+
+        var Module = {
+            preRun: [],
+            postRun: [function() {
+                if (statusElement) statusElement.innerText = "Click on the game screen to focus and play!";
+                canvasElement.focus();
+            }],
+            print: function(text) {
+                console.log(text);
+            },
+            printErr: function(text) {
+                console.error(text);
+            },
+            canvas: (function() {
+                return canvasElement;
+            })(),
+            setStatus: function(text) {
+                if (statusElement) {
+                    if (text) {
+                        statusElement.innerText = text;
+                    } else {
+                        statusElement.innerText = "Game ready! Click canvas to focus and play.";
+                    }
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+            }
+        };
+        Module.setStatus('Downloading WebAssembly package...');
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

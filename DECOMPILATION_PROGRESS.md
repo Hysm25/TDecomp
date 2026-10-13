@@ -71,6 +71,7 @@ When `Tetris (USA).nes` is not present, ROM-dependent tests output `SKIPPED: ref
 | **Batch 16** | System Boot & Mapper | Reset vector ($FF00), RAM clearing, MMC1 bankswitch registers, PPU bulk copying |
 | **Simplification** | Minimal C Project | Removed experimental cc65 ROM tooling (archived to `archive/rom-experiments`), streamlined CMake & documentation |
 | **Native Raylib Port** | Desktop Game & Presentation | Native Raylib desktop frontend (`native/`), clean `GameAdapter` interface to `libtdecomp_core.a`, authentic level palettes & rendering, procedural audio, and headless CI verification |
+| **WebAssembly HTML5 Port** | Cross-Platform Web | Emscripten & Raylib HTML5 build (`web/`), direct WASM compilation of C engine and raylib frontend, Node.js headless testing, and responsive canvas shell |
 
 ---
 

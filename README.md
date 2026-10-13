@@ -12,6 +12,7 @@ TDecomp is a clean, modular C decompilation of NES Tetris (USA), providing a por
 - **Make** or **Ninja** build system
 - **Python**: version 3.8+ (optional, for routine census tooling)
 - **raylib**: version 4.5+ (optional; automatically resolved via FetchContent if not installed on system)
+- **Emscripten** (`emcc`): version 3.0+ (optional, for WebAssembly HTML5 build)
 
 ---
 
@@ -99,6 +100,52 @@ TDecomp features a native desktop application powered by [raylib](https://www.ra
 
 ---
 
+## WebAssembly HTML5 Port (Browser)
+
+TDecomp can be compiled directly to WebAssembly using **Emscripten** and **raylib's HTML5 backend**. It reuses the exact same verified C11 decompilation, game adapter, authentic level palettes, and procedural audio without running an NES emulator or requiring a `.nes` ROM file.
+
+### Build WebAssembly Port
+
+```bash
+make -C web
+```
+
+Or via CMake:
+
+```bash
+cmake --build build --target web
+```
+
+Compiles the core engine and raylib frontend to `web/tdecomp.html`, `web/tdecomp.js`, and `web/tdecomp.wasm` (along with `web/index.html`).
+
+### Test WebAssembly Build (Node.js)
+
+To verify the WebAssembly build in headless mode without a browser:
+
+```bash
+make -C web test
+```
+
+Or run Node.js directly:
+
+```bash
+node web/tdecomp.js --headless --test-frames 120
+```
+
+### Play in Web Browser
+
+Start a local HTTP server:
+
+```bash
+python3 -m http.server 8080 --directory web
+# or:
+make -C web serve
+```
+
+Open `http://localhost:8080` in any modern web browser. Click the canvas to focus controls and play!
+
+---
+
 ## Routine Inventory Census
 
 To audit or regenerate the routine census against the reference disassembly:
@@ -125,6 +172,7 @@ TDecomp/
 ├── src/                        # C source implementations (libtdecomp_core.a)
 ├── tests/                      # Unit tests & 6502 differential CPU verification
 ├── native/                     # Native Raylib desktop frontend (adapter, renderer, audio)
+├── web/                        # WebAssembly HTML5 port (Makefile, shell template, browser build)
 ├── tools/                      # Disassembly routine census script (inventory_routines.py)
 └── TetrisNESDisasm/            # Reference disassembly submodule
 ```

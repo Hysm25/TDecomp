@@ -134,3 +134,12 @@ if(BUILD_NATIVE_APP)
         target_link_libraries(tdecomp PRIVATE m pthread dl)
     endif()
 endif()
+
+# WebAssembly convenience target
+find_program(EMCC_EXECUTABLE emcc)
+if(EMCC_EXECUTABLE)
+    add_custom_target(web
+        COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_CURRENT_SOURCE_DIR}/web
+        COMMENT "Build WebAssembly HTML5 port via Emscripten and raylib"
+    )
+endif()

@@ -7,6 +7,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__EMSCRIPTEN__)
+#include <emscripten/emscripten.h>
+#endif
+
+static GameAdapter s_adapter;
+
 static void print_usage(const char *prog) {
     printf("TDecomp - NES Tetris (Portable C Decompilation Port)\n\n");
     printf("Usage:\n");
@@ -26,6 +32,79 @@ static void print_usage(const char *prog) {
     printf("  R                    : Quick Restart\n");
     printf("  M                    : Toggle Audio Mute\n");
     printf("  Esc                  : Exit\n");
+}
+
+static void game_frame_step(void) {
+    /* Global keys */
+    if (IsKeyPressed(KEY_M)) {
+        native_audio_toggle_mute();
+    }
+
+    if (s_adapter.screen == SCREEN_TITLE) {
+        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            game_adapter_menu_select(&s_adapter);
+        }
+    } else if (s_adapter.screen == SCREEN_LEVEL_SELECT) {
+        if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
+            game_adapter_menu_left(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
+            game_adapter_menu_right(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
+            game_adapter_menu_up(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
+            game_adapter_menu_down(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            game_adapter_menu_select(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            game_adapter_menu_back(&s_adapter);
+        }
+    } else if (s_adapter.screen == SCREEN_PLAYING) {
+        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            game_adapter_toggle_pause(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_R)) {
+            game_adapter_restart(&s_adapter);
+        }
+
+        /* Gather controller button bitmask for player 1 */
+        uint8_t btn = 0;
+        if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) btn |= BUTTON_RIGHT;
+        if (IsKeyDown(KEY_LEFT)  || IsKeyDown(KEY_A)) btn |= BUTTON_LEFT;
+        if (IsKeyDown(KEY_DOWN)  || IsKeyDown(KEY_S)) btn |= BUTTON_DOWN;
+        if (IsKeyDown(KEY_UP)    || IsKeyDown(KEY_W)) btn |= BUTTON_UP;
+        if (IsKeyDown(KEY_Z)     || IsKeyDown(KEY_J)) btn |= BUTTON_B;
+        if (IsKeyDown(KEY_X)     || IsKeyDown(KEY_K) || IsKeyDown(KEY_UP)) btn |= BUTTON_A;
+        if (IsKeyPressed(KEY_TAB) || IsKeyPressed(KEY_LEFT_SHIFT) || IsKeyPressed(KEY_RIGHT_SHIFT)) {
+            btn |= BUTTON_SELECT;
+        }
+
+        game_adapter_update(&s_adapter, btn);
+
+        if (s_adapter.pending_audio != AUDIO_EVENT_NONE) {
+            native_audio_play(s_adapter.pending_audio);
+        }
+    } else if (s_adapter.screen == SCREEN_PAUSED) {
+        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            game_adapter_toggle_pause(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_R)) {
+            game_adapter_restart(&s_adapter);
+        }
+    } else if (s_adapter.screen == SCREEN_GAME_OVER) {
+        if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
+            game_adapter_restart(&s_adapter);
+        }
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            s_adapter.screen = SCREEN_TITLE;
+        }
+    }
+
+    renderer_draw(&s_adapter);
 }
 
 int main(int argc, char *argv[]) {
@@ -52,17 +131,16 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    GameAdapter adapter;
-    game_adapter_init(&adapter);
+    game_adapter_init(&s_adapter);
 
     if (start_level >= 0) {
-        game_adapter_start_game(&adapter, (uint8_t)start_level, GAMETYPE_A, 0);
+        game_adapter_start_game(&s_adapter, (uint8_t)start_level, GAMETYPE_A, 0);
     }
 
     if (headless) {
         printf("[HEADLESS] Stepping game simulation for %u frames...\n", test_frames);
-        if (adapter.screen != SCREEN_PLAYING) {
-            game_adapter_start_game(&adapter, 0, GAMETYPE_A, 0);
+        if (s_adapter.screen != SCREEN_PLAYING) {
+            game_adapter_start_game(&s_adapter, 0, GAMETYPE_A, 0);
         }
 
         /* Step frames with intermittent soft drops to test pieces landing */
@@ -71,14 +149,14 @@ int main(int argc, char *argv[]) {
             if ((f % 60) >= 30) {
                 btn = BUTTON_DOWN;
             }
-            game_adapter_update(&adapter, btn);
+            game_adapter_update(&s_adapter, btn);
         }
 
         printf("[HEADLESS] Verification passed: score=%u lines=%u level=%u frames=%llu\n",
-               (unsigned int)adapter.score,
-               (unsigned int)adapter.lines,
-               (unsigned int)adapter.level,
-               (unsigned long long)adapter.frame_count);
+               (unsigned int)s_adapter.score,
+               (unsigned int)s_adapter.lines,
+               (unsigned int)s_adapter.level,
+               (unsigned long long)s_adapter.frame_count);
         return 0;
     }
 
@@ -90,82 +168,17 @@ int main(int argc, char *argv[]) {
     renderer_init();
     native_audio_init(enable_audio);
 
+#if defined(__EMSCRIPTEN__)
+    emscripten_set_main_loop(game_frame_step, 0, 1);
+#else
     while (!WindowShouldClose()) {
-        /* Global keys */
-        if (IsKeyPressed(KEY_M)) {
-            native_audio_toggle_mute();
-        }
-
-        if (adapter.screen == SCREEN_TITLE) {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                game_adapter_menu_select(&adapter);
-            }
-        } else if (adapter.screen == SCREEN_LEVEL_SELECT) {
-            if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A)) {
-                game_adapter_menu_left(&adapter);
-            }
-            if (IsKeyPressed(KEY_RIGHT) || IsKeyPressed(KEY_D)) {
-                game_adapter_menu_right(&adapter);
-            }
-            if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W)) {
-                game_adapter_menu_up(&adapter);
-            }
-            if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S)) {
-                game_adapter_menu_down(&adapter);
-            }
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                game_adapter_menu_select(&adapter);
-            }
-            if (IsKeyPressed(KEY_ESCAPE)) {
-                game_adapter_menu_back(&adapter);
-            }
-        } else if (adapter.screen == SCREEN_PLAYING) {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                game_adapter_toggle_pause(&adapter);
-            }
-            if (IsKeyPressed(KEY_R)) {
-                game_adapter_restart(&adapter);
-            }
-
-            /* Gather controller button bitmask for player 1 */
-            uint8_t btn = 0;
-            if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D)) btn |= BUTTON_RIGHT;
-            if (IsKeyDown(KEY_LEFT)  || IsKeyDown(KEY_A)) btn |= BUTTON_LEFT;
-            if (IsKeyDown(KEY_DOWN)  || IsKeyDown(KEY_S)) btn |= BUTTON_DOWN;
-            if (IsKeyDown(KEY_UP)    || IsKeyDown(KEY_W)) btn |= BUTTON_UP;
-            if (IsKeyDown(KEY_Z)     || IsKeyDown(KEY_J)) btn |= BUTTON_B;
-            if (IsKeyDown(KEY_X)     || IsKeyDown(KEY_K) || IsKeyDown(KEY_UP)) btn |= BUTTON_A;
-            if (IsKeyPressed(KEY_TAB) || IsKeyPressed(KEY_LEFT_SHIFT) || IsKeyPressed(KEY_RIGHT_SHIFT)) {
-                btn |= BUTTON_SELECT;
-            }
-
-            game_adapter_update(&adapter, btn);
-
-            if (adapter.pending_audio != AUDIO_EVENT_NONE) {
-                native_audio_play(adapter.pending_audio);
-            }
-        } else if (adapter.screen == SCREEN_PAUSED) {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                game_adapter_toggle_pause(&adapter);
-            }
-            if (IsKeyPressed(KEY_R)) {
-                game_adapter_restart(&adapter);
-            }
-        } else if (adapter.screen == SCREEN_GAME_OVER) {
-            if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE)) {
-                game_adapter_restart(&adapter);
-            }
-            if (IsKeyPressed(KEY_ESCAPE)) {
-                adapter.screen = SCREEN_TITLE;
-            }
-        }
-
-        renderer_draw(&adapter);
+        game_frame_step();
     }
 
     native_audio_shutdown();
     renderer_shutdown();
     CloseWindow();
+#endif
 
     return 0;
 }
