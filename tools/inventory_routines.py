@@ -279,7 +279,68 @@ def main():
         "gameMode_gameTypeMenu": "Verified: Game type A/B toggle, music 0..3 selection, START/B transitions differential proven against 6502 ROM loop",
         "gameMode_levelMenu": "Verified: Level menu setup, startLevel >= 10 normalization modulo 10 verified",
         "gameMode_levelMenu_processPlayer1Navigation": "Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM",
-        "gameMode_levelMenu_handleLevelHeightNavigation": "Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM"
+        "gameMode_levelMenu_handleLevelHeightNavigation": "Verified: Level (0..9) & height (0..5) D-pad grid navigation, Button A Type B toggling, and cursor staging differential proven against 6502 ROM",
+
+        # Batch 10 (High Score Operations & Tables)
+        "initHighScoreTable": "Verified: Cold boot initialization, warm boot detection, and high score table seeding differential proven against 6502 ROM",
+        "adjustHighScores": "Verified: Multi-entry shifting, name clearing, score/level insertion, and entry transition verified",
+        "handleHighScoreIfNecessary": "Verified: Score comparison, tie breaking, and slot selection differential proven against 6502 ROM",
+        "showHighScores": "Verified: 1P vs 2P high score nametable display dispatcher differential proven",
+        "showHighScores_real": "Verified: 3-entry names, 6-digit BCD scores, and 2-digit BCD levels PPU display verified",
+        "showHighScores_ret": "Verified: High score return stub verified",
+        "copyHighScoreNameToNextIndex": "Verified: 6-character name shift for Type A/B differential proven against 6502 ROM",
+        "copyHighScoreScoreToNextIndex": "Verified: 3-byte BCD score shift for Type A/B differential proven against 6502 ROM",
+        "copyHighScoreLevelToNextIndex": "Verified: 1-byte level shift for Type A/B differential proven against 6502 ROM",
+        "highScoreEntryScreen": "Verified: Interactive name entry, cursor navigation, alphabet modulo 44 cycling, and START confirmation verified",
+        "render_mode_congratulations_screen": "Verified: High score name entry letter tile render to nametable and scroll reset differential proven against 6502 ROM",
+
+        # Batch 11 (High-Score State Flow, Gameplay Transitions, and Startup Staging)
+        "memset_page": "Verified: Multi-page memory fill from end_page down to start_page differential proven against 6502 ROM",
+        "gameModeState_handleGameOver": "Verified: 1P vs 2P game over handler, high-score trigger, playfield wipe, and menu transition differential proven against 6502 ROM",
+        "gameModeState_checkForResetKeyCombo": "Verified: A+B+Select+Start soft reset check returning to legal screen differential proven against 6502 ROM",
+        "gameModeState_startButtonHandling": "Verified: Demo exit to title screen and gameplay pause toggle differential proven against 6502 ROM",
+        "gameModeState_initGameBackground": "Verified: Game background setup, nametable patching, and top high score PPU write verified",
+        "gameModeState_initGameBackground_finish": "Verified: Background finish setting playStates to 1, startLevel to levelNumber, and advancing gameModeState verified",
+        "gameModeState_initGameState": "Verified: Playing/demo state initialization, score/line clear, demo table pointer init, and piece selection verified",
+        "gameMode_playAndEndingHighScore": "Verified: Master gameplay/demo dispatcher branching across states 0..8 verified",
+        "gameMode_playAndEndingHighScore_jmp": "Verified: JSR wrapper for play and demo mode verified",
+        "gameModeState_updatePlayer1": "Verified: P1 state update, piece/next staging, and save differential proven against 6502 ROM",
+        "gameModeState_updatePlayer2": "Verified: P2 state update, piece staging, and save differential proven against 6502 ROM",
+        "playState_bTypeGoalCheck_ret": "Verified: Goal check return stub incrementing playState differential proven against 6502 ROM",
+
+        # Batch 12 (VRAM Streaming, In-Game Play/Demo Render Engine, Tetris Flash)
+        "copyOamStagingToOam": "Verified: OAM DMA initiator via REG_OAMADDR and REG_OAMDMA differential proven against 6502 ROM (Test 41)",
+        "copyCurrentScrollAndCtrlToPPU": "Verified: Scroll flush to (0, 0) and PPUCTRL update differential proven against 6502 ROM (Test 42)",
+        "loadSpriteIntoOamStaging": "Verified: Table-driven OAM sprite staging with contiguous sprite data and 90-entry lookup differential proven against 6502 ROM (Test 43)",
+        "stageSpriteForCurrentPiece": "Verified: Active tetromino 4-mino coordinate calculation, 1P/2P field offset, and Y < $2F clipping differential proven against 6502 ROM (Test 44)",
+        "stageSpriteForNextPiece": "Verified: Next piece preview sprite staging using orientationToSpriteTable differential proven against 6502 ROM (Test 45)",
+        "updatePaletteForLevel": "Verified: Modulo-10 level color palette copying to PPUADDR $3F08 and $3F18 using colorTable differential proven against 6502 ROM (Test 46)",
+        "render_mode_legal_and_title_screens": "Verified: Mode 0 scroll and PPUCTRL update differential proven against 6502 ROM (Test 47)",
+        "render_mode_menu_screens": "Verified: Menu screens PPUCTRL masking/write and scroll flush differential proven against 6502 ROM (Test 48)",
+        "render_mode_ending_animation": "Verified: Type A and Type B ending score display to PPU and scroll flush differential proven against 6502 ROM (Test 49)",
+        "render": "Verified: Master render mode dispatcher (0..4) differential proven against 6502 ROM (Test 50)",
+        "twoDigsToPPU": "Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM",
+        "copyPlayfieldRowToVRAM": "Verified: playfield row VRAM streaming, player mode offsets, and 0x20 row clamp",
+        "render_mode_play_and_demo": "Verified: in-game play/demo render engine, line clear animation dispatch, dirty render flags, tetris flash/SFX, and scroll flush",
+        "add100Points": "Verified: Type B ending BCD bonus scoring on totalScore with carry handling differential proven against 6502 ROM",
+
+        # Batch 13 (Ending Sequences & Cutscene Animations)
+        "endingAnimation": "Verified: Master ending dispatcher setting sprite index 2 and renderMode 4, branching to endingAnimationA or B",
+        "endingAnimationA": "Verified: Type A rocket ending cutscene runner with CHR banking, nametable load, tier selection, and START wait",
+        "endingAnimationB": "Verified: Type B ending cutscene runner with CHR banking, bonus BCD countdown, and score transfer",
+        "ending_initTypeBVars": "Verified: Level 9 dome height setup and concert patch vs levels 0..8 cathedral motion parameters differential proven against 6502 ROM (Test 59)",
+        "ending_typeBConcertPatchToPpuForHeight": "Verified: PPU nametable masking patches for Type B concert character erasure",
+        "patchToPpu": "Verified: PPU nametable byte stream patch processor with $FE address jump and $FD terminator",
+        "render_ending": "Verified: Master ending sprite staging dispatcher branching on gameType differential proven against 6502 ROM (Test 64)",
+        "ending_typeB": "Verified: Type B cutscene sprite staging branching to concert (level 9) or cathedral (0..8) differential proven against 6502 ROM (Test 64)",
+        "ending_typeBConcert": "Verified: Guest Nintendo character sprite staging across start heights 0..5 and dome liftoff trigger differential proven against 6502 ROM (Test 63)",
+        "ending_typeBCathedral": "Verified: Cathedral character animation, vector movement, sprite trigger transitions differential proven against 6502 ROM",
+        "ending_typeBCathedralSetSprite": "Verified: Cathedral sprite animation speed and index alternating differential proven against 6502 ROM (Test 61)",
+        "ending_computeTypeBCathedralYTableIndex": "Verified: levelNumber * 6 + sprite index computation and generalCounter side effect differential proven against 6502 ROM (Test 60)",
+        "LA6BC": "Verified: Dome liftoff acceleration, sound effect trigger, and flame staging differential proven against 6502 ROM (Test 62)",
+        "render_endingUnskippable": "Verified: Frame sleep loop with render_ending and sleepCounter countdown differential proven against 6502 ROM (Test 65)",
+        "selectEndingScreen": "Verified: Type A ending tier 0..4 selection based on score BCD thresholds and cathedral launch PPU patch differential proven against 6502 ROM (Test 56)",
+        "ending_selected": "Verified: Rocket starting Y coordinate and delay initialization differential proven against 6502 ROM (Test 57)"
     }
 
     for r in routines:

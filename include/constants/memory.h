@@ -99,6 +99,8 @@ extern "C" {
 #define ADDR_GENERAL_COUNTER3               0x00AA
 #define ADDR_GENERAL_COUNTER4               0x00AB
 #define ADDR_GENERAL_COUNTER5               0x00AC
+#define ADDR_B_TYPE_LEVEL_BONUS             ADDR_GENERAL_COUNTER4
+#define ADDR_B_TYPE_HEIGHT_BONUS            ADDR_GENERAL_COUNTER5
 #define ADDR_SELECTING_LEVEL_OR_HEIGHT      0x00AD
 #define ADDR_ORIGINAL_Y                     0x00AE
 #define ADDR_DROP_SPEED                     0x00AF
@@ -123,6 +125,7 @@ extern "C" {
 #define ADDR_ENDING                         0x00C4
 #define ADDR_ENDING_CUSTOM_VARS             0x00C5
 #define ADDR_ENDING_CURRENT_SPRITE          0x00CC
+#define ADDR_ENDING_CATHEDRAL_FRAME_DELAY_COUNTER 0x00CD
 #define ADDR_DEMO_HELD_BUTTONS              0x00CE
 #define ADDR_DEMO_REPEATS                   0x00CF
 #define ADDR_DEMO_RECORD_FLAG               0x00D0

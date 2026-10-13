@@ -15,10 +15,10 @@
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Exact Address Aliases** | **0** | Identical address alias labels |
 | **Total PRG Symbols Tracked** | **567** | Complete symbol census of PRG ROM |
-| **Verified (Tested)** | **82** | Bit-exact & differential CPU proven against ROM |
+| **Verified (Tested)** | **97** | Bit-exact & differential CPU proven against ROM |
 | **Decompiled (Untested)** | **0** | C converted awaiting differential verification |
-| **Remaining Routines** | **89** | Pending conversion |
-| **Completion Percentage** | **47.95%** | Standalone routine completion rate |
+| **Remaining Routines** | **74** | Pending conversion |
+| **Completion Percentage** | **56.73%** | Standalone routine completion rate |
 
 ---
 
@@ -27,14 +27,14 @@
 | Category | Total Routines | Verified | Decompiled | Missing | % Complete |
 |:---|:---:|:---:|:---:|:---:|:---:|
 | **AUDIO** | 41 | 2 | 0 | 39 | 4.9% |
-| **CORE_LOGIC** | 38 | 10 | 0 | 28 | 26.3% |
+| **CORE_LOGIC** | 38 | 20 | 0 | 18 | 52.6% |
 | **GAMEPLAY_STATE** | 14 | 14 | 0 | 0 | 100.0% |
 | **MATH_BCD** | 12 | 12 | 0 | 0 | 100.0% |
 | **MATH_RNG** | 2 | 2 | 0 | 0 | 100.0% |
 | **MENUS_UI** | 13 | 8 | 0 | 5 | 61.5% |
 | **PLAYER_INPUT** | 4 | 4 | 0 | 0 | 100.0% |
 | **PLAYFIELD** | 9 | 8 | 0 | 1 | 88.9% |
-| **RENDER** | 16 | 9 | 0 | 7 | 56.2% |
+| **RENDER** | 16 | 14 | 0 | 2 | 87.5% |
 | **SYSTEM** | 6 | 0 | 0 | 6 | 0.0% |
 | **TETRIMINO** | 16 | 13 | 0 | 3 | 81.2% |
 
@@ -99,18 +99,18 @@
 | `savePlayer2State` | `0x87C8` | L1325–L1338 | JSR | `VERIFIED` | Verified: Active player state saving and pending garbage swapping differential proven against 6502 ROM |
 | `isPositionValid` | `0x948B` | L2392–L2456 | JSR | `VERIFIED` | Verified: Boundary box, floor, and mino collision detection verified |
 | `gameMode_startDemo` | `0x9DF6` | L3735–L3745 | Jump Table | `VERIFIED` | Verified: Demo mode initialization clearing mode/play states and level/gameType differential proven against 6502 ROM |
-| `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `MISSING` |  |
-| `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `MISSING` |  |
+| `endingAnimation` | `0x9E3A` | L3790–L3801 | JSR | `VERIFIED` | Verified: Master ending dispatcher setting sprite index 2 and renderMode 4, branching to endingAnimationA or B |
+| `endingAnimationB` | `0x9E49` | L3802–L3944 | Entry / Direct | `VERIFIED` | Verified: Type B ending cutscene runner with CHR banking, bonus BCD countdown, and score transfer |
 | `add100Points` | `0x9F62` | L3945–L3956 | JSR | `VERIFIED` | Verified: Type B ending BCD bonus scoring on totalScore with carry handling differential proven against 6502 ROM |
 | `checkSelectHeldToAddPoints` | `N/A` | L4610–L4622 | Entry / Direct | `MISSING` |  |
-| `ending_initTypeBVars` | `0xA463` | L4623–L4663 | JSR | `MISSING` |  |
-| `ending_typeB` | `0xA52E` | L4739–L4748 | Entry / Direct | `MISSING` |  |
-| `ending_typeBConcert` | `0xA53B` | L4749–L4906 | JSR | `MISSING` |  |
-| `ending_typeBCathedral` | `0xA625` | L4907–L4960 | Entry / Direct | `MISSING` |  |
-| `ending_computeTypeBCathedralYTableIndex` | `0xA6AE` | L4980–L4991 | JSR | `MISSING` |  |
-| `LA6BC` | `0xA6BC` | L4992–L4992 | JSR | `MISSING` |  |
-| `endingAnimationA` | `0xA926` | L5165–L5196 | Entry / Direct | `MISSING` |  |
-| `selectEndingScreen` | `0xA96E` | L5197–L5225 | JSR | `MISSING` |  |
+| `ending_initTypeBVars` | `0xA463` | L4623–L4663 | JSR | `VERIFIED` | Verified: Level 9 dome height setup and concert patch vs levels 0..8 cathedral motion parameters differential proven against 6502 ROM (Test 59) |
+| `ending_typeB` | `0xA52E` | L4739–L4748 | Entry / Direct | `VERIFIED` | Verified: Type B cutscene sprite staging branching to concert (level 9) or cathedral (0..8) differential proven against 6502 ROM (Test 64) |
+| `ending_typeBConcert` | `0xA53B` | L4749–L4906 | JSR | `VERIFIED` | Verified: Guest Nintendo character sprite staging across start heights 0..5 and dome liftoff trigger differential proven against 6502 ROM (Test 63) |
+| `ending_typeBCathedral` | `0xA625` | L4907–L4960 | Entry / Direct | `VERIFIED` | Verified: Cathedral character animation, vector movement, sprite trigger transitions differential proven against 6502 ROM |
+| `ending_computeTypeBCathedralYTableIndex` | `0xA6AE` | L4980–L4991 | JSR | `VERIFIED` | Verified: levelNumber * 6 + sprite index computation and generalCounter side effect differential proven against 6502 ROM (Test 60) |
+| `LA6BC` | `0xA6BC` | L4992–L4992 | JSR | `VERIFIED` | Verified: Dome liftoff acceleration, sound effect trigger, and flame staging differential proven against 6502 ROM (Test 62) |
+| `endingAnimationA` | `0xA926` | L5165–L5196 | Entry / Direct | `VERIFIED` | Verified: Type A rocket ending cutscene runner with CHR banking, nametable load, tier selection, and START wait |
+| `selectEndingScreen` | `0xA96E` | L5197–L5225 | JSR | `VERIFIED` | Verified: Type A ending tier 0..4 selection based on score BCD thresholds and cathedral launch PPU patch differential proven against 6502 ROM (Test 56) |
 | `LAA82` | `0xAA82` | L5351–L5355 | JSR | `MISSING` |  |
 | `addExpansionPortInputAsControllerInput` | `0xAB8B` | L5515–L5525 | JSR | `VERIFIED` | Verified: Famicom expansion port input OR-mixing verified with unit vectors |
 | `memset_page` | `0xAC6A` | L5635–L5653 | JSR | `VERIFIED` | Verified: Multi-page memory fill from end_page down to start_page differential proven against 6502 ROM |
@@ -135,8 +135,8 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `gameModeState_updatePlayer1` | `0x8174` | L442–L450 | Jump Table | `VERIFIED` | Verified: P1 state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 51) |
-| `gameModeState_updatePlayer2` | `0x8186` | L451–L461 | Jump Table | `VERIFIED` | Verified: 2-player state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 52) |
+| `gameModeState_updatePlayer1` | `0x8174` | L442–L450 | Jump Table | `VERIFIED` | Verified: P1 state update, piece/next staging, and save differential proven against 6502 ROM |
+| `gameModeState_updatePlayer2` | `0x8186` | L451–L461 | Jump Table | `VERIFIED` | Verified: P2 state update, piece staging, and save differential proven against 6502 ROM |
 | `branchOnPlayStatePlayer1` | `0x81B2` | L474–L488 | JSR | `VERIFIED` | Verified: 12-state dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table |
 | `branchOnPlayStatePlayer2` | `0x81D9` | L495–L509 | JSR | `VERIFIED` | Verified: Player 2 state dispatcher verified with 6502 simulator |
 | `gameModeState_initGameBackground` | `0x85F0` | L1092–L1167 | Jump Table | `VERIFIED` | Verified: Game background setup, nametable patching, and top high score PPU write verified |
@@ -148,14 +148,14 @@
 | `gameModeState_vblankThenRunState2` | `0x9E27` | L3771–L3776 | Jump Table | `VERIFIED` | Verified: GameMode state 2 transition and no-op hook differential proven against 6502 ROM |
 | `playState_incrementPlayState` | `0x9E37` | L3785–L3786 | Jump Table | `VERIFIED` | Verified: PlayState incrementation differential proven against 6502 ROM |
 | `playState_bTypeGoalCheck` | `0xA3F2` | L4545–L4584 | Jump Table | `VERIFIED` | Verified: Type A vs Type B line goal check and victory tile placement verified |
-| `playState_bTypeGoalCheck_ret` | `0xA42B` | L4585–L4588 | Entry / Direct | `VERIFIED` | Verified: Goal check return stub incrementing playState differential proven against 6502 ROM (Test 53) |
+| `playState_bTypeGoalCheck_ret` | `0xA42B` | L4585–L4588 | Entry / Direct | `VERIFIED` | Verified: Goal check return stub incrementing playState differential proven against 6502 ROM |
 
 ### MATH_BCD (12 Routines)
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `VERIFIED` | Verified: Mode 4/5 JSR jump target to playAndEndingHighScore differential proven against 6502 ROM |
-| `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `VERIFIED` | Verified: Master states 0..8 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table |
+| `gameMode_playAndEndingHighScore_jmp` | `0x815D` | L428–L431 | Jump Table | `VERIFIED` | Verified: JSR wrapper for play and demo mode verified |
+| `gameMode_playAndEndingHighScore` | `0x819B` | L462–L473 | JSR | `VERIFIED` | Verified: Master gameplay/demo dispatcher branching across states 0..8 verified |
 | `playState_updateLinesAndStatistics` | `0x9B58` | L3329–L3377 | Jump Table | `VERIFIED` | Verified: PlayState 5 scoring, line counts, and stat update proven |
 | `showHighScores` | `0x9FF2` | L4015–L4020 | JSR | `VERIFIED` | Verified: 1P vs 2P high score nametable display dispatcher differential proven |
 | `showHighScores_real` | `0x9FFB` | L4021–L4092 | Entry / Direct | `VERIFIED` | Verified: 3-entry names, 6-digit BCD scores, and 2-digit BCD levels PPU display verified |
@@ -180,7 +180,7 @@
 |:---|:---:|:---:|:---:|:---:|:---|
 | `gameMode_legalScreen` | `0x8200` | L516–L558 | Jump Table | `VERIFIED` | Verified: Copyright screen timing, START bypass, OAM/render init differential proven against 6502 ROM |
 | `gameMode_titleScreen` | `0x824F` | L559–L635 | Jump Table | `VERIFIED` | Verified: Title menu transition on START and demo countdown timeout differential proven against 6502 ROM |
-| `render_mode_legal_and_title_screens` | `0x82B1` | L636–L656 | Jump Table | `VERIFIED` | Verified: Legal/title screen PPUCTRL masking and scroll flush differential proven against 6502 ROM (Test 47) |
+| `render_mode_legal_and_title_screens` | `0x82B1` | L636–L656 | Jump Table | `VERIFIED` | Verified: Mode 0 scroll and PPUCTRL update differential proven against 6502 ROM (Test 47) |
 | `gameMode_gameTypeMenu` | `0x82D1` | L657–L682 | Jump Table | `VERIFIED` | Verified: Game type A/B toggle, music 0..3 selection, START/B transitions differential proven against 6502 ROM loop |
 | `gameMode_levelMenu` | `0x83D7` | L799–L844 | Jump Table | `VERIFIED` | Verified: Level menu setup, startLevel >= 10 normalization modulo 10 verified |
 | `gameMode_levelMenu_processPlayer1Navigation` | `0x8436` | L845–L919 | Entry / Direct | `VERIFIED` | Verified: P1 state sync, navigation handling, START/B transitions, A+START cheat (+10 level), garbage hole PRNG differential proven against 6502 ROM |
@@ -206,7 +206,7 @@
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
 | `initPlayfieldIfTypeB` | `0x87DC` | L1339–L1343 | JSR | `VERIFIED` | Verified: Type B mode check and garbage playfield initialization verified |
-| `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `VERIFIED` | Verified: Playfield row VRAM streaming, player mode offsets, and 0x20 row clamp differential proven against 6502 ROM (Test 54) |
+| `copyPlayfieldRowToVRAM` | `0x9725` | L2704–L2756 | JSR | `VERIFIED` | Verified: playfield row VRAM streaming, player mode offsets, and 0x20 row clamp |
 | `updateLineClearingAnimation` | `0x977F` | L2757–L2827 | JSR | `VERIFIED` | Verified: 5-step center-out line clearing animation framing verified |
 | `noop_disabledVramRowIncr` | `0x9874` | L2878–L2895 | JSR | `VERIFIED` | Verified: Unused/disabled VRAM row increment routine differential proven against 6502 ROM |
 | `playState_updateGameOverCurtain` | `0x9A11` | L3130–L3187 | Jump Table | `VERIFIED` | Verified: Game over curtain cascade filling playfield with curtain tiles verified |
@@ -219,18 +219,18 @@
 
 | Routine Name | Address | Lines | Call Mechanism | Status | Notes |
 |:---|:---:|:---:|:---:|:---:|:---|
-| `render` | `0x804B` | L290–L296 | JSR | `VERIFIED` | Verified: Master render dispatcher jump table for modes 0..4 differential proven against 6502 ROM (Test 50) |
+| `render` | `0x804B` | L290–L296 | JSR | `VERIFIED` | Verified: Master render mode dispatcher (0..4) differential proven against 6502 ROM (Test 50) |
 | `loadSpriteIntoOamStaging` | `0x8C27` | L1861–L1903 | JSR | `VERIFIED` | Verified: Table-driven OAM sprite staging with contiguous sprite data and 90-entry lookup differential proven against 6502 ROM (Test 43) |
-| `render_mode_play_and_demo` | `0x94EE` | L2457–L2671 | Jump Table | `VERIFIED` | Verified: In-game play/demo render engine, line clear animation dispatch, dirty render flags, tetris flash/SFX, and scroll flush differential proven against 6502 ROM (Test 55) |
+| `render_mode_play_and_demo` | `0x94EE` | L2457–L2671 | Jump Table | `VERIFIED` | Verified: in-game play/demo render engine, line clear animation dispatch, dirty render flags, tetris flash/SFX, and scroll flush |
 | `twoDigsToPPU` | `0x9712` | L2691–L2703 | JSR | `VERIFIED` | Verified: 2-digit BCD nibble separation to PPUDATA differential proven against 6502 ROM |
 | `updatePaletteForLevel` | `0x9808` | L2833–L2870 | JSR | `VERIFIED` | Verified: Modulo-10 level color palette copying to PPUADDR $3F08 and $3F18 using colorTable differential proven against 6502 ROM (Test 46) |
 | `render_mode_ending_animation` | `0x9F95` | L3975–L4009 | Jump Table | `VERIFIED` | Verified: Type A and Type B ending score display to PPU and scroll flush differential proven against 6502 ROM (Test 49) |
 | `render_mode_congratulations_screen` | `0xA344` | L4443–L4474 | Jump Table | `VERIFIED` | Verified: High score name entry letter tile render to nametable and scroll reset differential proven against 6502 ROM |
-| `ending_typeBConcertPatchToPpuForHeight` | `0xA4B1` | L4664–L4712 | JSR | `MISSING` |  |
-| `patchToPpu` | `0xA507` | L4713–L4733 | JSR | `MISSING` |  |
-| `render_ending` | `0xA527` | L4734–L4738 | JSR | `MISSING` |  |
-| `ending_typeBCathedralSetSprite` | `0xA690` | L4961–L4979 | JSR | `MISSING` |  |
-| `render_endingUnskippable` | `0xA7FD` | L5098–L5106 | JSR | `MISSING` |  |
+| `ending_typeBConcertPatchToPpuForHeight` | `0xA4B1` | L4664–L4712 | JSR | `VERIFIED` | Verified: PPU nametable masking patches for Type B concert character erasure |
+| `patchToPpu` | `0xA507` | L4713–L4733 | JSR | `VERIFIED` | Verified: PPU nametable byte stream patch processor with $FE address jump and $FD terminator |
+| `render_ending` | `0xA527` | L4734–L4738 | JSR | `VERIFIED` | Verified: Master ending sprite staging dispatcher branching on gameType differential proven against 6502 ROM (Test 64) |
+| `ending_typeBCathedralSetSprite` | `0xA690` | L4961–L4979 | JSR | `VERIFIED` | Verified: Cathedral sprite animation speed and index alternating differential proven against 6502 ROM (Test 61) |
+| `render_endingUnskippable` | `0xA7FD` | L5098–L5106 | JSR | `VERIFIED` | Verified: Frame sleep loop with render_ending and sleepCounter countdown differential proven against 6502 ROM (Test 65) |
 | `copyCurrentScrollAndCtrlToPPU` | `0xAA8A` | L5356–L5363 | JSR | `VERIFIED` | Verified: Scroll flush to (0, 0) and PPUCTRL update differential proven against 6502 ROM (Test 42) |
 | `bulkCopyToPpu` | `0xAA98` | L5364–L5367 | JSR | `MISSING` |  |
 | `copyOamStagingToOam` | `0xAB5E` | L5486–L5492 | JSR | `VERIFIED` | Verified: OAM DMA initiator via REG_OAMADDR and REG_OAMDMA differential proven against 6502 ROM (Test 41) |
@@ -312,7 +312,7 @@ Total alternate entry points identified: **111**
 | `LA6D9` | `0xA6D9` | L5007–L5020 | `LA6BC` | Internal | `MISSING` |
 | `LA6F7` | `0xA6F7` | L5021–L5045 | `LA6BC` | Internal | `MISSING` |
 | `LA72C` | `0xA72C` | L5046–L5051 | `LA6BC` | Internal | `MISSING` |
-| `ending_selected` | `0xA9A5` | L5226–L5233 | `selectEndingScreen` | Internal | `MISSING` |
+| `ending_selected` | `0xA9A5` | L5226–L5233 | `selectEndingScreen` | Internal | `VERIFIED` |
 | `LA9FC` | `0xA9FC` | L5272–L5278 | `selectEndingScreen` | Internal | `MISSING` |
 | `LAA0B` | `0xAA0B` | L5279–L5280 | `selectEndingScreen` | Internal | `MISSING` |
 | `LAA10` | `0xAA10` | L5282–L5283 | `selectEndingScreen` | Internal | `MISSING` |

@@ -14,9 +14,24 @@
 #include "game/menu.h"
 #include "game/highscore.h"
 #include "game/render.h"
+#include "game/ending.h"
 
 /* Verified 6502 PRG addresses from tetris.lbl */
 #define ROM_ADDR_RENDER                 0x804B
+#define ROM_ADDR_ENDING_INIT_TYPE_B_VARS 0xA463
+#define ROM_ADDR_ENDING_TYPE_B_CONCERT_PATCH_HEIGHT 0xA4B1
+#define ROM_ADDR_PATCH_TO_PPU           0xA507
+#define ROM_ADDR_RENDER_ENDING          0xA527
+#define ROM_ADDR_ENDING_TYPE_B          0xA52E
+#define ROM_ADDR_ENDING_TYPE_B_CONCERT  0xA53B
+#define ROM_ADDR_ENDING_TYPE_B_CATHEDRAL 0xA625
+#define ROM_ADDR_ENDING_TYPE_B_CATHEDRAL_SET_SPRITE 0xA690
+#define ROM_ADDR_ENDING_COMPUTE_CATHEDRAL_Y_INDEX 0xA6AE
+#define ROM_ADDR_LA6BC                  0xA6BC
+#define ROM_ADDR_RENDER_ENDING_UNSKIPPABLE 0xA7FD
+#define ROM_ADDR_SELECT_ENDING_SCREEN   0xA96E
+#define ROM_ADDR_ENDING_SELECTED        0xA9A5
+#define ROM_ADDR_ENDING_TYPE_A          0xA9B1
 #define ROM_ADDR_GAME_MODE_STATE_UPDATE_P1 0x8174
 #define ROM_ADDR_GAME_MODE_STATE_UPDATE_P2 0x8186
 #define ROM_ADDR_GAME_MODE_PLAY_AND_ENDING_HIGH_SCORE 0x819B
@@ -2414,6 +2429,332 @@ int test_differential_verification(void) {
 
         assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT]);
         assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT1_INIT] == SFX_TETRIS);
+    }
+
+    /* Test 56: Differential selectEndingScreen across score thresholds */
+    {
+        uint8_t scores_hi[] = { 0x03, 0x06, 0x09, 0x11, 0x15 };
+        for (int t = 0; t < 5; t++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_P1_SCORE + 2] = scores_hi[t];
+            nes_6502.ram[ADDR_ENDING] = 0xFF;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xFF;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_SELECT_ENDING_SCREEN, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_SELECT_ENDING_SCREEN, 10000);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_P1_SCORE + 2] = scores_hi[t];
+            nes_c.ram[ADDR_ENDING] = 0xFF;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xFF;
+
+            selectEndingScreen(&nes_c);
+
+            assert(nes_6502.ram[ADDR_ENDING] == nes_c.ram[ADDR_ENDING]);
+            assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS]);
+            assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1]);
+            assert(nes_c.ram[ADDR_ENDING] == t);
+        }
+    }
+
+    /* Test 57: Differential ending_selected direct entry ($A9A5) */
+    {
+        for (uint8_t end_idx = 0; end_idx < 5; end_idx++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_ENDING] = end_idx;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xFF;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_ENDING_SELECTED, 0, end_idx, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_SELECTED, 500);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_ENDING] = end_idx;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xFF;
+
+            ending_selected(&nes_c);
+
+            assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS]);
+            assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1]);
+            assert(nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] == 0);
+        }
+    }
+
+    /* Test 58: Differential ending_typeA rocket staging & ascent ($A9B1) */
+    {
+        /* Subcase A: initial staging with delay increment */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_ENDING] = 0;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0x10;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ENDING_TYPE_A, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_TYPE_A, 5000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_ENDING] = 0;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0x10;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        ending_typeA(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1]);
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+        assert(memcmp(nes_6502.ram + ADDR_OAM_STAGING, nes_c.ram + ADDR_OAM_STAGING, 32) == 0);
+
+        /* Subcase B: launch ascent step */
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xF0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ENDING_TYPE_A, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_TYPE_A, 5000);
+        assert(ok);
+
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0xF0;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+        ending_typeA(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS]);
+        assert(nes_6502.ram[ADDR_SOUND_EFFECT_SLOT0_INIT] == nes_c.ram[ADDR_SOUND_EFFECT_SLOT0_INIT]);
+        assert(nes_c.ram[ADDR_SOUND_EFFECT_SLOT0_INIT] == 0x03);
+    }
+
+    /* Test 59: Differential ending_initTypeBVars ($A463) */
+    {
+        /* Subcase A: Level 9 */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_LEVEL_NUMBER] = 9;
+        nes_6502.ram[ADDR_P1_START_HEIGHT] = 3;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ENDING_INIT_TYPE_B_VARS, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_INIT_TYPE_B_VARS, 10000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_LEVEL_NUMBER] = 9;
+        nes_c.ram[ADDR_P1_START_HEIGHT] = 3;
+
+        ending_initTypeBVars(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING] == nes_c.ram[ADDR_ENDING]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 2] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 2]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 3] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 3]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 4] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 4]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 5] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 5]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 6] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 6]);
+        assert(nes_6502.ram[ADDR_SPRITE_INDEX_OAM] == nes_c.ram[ADDR_SPRITE_INDEX_OAM]);
+
+        /* Subcase B: Level 0 */
+        nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_LEVEL_NUMBER] = 0;
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_ENDING_INIT_TYPE_B_VARS, 0, 0, 0, 0, 0xFD);
+        ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_INIT_TYPE_B_VARS, 10000);
+        assert(ok);
+
+        nes_c = rom_nes;
+        nes_c.ram[ADDR_LEVEL_NUMBER] = 0;
+        ending_initTypeBVars(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 2] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 2]);
+    }
+
+    /* Test 60: Differential ending_computeTypeBCathedralYTableIndex ($A6AE) */
+    {
+        for (uint8_t lvl = 0; lvl < 10; lvl++) {
+            for (uint8_t spr = 0; spr < 6; spr++) {
+                NES_State nes_6502 = rom_nes;
+                nes_6502.ram[ADDR_LEVEL_NUMBER] = lvl;
+                nes_6502.ram[ADDR_ENDING_CURRENT_SPRITE] = spr;
+
+                cpu6502_init(&cpu, &nes_6502);
+                cpu6502_set_state(&cpu, ROM_ADDR_ENDING_COMPUTE_CATHEDRAL_Y_INDEX, 0, 0, 0, 0, 0xFD);
+                bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_COMPUTE_CATHEDRAL_Y_INDEX, 500);
+                assert(ok);
+
+                NES_State nes_c = rom_nes;
+                nes_c.ram[ADDR_LEVEL_NUMBER] = lvl;
+                nes_c.ram[ADDR_ENDING_CURRENT_SPRITE] = spr;
+
+                uint8_t idx = ending_computeTypeBCathedralYTableIndex(&nes_c);
+
+                assert(cpu.x == idx);
+                assert(nes_6502.ram[ADDR_GENERAL_COUNTER] == nes_c.ram[ADDR_GENERAL_COUNTER]);
+            }
+        }
+    }
+
+    /* Test 61: Differential ending_typeBCathedralSetSprite ($A690) */
+    {
+        for (uint8_t lvl = 0; lvl < 10; lvl++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_LEVEL_NUMBER] = lvl;
+            nes_6502.ram[ADDR_ENDING] = 1;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_ENDING_TYPE_B_CATHEDRAL_SET_SPRITE, 0, 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_TYPE_B_CATHEDRAL_SET_SPRITE, 1000);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_LEVEL_NUMBER] = lvl;
+            nes_c.ram[ADDR_ENDING] = 1;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+
+            ending_typeBCathedralSetSprite(&nes_c);
+
+            assert(nes_6502.ram[ADDR_ENDING] == nes_c.ram[ADDR_ENDING]);
+            assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS]);
+            assert(nes_6502.ram[ADDR_SPRITE_INDEX_OAM] == nes_c.ram[ADDR_SPRITE_INDEX_OAM]);
+        }
+    }
+
+    /* Test 62: Differential LA6BC dome liftoff ($A6BC) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0x05; /* matches dome 0 delay */
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 3] = 0xBC;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 4] = 0xB8;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 5] = 0xBC;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 6] = 0xB3;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_LA6BC, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_LA6BC, 10000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0x05;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 3] = 0xBC;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 4] = 0xB8;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 5] = 0xBC;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 6] = 0xB3;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        LA6BC(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS]);
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 3] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 3]);
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+    }
+
+    /* Test 63: Differential ending_typeBConcert character staging ($A53B) */
+    {
+        uint8_t test_heights[] = { 0, 1, 2, 3, 4, 5 };
+        for (int h = 0; h < 6; h++) {
+            NES_State nes_6502 = rom_nes;
+            nes_6502.ram[ADDR_P1_START_HEIGHT] = test_heights[h];
+            nes_6502.ram[ADDR_ENDING] = 0;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 3] = 0xBC;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 4] = 0xB8;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 5] = 0xBC;
+            nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 6] = 0xB3;
+            nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+            nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+            cpu6502_init(&cpu, &nes_6502);
+            cpu6502_set_state(&cpu, ROM_ADDR_ENDING_TYPE_B_CONCERT, test_heights[h], 0, 0, 0, 0xFD);
+            bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_ENDING_TYPE_B_CONCERT, 15000);
+            assert(ok);
+
+            NES_State nes_c = rom_nes;
+            nes_c.ram[ADDR_P1_START_HEIGHT] = test_heights[h];
+            nes_c.ram[ADDR_ENDING] = 0;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 3] = 0xBC;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 4] = 0xB8;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 5] = 0xBC;
+            nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 6] = 0xB3;
+            nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+            nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+            ending_typeBConcert(&nes_c);
+
+            assert(nes_6502.ram[ADDR_ENDING] == nes_c.ram[ADDR_ENDING]);
+            assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+            assert(memcmp(nes_6502.ram + ADDR_OAM_STAGING, nes_c.ram + ADDR_OAM_STAGING, nes_c.ram[ADDR_OAM_STAGING_LENGTH]) == 0);
+        }
+    }
+
+    /* Test 64: Differential render_ending & ending_typeB dispatchers */
+    {
+        /* Game Type A */
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_6502.ram[ADDR_ENDING] = 0;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0x10;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_6502.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_ENDING, 0, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_ENDING, 5000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_c.ram[ADDR_ENDING] = 0;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0x10;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_c.ram[ADDR_OAM_STAGING_LENGTH] = 0;
+
+        render_ending(&nes_c);
+
+        assert(nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] == nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1]);
+        assert(nes_6502.ram[ADDR_OAM_STAGING_LENGTH] == nes_c.ram[ADDR_OAM_STAGING_LENGTH]);
+    }
+
+    /* Test 65: Differential render_endingUnskippable frame sleep ($A7FD) */
+    {
+        NES_State nes_6502 = rom_nes;
+        nes_6502.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_6502.ram[ADDR_ENDING] = 0;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_6502.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0;
+        nes_6502.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_6502.ram[ADDR_VERTICAL_BLANK_INTERVAL] = 0;
+        nes_6502.ram[ADDR_SLEEP_COUNTER] = 0;
+
+        cpu6502_init(&cpu, &nes_6502);
+        cpu6502_set_state(&cpu, ROM_ADDR_RENDER_ENDING_UNSKIPPABLE, 2, 0, 0, 0, 0xFD);
+        bool ok = cpu6502_run_subroutine(&cpu, ROM_ADDR_RENDER_ENDING_UNSKIPPABLE, 20000);
+        assert(ok);
+
+        NES_State nes_c = rom_nes;
+        nes_c.ram[ADDR_GAME_TYPE] = GAMETYPE_A;
+        nes_c.ram[ADDR_ENDING] = 0;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS] = 0xBF;
+        nes_c.ram[ADDR_ENDING_CUSTOM_VARS + 1] = 0;
+        nes_c.ram[ADDR_FRAME_COUNTER] = 0;
+        nes_c.ram[ADDR_VERTICAL_BLANK_INTERVAL] = 0;
+        nes_c.ram[ADDR_SLEEP_COUNTER] = 0;
+
+        render_endingUnskippable(&nes_c, 2);
+
+        assert(nes_6502.ram[ADDR_SLEEP_COUNTER] == nes_c.ram[ADDR_SLEEP_COUNTER]);
+        assert(nes_c.ram[ADDR_SLEEP_COUNTER] == 0);
     }
 
     printf("  [PASS] test_differential_verification (All 6502 ROM vs C routines proven equivalent)\n");

@@ -11,6 +11,7 @@
 #include "game/highscore.h"
 #include "game/state.h"
 #include "game/render.h"
+#include "game/ending.h"
 
 /* Addresses from tetris.lbl */
 #define ADDR_ROM_GAME_TYPEB_NAMETABLE_PATCH 0x86B0
@@ -48,6 +49,34 @@
 #define ADDR_ROM_PIECE_TO_PPU_STAT_ADDR     0x96AA
 #define ADDR_ROM_LEVEL_DISPLAY_TABLE        0x96B8
 #define ADDR_ROM_VRAM_PLAYFIELD_ROWS        0x96EA
+#define ADDR_ROM_DOME_LIFTOFF_DELAY_TABLE   0xA735
+#define ADDR_ROM_DOME_NUMBER_TO_X_OFFSET    0xA739
+#define ADDR_ROM_DOME_START_HEIGHTS         0xA73D
+#define ADDR_ROM_DOME_NUMBER_TO_SPRITE      0xA741
+#define ADDR_ROM_DOME_FLAME_X_OFFSET        0xA745
+#define ADDR_ROM_ENDING_CATHEDRAL_ANIM_SPD  0xA749
+#define ADDR_ROM_ENDING_CATHEDRAL_FRAME_DLY 0xA753
+#define ADDR_ROM_CATHEDRAL_START_DELTA      0xA75D
+#define ADDR_ROM_CATHEDRAL_END_TARGET       0xA767
+#define ADDR_ROM_ENDING_CATHEDRAL_VECTOR    0xA771
+#define ADDR_ROM_ENDING_CATHEDRAL_X_TABLE   0xA77B
+#define ADDR_ROM_ENDING_CATHEDRAL_Y_TABLE   0xA7B7
+#define ADDR_ROM_ENDING_CATHEDRAL_SPRITE    0xA7F3
+#define ADDR_ROM_MARIO_FRAME_TO_Y_OFFSET    0xA80A
+#define ADDR_ROM_LUIGI_FRAME_TO_Y_OFFSET    0xA80E
+#define ADDR_ROM_LUIGI_FRAME_TO_SPRITE      0xA818
+#define ADDR_ROM_PATCH_PPU_HEIGHT_UNUSED    0xA822
+#define ADDR_ROM_PATCH_PPU_HEIGHT_0         0xA834
+#define ADDR_ROM_PATCH_PPU_HEIGHT_1         0xA84A
+#define ADDR_ROM_PATCH_PPU_HEIGHT_2         0xA862
+#define ADDR_ROM_PATCH_PPU_HEIGHT_3         0xA87A
+#define ADDR_ROM_PATCH_PPU_HEIGHT_4         0xA896
+#define ADDR_ROM_PATCH_PPU_TYPE_A_OVER_120K 0xA8CC
+#define ADDR_ROM_ROCKET_TO_SPRITE           0xAA11
+#define ADDR_ROM_ROCKET_TO_JET_SPRITE       0xAA16
+#define ADDR_ROM_ROCKET_TO_JET_X_OFFSET     0xAA20
+#define ADDR_ROM_ROCKET_TO_X_OFFSET         0xAA25
+#define ADDR_ROM_ROCKET_START_Y             0xAA2A
 
 bool load_reference_rom(NES_State *nes, const char *custom_path) {
     if (!nes) return false;
@@ -366,6 +395,202 @@ int test_rom_tables_match(const NES_State *nes) {
         (void)rom_b;
     }
 
-    printf("  [PASS] test_rom_tables_match (35 ROM data tables verified bit-for-bit)\n");
+    /* Test 36: domeLiftoffDelayTable (4 bytes at $A735) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DOME_LIFTOFF_DELAY_TABLE + i));
+        assert(domeLiftoffDelayTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 37: domeNumberToXOffsetTable (4 bytes at $A739) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DOME_NUMBER_TO_X_OFFSET + i));
+        assert(domeNumberToXOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 38: domeStartHeightsTable (4 bytes at $A73D) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DOME_START_HEIGHTS + i));
+        assert(domeStartHeightsTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 39: domeNumberToSpriteTable (4 bytes at $A741) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DOME_NUMBER_TO_SPRITE + i));
+        assert(domeNumberToSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 40: domeFlameXOffsetTable (4 bytes at $A745) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_DOME_FLAME_X_OFFSET + i));
+        assert(domeFlameXOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 41: ending_typeBCathedralAnimSpeed (10 bytes at $A749) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_ANIM_SPD + i));
+        assert(ending_typeBCathedralAnimSpeed[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 42: ending_typeBCathedralFrameDelayTable (10 bytes at $A753) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_FRAME_DLY + i));
+        assert(ending_typeBCathedralFrameDelayTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 43: cathedralStartDeltaTable (10 bytes at $A75D) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_CATHEDRAL_START_DELTA + i));
+        assert(cathedralStartDeltaTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 44: cathedralEndTargetTable (10 bytes at $A767) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_CATHEDRAL_END_TARGET + i));
+        assert(cathedralEndTargetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 45: ending_typeBCathedralVectorTable (10 bytes at $A771) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_VECTOR + i));
+        assert(ending_typeBCathedralVectorTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 46: ending_typeBCathedralXTable (60 bytes at $A77B) */
+    for (int i = 0; i < 60; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_X_TABLE + i));
+        assert(ending_typeBCathedralXTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 47: ending_typeBCathedralYTable (60 bytes at $A7B7) */
+    for (int i = 0; i < 60; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_Y_TABLE + i));
+        assert(ending_typeBCathedralYTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 48: ending_typeBCathedralSpriteTable (10 bytes at $A7F3) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ENDING_CATHEDRAL_SPRITE + i));
+        assert(ending_typeBCathedralSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 49: marioFrameToYOffsetTable (4 bytes at $A80A) */
+    for (int i = 0; i < 4; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_MARIO_FRAME_TO_Y_OFFSET + i));
+        assert(marioFrameToYOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 50: luigiFrameToYOffsetTable (10 bytes at $A80E) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LUIGI_FRAME_TO_Y_OFFSET + i));
+        assert(luigiFrameToYOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 51: luigiFrameToSpriteTable (10 bytes at $A818) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_LUIGI_FRAME_TO_SPRITE + i));
+        assert(luigiFrameToSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 52: ending_patchToPpu_typeBConcertHeightUnused (18 bytes at $A822) */
+    for (int i = 0; i < 18; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_UNUSED + i));
+        assert(ending_patchToPpu_typeBConcertHeightUnused[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 53: ending_patchToPpu_typeBConcertHeight0 (22 bytes at $A834) */
+    for (int i = 0; i < 22; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_0 + i));
+        assert(ending_patchToPpu_typeBConcertHeight0[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 54: ending_patchToPpu_typeBConcertHeight1 (24 bytes at $A84A) */
+    for (int i = 0; i < 24; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_1 + i));
+        assert(ending_patchToPpu_typeBConcertHeight1[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 55: ending_patchToPpu_typeBConcertHeight2 (24 bytes at $A862) */
+    for (int i = 0; i < 24; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_2 + i));
+        assert(ending_patchToPpu_typeBConcertHeight2[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 56: ending_patchToPpu_typeBConcertHeight3 (28 bytes at $A87A) */
+    for (int i = 0; i < 28; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_3 + i));
+        assert(ending_patchToPpu_typeBConcertHeight3[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 57: ending_patchToPpu_typeBConcertHeight4 (18 bytes at $A896) */
+    for (int i = 0; i < 18; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_HEIGHT_4 + i));
+        assert(ending_patchToPpu_typeBConcertHeight4[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 58: ending_patchToPpu_typeAOver120k (89 bytes at $A8CC) */
+    for (int i = 0; i < 89; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_PATCH_PPU_TYPE_A_OVER_120K + i));
+        assert(ending_patchToPpu_typeAOver120k[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 59: rocketToSpriteTable (5 bytes at $AA11) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ROCKET_TO_SPRITE + i));
+        assert(rocketToSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 60: rocketToJetSpriteTable (10 bytes at $AA16) */
+    for (int i = 0; i < 10; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ROCKET_TO_JET_SPRITE + i));
+        assert(rocketToJetSpriteTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 61: rocketToJetXOffsetTable (5 bytes at $AA20) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ROCKET_TO_JET_X_OFFSET + i));
+        assert(rocketToJetXOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 62: rocketToXOffsetTable (5 bytes at $AA25) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ROCKET_TO_X_OFFSET + i));
+        assert(rocketToXOffsetTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    /* Test 63: rocketStartYTable (5 bytes at $AA2A) */
+    for (int i = 0; i < 5; i++) {
+        uint8_t rom_b = nes_read8(nes, (uint16_t)(ADDR_ROM_ROCKET_START_Y + i));
+        assert(rocketStartYTable[i] == rom_b);
+        (void)rom_b;
+    }
+
+    printf("  [PASS] test_rom_tables_match (63 ROM data tables verified bit-for-bit)\n");
     return 0;
 }

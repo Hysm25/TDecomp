@@ -18,11 +18,11 @@
 | **Alternate Entry Points** | **111** | Secondary entry points into parent routines / shared logic |
 | **Authoritative Data Tables** | **260** | Lookup, geometry, sprite, and audio tables in PRG ROM |
 | **Total PRG Symbols Tracked** | **567** | Complete PRG ROM symbol census |
-| **Verified Routines** | **82** | Bit-exact & differential CPU proven against reference ROM |
+| **Verified Routines** | **97** | Bit-exact & differential CPU proven against reference ROM |
 | **Decompiled (Untested)** | **0** | Code converted but awaiting verification suite |
-| **Remaining Routines** | **89** | Pending conversion |
-| **Current Progress** | **47.95%** | `[########################--------------------------] 47.95%` |
-| **Build & Test Suite** | 12 / 12 suites passing | Unit, 35 ROM data tables, & 6502 differential CPU oracle (55 differential tests) |
+| **Remaining Routines** | **74** | Pending conversion |
+| **Current Progress** | **56.73%** | `[############################----------------------] 56.73%` |
+| **Build & Test Suite** | 13 / 13 suites passing | Unit, 63 ROM data tables, & 6502 differential CPU oracle (65 differential tests) |
 
 ---
 
@@ -36,12 +36,12 @@
 | **GAMEPLAY_STATE** (State Machine, Timers) | 14 | 14 | 0 | 0 | **100.0%** |
 | **TETRIMINO** (Pieces, Spawns, Rotations) | 16 | 13 | 0 | 3 | **81.2%** |
 | **PLAYFIELD** (Grid, Line Clears, Garbage) | 9 | 8 | 0 | 1 | **88.9%** |
+| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 14 | 0 | 2 | **87.5%** |
 | **MENUS_UI** (Title, Menus, High Scores) | 13 | 8 | 0 | 5 | **61.5%** |
-| **RENDER** (PPU, OAM, Palettes, Nametables) | 16 | 9 | 0 | 7 | **56.2%** |
-| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 10 | 0 | 28 | **26.3%** |
+| **CORE_LOGIC** (Helper Utilities, Buffers) | 38 | 20 | 0 | 18 | **52.6%** |
 | **AUDIO** (Music Engine, SFX, APU) | 41 | 2 | 0 | 39 | **4.9%** |
 | **SYSTEM** (Reset, NMI, IRQ, VBlank) | 6 | 0 | 0 | 6 | 0.0% |
-| **TOTAL** | **171** | **82** | **0** | **89** | **47.95%** |
+| **TOTAL** | **171** | **97** | **0** | **74** | **56.73%** |
 
 ---
 
@@ -194,8 +194,29 @@
     - Authoritative data tables bit-exact verified against reference ROM: `pieceToPpuStatAddr` ($96AA, 14 bytes), `levelDisplayTable` ($96B8, 30 bytes), `vramPlayfieldRows` ($96EA, 40 bytes).
     - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `copyPlayfieldRowToVRAM` (1P, 2P Player 1, 2P Player 2, clamp, no-op) and `render_mode_play_and_demo` (1P dirty flags, line clear animation branch, 2P line rendering, tetris flash/SFX) (Tests 54–55).
 
-16. [ ] **Batch 13 (Ending Sequence & Animations)**:
-    - Ending animations (Type A and Type B), cathedral sprite staging, and concert patches.
+16. [x] **Batch 13 (Ending Sequences & Cutscene Animations)**:
+    - Decompiled `endingAnimation` ($9E3A): Master ending cutscene dispatcher setting sprite index 2 and render mode 4, branching to `endingAnimationA` or `endingAnimationB`.
+    - Decompiled `endingAnimationA` ($A926): Full Type A ending sequence with CHR bank 2 setup, nametable copy, palette copy, ending tier selection, sleep, and rocket ascent loop with START wait.
+    - Decompiled `endingAnimationB` ($9E49): Full Type B ending sequence with CHR bank swapping, nametable copy, level & height bonus software BCD countdown with `add100Points` and SFX, and score transfer to `totalScore`.
+    - Decompiled `ending_initTypeBVars` ($A463): Type B initialization setting dome liftoff heights for level 9 or cathedral target / start deltas for levels 0..8.
+    - Decompiled `ending_typeBConcertPatchToPpuForHeight` ($A4B1): Cascading PPU nametable patch dispatcher masking characters for unearned heights.
+    - Decompiled `patchToPpu` ($A507): Streamed PPU nametable byte patch processor with `$FE` address jump and `$FD` terminator.
+    - Decompiled `render_ending` ($A527): Master ending sprite staging dispatcher branching on game type.
+    - Decompiled `ending_typeB` ($A52E): Type B ending sprite staging dispatcher branching to concert (level 9) or cathedral (levels 0..8).
+    - Decompiled `ending_typeBConcert` ($A53B): Guest Nintendo character staging (Mario, Luigi, Peach, Bowser, Donkey Kong, Samus, Link, Pit) across start heights 0..5 with cascading fallthrough and dome liftoff trigger.
+    - Decompiled `ending_typeBCathedral` ($A625): Type B cathedral sprite animation, vector movement, and trigger transitions across levels 0..8.
+    - Decompiled `ending_typeBCathedralSetSprite` ($A690): Cathedral sprite animation speed and index alternating.
+    - Decompiled `ending_computeTypeBCathedralYTableIndex` ($A6AE): Table index calculation `levelNumber * 6 + sprite` and `generalCounter` side-effect.
+    - Decompiled `LA6BC` ($A6BC): Dome liftoff acceleration, sound effect trigger, dome sprites, and thruster flame staging.
+    - Decompiled `render_endingUnskippable` ($A7FD): Unskippable ending frame sleep loop calling `render_ending` and waiting for NMI sync while decrementing `sleepCounter`.
+    - Decompiled `selectEndingScreen` ($A96E): Type A score-based ending tier selection (<50k, <70k, <100k, <120k, >=120k cathedral launch PPU patch) and rocket starting parameters.
+    - Decompiled `ending_selected` ($A9A5): Alternate entry point setting rocket initial Y position and delay counter.
+    - Decompiled `ending_typeA` ($A9B1): Rocket body and flame sprite staging, 240-frame launch delay, and ascent acceleration physics.
+    - Authoritative data tables bit-exact verified against reference ROM: 28 ending tables (63 cumulative verified tables in suite).
+    - 6502 differential CPU oracle: Formally proven equivalent against reference ROM across `selectEndingScreen`, `ending_selected`, `ending_typeA`, `ending_initTypeBVars`, `ending_computeTypeBCathedralYTableIndex`, `ending_typeBCathedralSetSprite`, `LA6BC`, `ending_typeBConcert`, `render_ending`/`ending_typeB`, and `render_endingUnskippable` (Tests 56–65).
+
+17. [ ] **Batch 14 (Audio Subsystem & APU Drivers)**:
+    - Sound effect drivers, music channel scripts, audio initialization, and APU registers.
 
 ---
 
@@ -217,4 +238,5 @@
 | Batch 10 | High Score Operations, Tables, Sorting, Name Entry & Congratulations Render | 11 | 57 | 11 suites / 28 ROM tables + 34 6502 diff | `c24f9c0` |
 | Batch 10 (Part 2) | Mode 5 High Score Operations, GameOver, Reset & State Dispatcher | 10 | 67 | 11 suites / 29 ROM tables + 40 6502 diff | `f299563` |
 | Batch 12 | Playfield Row Streaming, In-Game Play/Demo Render & Tetris Flash | 2 | 82 | 12 suites / 35 ROM tables + 55 6502 diff | `ad44ed4` |
+| Batch 13 | Ending Sequences, Rocket Ascent, Cathedral & Concert Animations | 15 (+1 alt) | 97 | 13 suites / 63 ROM tables + 65 6502 diff | `PENDING` |
 

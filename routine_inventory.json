@@ -6,10 +6,10 @@
     "alternate_entry_points": 111,
     "data_tables": 260,
     "exact_aliases": 0,
-    "verified_routines": 82,
+    "verified_routines": 97,
     "decompiled_untested": 0,
-    "missing_routines": 89,
-    "progress_percentage": 47.95
+    "missing_routines": 74,
+    "progress_percentage": 56.73
   },
   "routines": [
     {
@@ -52,7 +52,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: Master render dispatcher jump table for modes 0..4 differential proven against 6502 ROM (Test 50)"
+      "notes": "Verified: Master render mode dispatcher (0..4) differential proven against 6502 ROM (Test 50)"
     },
     {
       "name": "initRamContinued",
@@ -80,7 +80,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: Mode 4/5 JSR jump target to playAndEndingHighScore differential proven against 6502 ROM"
+      "notes": "Verified: JSR wrapper for play and demo mode verified"
     },
     {
       "name": "branchOnGameMode",
@@ -108,7 +108,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: P1 state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 51)"
+      "notes": "Verified: P1 state update, piece/next staging, and save differential proven against 6502 ROM"
     },
     {
       "name": "gameModeState_updatePlayer2",
@@ -122,7 +122,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: 2-player state sync, playState branch, piece sprite staging, and state increment differential proven against 6502 ROM (Test 52)"
+      "notes": "Verified: P2 state update, piece staging, and save differential proven against 6502 ROM"
     },
     {
       "name": "gameMode_playAndEndingHighScore",
@@ -136,7 +136,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: Master states 0..8 dispatcher differential proven against 6502 ROM switch_s_plus_2a jump table"
+      "notes": "Verified: Master gameplay/demo dispatcher branching across states 0..8 verified"
     },
     {
       "name": "branchOnPlayStatePlayer1",
@@ -234,7 +234,7 @@
       "table_referenced": true,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: Legal/title screen PPUCTRL masking and scroll flush differential proven against 6502 ROM (Test 47)"
+      "notes": "Verified: Mode 0 scroll and PPUCTRL update differential proven against 6502 ROM (Test 47)"
     },
     {
       "name": "gameMode_gameTypeMenu",
@@ -905,8 +905,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master ending dispatcher setting sprite index 2 and renderMode 4, branching to endingAnimationA or B"
     },
     {
       "name": "endingAnimationB",
@@ -919,8 +919,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B ending cutscene runner with CHR banking, bonus BCD countdown, and score transfer"
     },
     {
       "name": "add100Points",
@@ -1130,7 +1130,7 @@
       "table_referenced": false,
       "parent_routine": null,
       "status": "VERIFIED",
-      "notes": "Verified: Goal check return stub incrementing playState differential proven against 6502 ROM (Test 53)"
+      "notes": "Verified: Goal check return stub incrementing playState differential proven against 6502 ROM"
     },
     {
       "name": "sleep_for_14_vblanks",
@@ -1185,8 +1185,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Level 9 dome height setup and concert patch vs levels 0..8 cathedral motion parameters differential proven against 6502 ROM (Test 59)"
     },
     {
       "name": "ending_typeBConcertPatchToPpuForHeight",
@@ -1199,8 +1199,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU nametable masking patches for Type B concert character erasure"
     },
     {
       "name": "patchToPpu",
@@ -1213,8 +1213,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: PPU nametable byte stream patch processor with $FE address jump and $FD terminator"
     },
     {
       "name": "render_ending",
@@ -1227,8 +1227,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Master ending sprite staging dispatcher branching on gameType differential proven against 6502 ROM (Test 64)"
     },
     {
       "name": "ending_typeB",
@@ -1241,8 +1241,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type B cutscene sprite staging branching to concert (level 9) or cathedral (0..8) differential proven against 6502 ROM (Test 64)"
     },
     {
       "name": "ending_typeBConcert",
@@ -1255,8 +1255,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Guest Nintendo character sprite staging across start heights 0..5 and dome liftoff trigger differential proven against 6502 ROM (Test 63)"
     },
     {
       "name": "ending_typeBCathedral",
@@ -1269,8 +1269,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral character animation, vector movement, sprite trigger transitions differential proven against 6502 ROM"
     },
     {
       "name": "ending_typeBCathedralSetSprite",
@@ -1283,8 +1283,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Cathedral sprite animation speed and index alternating differential proven against 6502 ROM (Test 61)"
     },
     {
       "name": "ending_computeTypeBCathedralYTableIndex",
@@ -1297,8 +1297,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: levelNumber * 6 + sprite index computation and generalCounter side effect differential proven against 6502 ROM (Test 60)"
     },
     {
       "name": "LA6BC",
@@ -1311,8 +1311,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Dome liftoff acceleration, sound effect trigger, and flame staging differential proven against 6502 ROM (Test 62)"
     },
     {
       "name": "render_endingUnskippable",
@@ -1325,8 +1325,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Frame sleep loop with render_ending and sleepCounter countdown differential proven against 6502 ROM (Test 65)"
     },
     {
       "name": "endingAnimationA",
@@ -1339,8 +1339,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type A rocket ending cutscene runner with CHR banking, nametable load, tier selection, and START wait"
     },
     {
       "name": "selectEndingScreen",
@@ -1353,8 +1353,8 @@
       "jsr_called": true,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Type A ending tier 0..4 selection based on score BCD thresholds and cathedral launch PPU patch differential proven against 6502 ROM (Test 56)"
     },
     {
       "name": "updateAudioWaitForNmiAndResetOamStaging",
@@ -2923,8 +2923,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": "selectEndingScreen",
-      "status": "MISSING",
-      "notes": ""
+      "status": "VERIFIED",
+      "notes": "Verified: Rocket starting Y coordinate and delay initialization differential proven against 6502 ROM (Test 57)"
     },
     {
       "name": "LA9FC",
@@ -4045,8 +4045,8 @@
       "jsr_called": false,
       "table_referenced": false,
       "parent_routine": null,
-      "status": "VERIFIED",
-      "notes": "Verified: 44-byte Type B nametable patch verified bit-exact against reference ROM at 6B0"
+      "status": "MISSING",
+      "notes": ""
     },
     {
       "name": "typeBBlankInitCountByHeightTable",

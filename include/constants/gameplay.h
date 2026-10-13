@@ -101,6 +101,17 @@ extern "C" {
 #define LEVEL_MAX                   9
 #define HEIGHT_MAX                  5
 
+/* Ending Cutscene Sleep Timings (NTSC) */
+#define ENDING_SLEEP_TIME_1         0x80
+#define ENDING_SLEEP_TIME_2         0x40
+#define ENDING_SLEEP_TIME_3         0x02
+
+/* MMC1 CHR ROM Bank Indices */
+#define CHR_TITLE_MENU              0x00
+#define CHR_TYPEB_ENDING            0x01
+#define CHR_TYPEA_ENDING            0x02
+#define CHR_GAME                    0x03
+
 /* Play States within Mode 4 (main.asm lines 474-515 switch_s_plus_2a table) */
 #define PLAYSTATE_UNASSIGN_ORIENTATION        0
 #define PLAYSTATE_CONTROL_ACTIVE              1
